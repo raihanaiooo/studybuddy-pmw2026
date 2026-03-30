@@ -52,6 +52,7 @@ class AppRoutes {
       name: customerDashboard,
       page: () => const CustomerDashboardScreen(),
       binding: BindingsBuilder(() {
+        Get.lazyPut(() => AuthController());
         Get.lazyPut(() => DashboardController());
         Get.lazyPut(() => TutorController());
       }),

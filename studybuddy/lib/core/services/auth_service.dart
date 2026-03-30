@@ -19,31 +19,77 @@ class AuthService {
   }
 
   /// Registrasi user baru, simpan data ke tabel users
+  // Future<UserModel> signUp({
+  //   required String email,
+  //   required String password,
+  //   required String fullName,
+  //   required String role, // 'customer' | 'tutor'
+  // }) async {
+  //   final response = await _client.auth.signUp(
+  //     email: email,
+  //     password: password,
+  //     data: {'full_name': fullName, 'role': role},
+  //   );
+
+  //   if (response.user == null) throw Exception('Registrasi gagal');
+
+  //   final userData = {
+  //     'id': response.user!.id,
+  //     'email': email,
+  //     'full_name': fullName,
+  //     'role': role,
+  //     'created_at': DateTime.now().toIso8601String(),
+  //   };
+
+  //   await _client.from(SupabaseConstants.tableUsers).insert(userData);
+
+  //   return UserModel.fromMap(userData);
+  // }
+
   Future<UserModel> signUp({
     required String email,
     required String password,
     required String fullName,
-    required String role, // 'customer' | 'tutor'
+    required String role,
   }) async {
-    final response = await _client.auth.signUp(
-      email: email,
-      password: password,
-      data: {'full_name': fullName, 'role': role},
-    );
+    try {
+      final response = await _client.auth.signUp(
+        email: email,
+        password: password,
+        data: {'full_name': fullName, 'role': role},
+      );
 
-    if (response.user == null) throw Exception('Registrasi gagal');
+      print('=== SIGNUP RESPONSE ===');
+      print('User: ${response.user}');
+      print('Session: ${response.session}');
 
-    final userData = {
-      'id': response.user!.id,
-      'email': email,
-      'full_name': fullName,
-      'role': role,
-      'created_at': DateTime.now().toIso8601String(),
-    };
+      if (response.user == null) throw Exception('Registrasi gagal: user null');
 
-    await _client.from(SupabaseConstants.tableUsers).insert(userData);
+      final userData = {
+        'id': response.user!.id,
+        'email': email,
+        'full_name': fullName,
+        'role': role,
+        'created_at': DateTime.now().toIso8601String(),
+      };
 
-    return UserModel.fromMap(userData);
+      print('=== INSERTING USER DATA ===');
+      print(userData);
+
+      final insertResult = await _client
+          .from(SupabaseConstants.tableUsers)
+          .insert(userData);
+
+      print('=== INSERT RESULT ===');
+      print(insertResult);
+
+      return UserModel.fromMap(userData);
+    } catch (e, stack) {
+      print('=== SIGNUP ERROR ===');
+      print('Error: $e');
+      print('Stack: $stack');
+      rethrow;
+    }
   }
 
   /// Logout user
