@@ -43,12 +43,15 @@ class _LoginScreenState extends State<LoginScreen> {
           Positioned(
             top: -80,
             right: -80,
-            child: _blob(280, Colors.white.withOpacity(0.06)),
+            child: _blob(280, Colors.white.withAlpha((0.06 * 255).round())),
           ),
           Positioned(
             bottom: 150,
             left: -60,
-            child: _blob(180, AppColors.primaryYellow.withOpacity(0.12)),
+            child: _blob(
+              180,
+              AppColors.primaryYellow.withAlpha((0.12 * 255).round()),
+            ),
           ),
 
           SafeArea(
@@ -67,7 +70,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(24),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.18),
+                              color: Colors.black.withAlpha(
+                                (0.18 * 255).round(),
+                              ),
                               blurRadius: 28,
                               offset: const Offset(0, 8),
                             ),

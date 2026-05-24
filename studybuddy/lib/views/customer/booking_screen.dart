@@ -21,6 +21,9 @@ class _BookingScreenState extends State<BookingScreen> {
   TimeOfDay? _selectedTime;
   int _duration = 60;
   String _sessionType = 'video';
+  // Prototype mode: don't call backend, just show UI flow
+  final bool _prototypeMode = true;
+  String _package = 'Standar';
 
   @override
   void dispose() {
@@ -65,6 +68,12 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
+  bool get _isTooSoon {
+    final dt = _sessionDateTime;
+    if (dt == null) return false;
+    return dt.difference(DateTime.now()).inHours < 5;
+  }
+
   @override
   Widget build(BuildContext context) {
     final ctrl = Get.find<BookingController>();
@@ -103,7 +112,9 @@ class _BookingScreenState extends State<BookingScreen> {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primaryBlue.withOpacity(0.08),
+                      color: AppColors.primaryBlue.withAlpha(
+                        (0.08 * 255).round(),
+                      ),
                       blurRadius: 8,
                     ),
                   ],
@@ -149,7 +160,7 @@ class _BookingScreenState extends State<BookingScreen> {
               padding: const EdgeInsets.all(12),
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
-                color: AppColors.primaryBlue.withOpacity(0.08),
+                color: AppColors.primaryBlue.withAlpha((0.08 * 255).round()),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -188,6 +199,19 @@ class _BookingScreenState extends State<BookingScreen> {
                 _sessionTypeChip('video', '📹 Via Google Meet'),
                 const SizedBox(width: 10),
                 _sessionTypeChip('chat', '💬 Via Chat'),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Paket
+            _sectionTitle('Paket'),
+            Row(
+              children: [
+                _packageChip('Standar', 'Rp normal'),
+                const SizedBox(width: 8),
+                _packageChip('Intensif', 'Lebih fokus'),
+                const SizedBox(width: 8),
+                _packageChip('Paket 3', 'Diskon 10%'),
               ],
             ),
             const SizedBox(height: 16),
@@ -257,7 +281,18 @@ class _BookingScreenState extends State<BookingScreen> {
             ),
             const SizedBox(height: 28),
 
-            // Error
+            // Validation / Error
+            if (_isTooSoon)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  'Booking harus dilakukan minimal 5 jam sebelum sesi',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.primaryRed,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             Obx(
               () => ctrl.errorMessage.value.isNotEmpty
                   ? Padding(
@@ -278,26 +313,19 @@ class _BookingScreenState extends State<BookingScreen> {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: ctrl.isLoading.value || tutor == null
+                  onPressed:
+                      tutor == null || _sessionDateTime == null || _isTooSoon
                       ? null
                       : () {
-                          if (_sessionDateTime == null ||
-                              _subjectCtrl.text.isEmpty) {
-                            Get.snackbar(
-                              'Perhatian',
-                              'Lengkapi tanggal, jam, dan mata kuliah',
-                            );
+                          if (_subjectCtrl.text.isEmpty) {
+                            Get.snackbar('Perhatian', 'Lengkapi mata kuliah');
                             return;
                           }
-                          ctrl.createBooking(
-                            tutorId: tutor.id,
-                            sessionTime: _sessionDateTime!,
-                            durationMinutes: _duration,
-                            subject: _subjectCtrl.text,
-                            sessionType: _sessionType,
-                            notes: _notesCtrl.text.isNotEmpty
-                                ? _notesCtrl.text
-                                : null,
+                          // Prototype booking flow: show summary modal
+                          _showBookingSummary(
+                            context,
+                            tutor,
+                            _sessionDateTime!,
                           );
                         },
                   style: ElevatedButton.styleFrom(
@@ -402,5 +430,202 @@ class _BookingScreenState extends State<BookingScreen> {
       borderSide: const BorderSide(color: AppColors.primaryBlue, width: 1.5),
     ),
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+  );
+
+  double _calcTotalPrice(TutorModel? tutor) {
+    if (tutor == null) return 0.0;
+    final hours = _duration / 60.0;
+    double base = tutor.pricePerHour * hours;
+    double multiplier = 1.0;
+    if (_package == 'Intensif') multiplier = 1.2;
+    if (_package == 'Paket 3') multiplier = 0.9;
+    return base * multiplier;
+  }
+
+  Widget _packageChip(String name, String subtitle) => Expanded(
+    child: GestureDetector(
+      onTap: () => setState(() => _package = name),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: _package == name ? AppColors.primaryBlue : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: _package == name ? AppColors.primaryBlue : AppColors.border,
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Column(
+          children: [
+            Text(
+              name,
+              style: AppTextStyles.caption.copyWith(
+                color: _package == name
+                    ? Colors.white
+                    : AppColors.textSecondary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: AppTextStyles.body.copyWith(
+                color: _package == name ? Colors.white70 : AppColors.textLight,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  void _showBookingSummary(
+    BuildContext context,
+    TutorModel tutor,
+    DateTime sessionTime,
+  ) {
+    final price = _calcTotalPrice(tutor);
+    final fmt = NumberFormat.currency(
+      locale: 'id',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.border,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+              Text('Ringkasan Booking', style: AppTextStyles.heading2),
+              const SizedBox(height: 12),
+
+              // Summary rows
+              _summaryRow('Tutor', tutor.fullName),
+              const SizedBox(height: 8),
+              _summaryRow('Mata Kuliah', _subjectCtrl.text),
+              const SizedBox(height: 8),
+              _summaryRow(
+                'Tipe Sesi',
+                _sessionType == 'video' ? 'Video (Google Meet)' : 'Chat',
+              ),
+              const SizedBox(height: 8),
+              _summaryRow('Paket', _package),
+              const SizedBox(height: 8),
+              _summaryRow(
+                'Tanggal / Jam',
+                DateFormat(
+                  'EEEE, dd MMM yyyy • HH:mm',
+                  'id',
+                ).format(sessionTime),
+              ),
+              const SizedBox(height: 8),
+              _summaryRow('Durasi', '${_duration ~/ 60} jam'),
+              const SizedBox(height: 8),
+              _summaryRow(
+                'Catatan',
+                _notesCtrl.text.isNotEmpty ? _notesCtrl.text : '-',
+              ),
+              const SizedBox(height: 12),
+
+              // Price
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Total', style: AppTextStyles.heading3),
+                  Text(fmt.format(price), style: AppTextStyles.heading2),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Actions
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      child: const Text('Edit'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
+                        if (_prototypeMode) {
+                          Get.snackbar(
+                            'Berhasil',
+                            'Booking berhasil dibuat (prototype)',
+                          );
+                          // Navigate to schedule screen mock
+                          Get.toNamed('/customer/schedule');
+                        } else {
+                          final ctrl = Get.find<BookingController>();
+                          ctrl.createBooking(
+                            tutorId: tutor.id,
+                            sessionTime: sessionTime,
+                            durationMinutes: _duration,
+                            subject: _subjectCtrl.text,
+                            sessionType: _sessionType,
+                            notes: _notesCtrl.text.isNotEmpty
+                                ? _notesCtrl.text
+                                : null,
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryBlue,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text('Konfirmasi Booking'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _summaryRow(String label, String value) => Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      Expanded(child: Text(label, style: AppTextStyles.caption)),
+      const SizedBox(width: 8),
+      Expanded(
+        flex: 2,
+        child: Text(
+          value,
+          textAlign: TextAlign.right,
+          style: AppTextStyles.body,
+        ),
+      ),
+    ],
   );
 }

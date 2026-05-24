@@ -173,13 +173,31 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
+            color: Colors.white.withAlpha((0.15 * 255).round()),
             borderRadius: BorderRadius.circular(12),
           ),
           child: const Icon(
             Icons.notifications_outlined,
             color: Colors.white,
             size: 22,
+          ),
+        ),
+        const SizedBox(width: 8),
+        // Operational shortcut
+        GestureDetector(
+          onTap: () => Get.toNamed(AppRoutes.operational),
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha((0.12 * 255).round()),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.admin_panel_settings_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
           ),
         ),
       ],
@@ -199,7 +217,7 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryRed.withOpacity(0.3),
+            color: AppColors.primaryRed.withAlpha((0.3 * 255).round()),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),

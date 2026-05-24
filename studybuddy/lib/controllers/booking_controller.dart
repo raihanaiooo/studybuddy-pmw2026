@@ -4,7 +4,8 @@ import '../core/services/auth_service.dart';
 import '../core/constants/supabase_constants.dart';
 import '../core/utils/date_utils.dart';
 import '../models/booking_model.dart';
-import '../app/routes.dart';
+import '../core/constants/prototype.dart';
+import '../core/services/mock_service.dart';
 
 /// Controller untuk pembuatan dan manajemen booking
 class BookingController extends GetxController {
@@ -27,6 +28,20 @@ class BookingController extends GetxController {
     try {
       final user = await _authService.getCurrentUser();
       if (user == null) return;
+
+      if (kUseMock) {
+        final list = await MockService.fetchBookingsForUser(
+          user.id,
+          role: user.role,
+        );
+        final bookings = list.map((e) => BookingModel.fromMap(e)).toList();
+        if (user.role == 'tutor') {
+          tutorBookings.value = bookings;
+        } else {
+          myBookings.value = bookings;
+        }
+        return;
+      }
 
       final column = user.role == 'tutor' ? 'tutor_id' : 'customer_id';
 
@@ -84,6 +99,15 @@ class BookingController extends GetxController {
         'created_at': DateTime.now().toIso8601String(),
       };
 
+      if (kUseMock) {
+        final rec = await MockService.createBooking(booking);
+        // Update local list
+        myBookings.insert(0, BookingModel.fromMap(rec));
+        Get.back();
+        Get.snackbar('Berhasil', 'Booking berhasil dibuat (mock)');
+        return;
+      }
+
       await SupabaseService.client
           .from(SupabaseConstants.tableBookings)
           .insert(booking);
@@ -100,6 +124,12 @@ class BookingController extends GetxController {
 
   /// Batalkan booking
   Future<void> cancelBooking(String bookingId) async {
+    if (kUseMock) {
+      await MockService.cancelBooking(bookingId);
+      await fetchMyBookings();
+      return;
+    }
+
     await SupabaseService.client
         .from(SupabaseConstants.tableBookings)
         .update({'status': 'cancelled'})

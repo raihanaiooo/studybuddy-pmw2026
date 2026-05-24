@@ -2,7 +2,6 @@ import 'package:get/get.dart';
 import '../core/services/supabase_service.dart';
 import '../core/services/auth_service.dart';
 import '../core/constants/supabase_constants.dart';
-import '../models/review_model.dart';
 import '../app/routes.dart';
 
 /// Controller untuk submit dan tampilkan rating & ulasan

@@ -31,7 +31,7 @@ class TutorCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryBlue.withOpacity(0.1),
+              color: AppColors.primaryBlue.withAlpha((0.1 * 255).round()),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -109,7 +109,9 @@ class TutorCard extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.onlineGreen.withOpacity(0.12),
+                      color: AppColors.onlineGreen.withAlpha(
+                        (0.12 * 255).round(),
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(

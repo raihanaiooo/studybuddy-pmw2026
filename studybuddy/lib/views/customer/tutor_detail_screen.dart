@@ -120,7 +120,9 @@ class TutorDetailScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryBlue.withOpacity(0.08),
+                            color: AppColors.primaryBlue.withAlpha(
+                              (0.08 * 255).round(),
+                            ),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -169,7 +171,9 @@ class TutorDetailScreen extends StatelessWidget {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.primaryBlue.withOpacity(0.08),
+                                color: AppColors.primaryBlue.withAlpha(
+                                  (0.08 * 255).round(),
+                                ),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(

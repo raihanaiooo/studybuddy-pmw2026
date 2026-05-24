@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../core/constants/app_colors.dart';
+import '../core/constants/prototype.dart';
 import 'routes.dart';
 
 class StudyBuddyApp extends StatelessWidget {
@@ -16,7 +17,7 @@ class StudyBuddyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryBlue),
         useMaterial3: true,
       ),
-      initialRoute: AppRoutes.splash,
+      initialRoute: kUseMock ? AppRoutes.customerDashboard : AppRoutes.splash,
       getPages: AppRoutes.pages,
     );
   }

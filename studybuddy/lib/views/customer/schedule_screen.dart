@@ -20,6 +20,16 @@ class CustomerScheduleScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.blueDark,
         foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          onPressed: () {
+            if (Get.key.currentState?.canPop() ?? false) {
+              Get.back();
+            } else {
+              Get.offAllNamed(AppRoutes.customerDashboard);
+            }
+          },
+        ),
         title: Text(
           'Jadwal Saya',
           style: AppTextStyles.heading3.copyWith(
@@ -66,7 +76,9 @@ class CustomerScheduleScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primaryBlue.withOpacity(0.08),
+                    color: AppColors.primaryBlue.withAlpha(
+                      (0.08 * 255).round(),
+                    ),
                     blurRadius: 8,
                   ),
                 ],

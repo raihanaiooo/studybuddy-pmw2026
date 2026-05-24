@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../constants/supabase_constants.dart';
 import 'supabase_service.dart';
 import '../../models/user_model.dart';
+import '../constants/prototype.dart';
 
 /// Service layer untuk semua operasi autentikasi via Supabase Auth
 class AuthService {
@@ -59,10 +60,6 @@ class AuthService {
         data: {'full_name': fullName, 'role': role},
       );
 
-      print('=== SIGNUP RESPONSE ===');
-      print('User: ${response.user}');
-      print('Session: ${response.session}');
-
       if (response.user == null) throw Exception('Registrasi gagal: user null');
 
       final userData = {
@@ -73,21 +70,10 @@ class AuthService {
         'created_at': DateTime.now().toIso8601String(),
       };
 
-      print('=== INSERTING USER DATA ===');
-      print(userData);
-
-      final insertResult = await _client
-          .from(SupabaseConstants.tableUsers)
-          .insert(userData);
-
-      print('=== INSERT RESULT ===');
-      print(insertResult);
+      await _client.from(SupabaseConstants.tableUsers).insert(userData);
 
       return UserModel.fromMap(userData);
-    } catch (e, stack) {
-      print('=== SIGNUP ERROR ===');
-      print('Error: $e');
-      print('Stack: $stack');
+    } catch (e) {
       rethrow;
     }
   }
@@ -99,16 +85,33 @@ class AuthService {
 
   /// Ambil data user yang sedang login dari tabel users
   Future<UserModel?> getCurrentUser() async {
-    final authUser = _client.auth.currentUser;
-    if (authUser == null) return null;
+    // For prototype/demo mode, return a mock user without calling Supabase
+    try {
+      // Delay removed to keep it fast
+      if (kUseMock) {
+        final Map<String, dynamic> m = {
+          'id': 'c_demo',
+          'email': 'demo@user.test',
+          'full_name': 'Demo User',
+          'role': 'customer',
+          'created_at': DateTime.now().toIso8601String(),
+        };
+        return UserModel.fromMap(m);
+      }
 
-    final data = await _client
-        .from(SupabaseConstants.tableUsers)
-        .select()
-        .eq('id', authUser.id)
-        .single();
+      final authUser = _client.auth.currentUser;
+      if (authUser == null) return null;
 
-    return UserModel.fromMap(data);
+      final data = await _client
+          .from(SupabaseConstants.tableUsers)
+          .select()
+          .eq('id', authUser.id)
+          .single();
+
+      return UserModel.fromMap(data);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Update status online tutor

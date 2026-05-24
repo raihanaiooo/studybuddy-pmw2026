@@ -8,17 +8,17 @@ import '../views/customer/tutor_detail_screen.dart';
 import '../views/customer/booking_screen.dart';
 import '../views/customer/schedule_screen.dart';
 import '../views/customer/profile_screen.dart';
-import '../views/tutor/tutor_dashboard_screen.dart';
-import '../views/tutor/tutor_schedule_screen.dart';
-import '../views/tutor/tutor_profile_screen.dart';
+
 import '../views/session/session_screen.dart';
 import '../views/session/review_screen.dart';
+import '../views/management/operational_screen.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/dashboard_controller.dart';
 import '../controllers/tutor_controller.dart';
 import '../controllers/booking_controller.dart';
 import '../controllers/session_controller.dart';
 import '../controllers/review_controller.dart';
+import '../controllers/operational_controller.dart';
 
 class AppRoutes {
   static const splash = '/';
@@ -35,6 +35,7 @@ class AppRoutes {
   static const tutorProfile = '/tutor/profile';
   static const session = '/session';
   static const review = '/review';
+  static const operational = '/operational';
 
   static final pages = [
     GetPage(name: splash, page: () => const SplashScreen()),
@@ -77,11 +78,14 @@ class AppRoutes {
       page: () => const CustomerScheduleScreen(),
       binding: BindingsBuilder(() => Get.lazyPut(() => BookingController())),
     ),
-    // GetPage(
-    //   name: customerProfile,
-    //   page: () => const CustomerProfileScreen(),
-    //   binding: BindingsBuilder(() => Get.lazyPut(() => AuthController())),
-    // ),
+    GetPage(
+      name: customerProfile,
+      page: () => const CustomerProfileScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => AuthController());
+        Get.lazyPut(() => DashboardController());
+      }),
+    ),
     // GetPage(
     //   name: tutorDashboard,
     //   page: () => const TutorDashboardScreen(),
@@ -109,6 +113,13 @@ class AppRoutes {
       name: review,
       page: () => const ReviewScreen(),
       binding: BindingsBuilder(() => Get.lazyPut(() => ReviewController())),
+    ),
+    GetPage(
+      name: operational,
+      page: () => const OperationalScreen(),
+      binding: BindingsBuilder(
+        () => Get.lazyPut(() => OperationalController()),
+      ),
     ),
   ];
 }

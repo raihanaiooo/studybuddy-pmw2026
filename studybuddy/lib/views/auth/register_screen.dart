@@ -87,10 +87,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryYellow.withOpacity(0.1),
+                      color: AppColors.primaryYellow.withAlpha(
+                        (0.1 * 255).round(),
+                      ),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: AppColors.primaryYellow.withOpacity(0.3),
+                        color: AppColors.primaryYellow.withAlpha(
+                          (0.3 * 255).round(),
+                        ),
                       ),
                     ),
                     child: Text(
@@ -222,7 +226,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           boxShadow: _selectedRole == role
               ? [
                   BoxShadow(
-                    color: AppColors.primaryBlue.withOpacity(0.1),
+                    color: AppColors.primaryBlue.withAlpha((0.1 * 255).round()),
                     blurRadius: 8,
                   ),
                 ]

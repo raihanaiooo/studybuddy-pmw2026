@@ -5,6 +5,8 @@ import '../core/services/supabase_service.dart';
 import '../core/constants/supabase_constants.dart';
 import '../models/session_model.dart';
 import '../app/routes.dart';
+import '../core/constants/prototype.dart';
+import '../core/services/mock_service.dart';
 
 /// Controller untuk sesi belajar: timer chat & launch GMeet
 class SessionController extends GetxController {
@@ -15,6 +17,20 @@ class SessionController extends GetxController {
 
   /// Mulai sesi dari data booking
   Future<void> startSession(String bookingId, String? gmeetLink) async {
+    if (kUseMock) {
+      final data = await MockService.startSession({
+        'booking_id': bookingId,
+        'gmeet_link': gmeetLink,
+      });
+      currentSession.value = SessionModel.fromMap(data);
+      if (gmeetLink != null) {
+        await _launchGmeet(gmeetLink);
+      } else {
+        _startTimer();
+      }
+      return;
+    }
+
     final sessionData = {
       'booking_id': bookingId,
       'start_time': DateTime.now().toIso8601String(),
@@ -60,20 +76,27 @@ class SessionController extends GetxController {
     isTimerRunning.value = false;
 
     if (currentSession.value != null) {
-      await SupabaseService.client
-          .from(SupabaseConstants.tableSessions)
-          .update({
-            'end_time': DateTime.now().toIso8601String(),
-            'status': 'ended',
-            'elapsed_seconds': timerSeconds.value,
-          })
-          .eq('id', currentSession.value!.id);
+      if (kUseMock) {
+        await MockService.endSession(
+          currentSession.value!.id,
+          timerSeconds.value,
+        );
+      } else {
+        await SupabaseService.client
+            .from(SupabaseConstants.tableSessions)
+            .update({
+              'end_time': DateTime.now().toIso8601String(),
+              'status': 'ended',
+              'elapsed_seconds': timerSeconds.value,
+            })
+            .eq('id', currentSession.value!.id);
 
-      // Update status booking jadi 'done'
-      await SupabaseService.client
-          .from(SupabaseConstants.tableBookings)
-          .update({'status': 'done'})
-          .eq('id', currentSession.value!.bookingId);
+        // Update status booking jadi 'done'
+        await SupabaseService.client
+            .from(SupabaseConstants.tableBookings)
+            .update({'status': 'done'})
+            .eq('id', currentSession.value!.bookingId);
+      }
     }
 
     Get.offNamed(AppRoutes.review);

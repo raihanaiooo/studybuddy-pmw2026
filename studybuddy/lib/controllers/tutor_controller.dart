@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import '../core/services/supabase_service.dart';
 import '../core/constants/supabase_constants.dart';
+import '../core/constants/prototype.dart';
+import '../core/services/mock_service.dart';
 import '../models/tutor_model.dart';
 import '../models/review_model.dart';
 
@@ -28,6 +30,12 @@ class TutorController extends GetxController {
   Future<void> fetchAllTutors() async {
     isLoading.value = true;
     try {
+      if (kUseMock) {
+        tutors.value = await MockService.fetchTutors();
+        filtered.value = tutors;
+        return;
+      }
+
       final data = await SupabaseService.client
           .from(SupabaseConstants.tableTutors)
           .select()
@@ -36,6 +44,10 @@ class TutorController extends GetxController {
       tutors.value = (data as List)
           .map((e) => TutorModel.fromMap(e as Map<String, dynamic>))
           .toList();
+      filtered.value = tutors;
+    } catch (e) {
+      // If supabase fails, fallback to mock data
+      tutors.value = await MockService.fetchTutors();
       filtered.value = tutors;
     } finally {
       isLoading.value = false;
@@ -63,6 +75,11 @@ class TutorController extends GetxController {
 
   /// Fetch ulasan untuk tutor tertentu
   Future<void> _fetchReviews(String tutorId) async {
+    if (kUseMock) {
+      tutorReviews.value = await MockService.fetchReviews(tutorId);
+      return;
+    }
+
     final data = await SupabaseService.client
         .from(SupabaseConstants.tableReviews)
         .select()
