@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
-import '../core/services/supabase_service.dart';
-import '../core/services/realtime_service.dart';
-import '../core/constants/supabase_constants.dart';
-import '../models/tutor_model.dart';
+import '../../core/services/supabase_service.dart';
+import '../../core/services/realtime_service.dart';
+import '../../shared/constants/supabase_constants.dart';
+import '../../models/tutor_model.dart';
 
 /// Controller untuk dashboard: tutor online & statistik
 class DashboardController extends GetxController {

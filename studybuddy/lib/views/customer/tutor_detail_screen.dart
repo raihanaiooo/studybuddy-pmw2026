@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../controllers/tutor_controller.dart';
-import '../../core/constants/app_colors.dart';
-import '../../core/constants/app_text_styles.dart';
+import '../../controllers/tutor/tutor_controller.dart';
+import '../../shared/constants/app_colors.dart';
+import '../../shared/constants/app_text_styles.dart';
 import '../../app/routes.dart';
 
 /// Halaman profil & portofolio tutor detail, lengkap dengan rating & CTA booking

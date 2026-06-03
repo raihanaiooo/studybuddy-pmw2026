@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_text_styles.dart';
-import '../../../models/tutor_model.dart';
+import '../constants/app_colors.dart';
+import '../constants/app_text_styles.dart';
+import '../../models/tutor_model.dart';
 
 /// Card tutor untuk list discovery maupun tampilan online tutors
 class TutorCard extends StatelessWidget {

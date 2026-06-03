@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../controllers/booking_controller.dart';
-import '../../core/constants/app_colors.dart';
-import '../../core/constants/app_text_styles.dart';
+import '../../controllers/customer/booking_controller.dart';
+import '../../shared/constants/app_colors.dart';
+import '../../shared/constants/app_text_styles.dart';
 import '../../core/utils/date_utils.dart';
 import '../../app/routes.dart';
-import '../shared/widgets/status_badge.dart';
+import '../../shared/widgets/status_badge.dart';
 
 /// Screen jadwal booking customer
 class CustomerScheduleScreen extends StatelessWidget {

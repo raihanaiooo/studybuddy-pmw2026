@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../core/constants/app_colors.dart';
-import '../core/constants/prototype.dart';
+import '../shared/constants/app_colors.dart';
+import '../shared/constants/prototype.dart';
 import 'routes.dart';
 
 class StudyBuddyApp extends StatelessWidget {

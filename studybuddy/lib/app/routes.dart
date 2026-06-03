@@ -1,4 +1,7 @@
+// ─────IMPORT FLUTTER PACKAGES/MODULES─────────────────────────────────────────────────────────────────────────
 import 'package:get/get.dart';
+
+// ─────IMPORT SCREENS ──────────────────────────────────────────────────────────────────────────────
 import '../views/auth/splash_screen.dart';
 import '../views/auth/login_screen.dart';
 import '../views/auth/register_screen.dart';
@@ -8,17 +11,24 @@ import '../views/customer/tutor_detail_screen.dart';
 import '../views/customer/booking_screen.dart';
 import '../views/customer/schedule_screen.dart';
 import '../views/customer/profile_screen.dart';
-
 import '../views/session/session_screen.dart';
 import '../views/session/review_screen.dart';
 import '../views/management/operational_screen.dart';
+import '../views/tutor/tutor_schedule_screen.dart';
+import '../views/tutor/tutor_profile_screen.dart';
+import '../views/tutor/tutor_dashboard_screen.dart';
+
+// ─────IMPORT CONTROLLERS──────────────────────────────────────────────────────────────────────────────
 import '../controllers/auth_controller.dart';
-import '../controllers/dashboard_controller.dart';
-import '../controllers/tutor_controller.dart';
-import '../controllers/booking_controller.dart';
-import '../controllers/session_controller.dart';
-import '../controllers/review_controller.dart';
-import '../controllers/operational_controller.dart';
+import '../controllers/manajemen/dashboard_controller.dart';
+import '../controllers/tutor/tutor_controller.dart';
+import '../controllers/customer/booking_controller.dart';
+import '../controllers/customer/session_controller.dart';
+import '../controllers/customer/review_controller.dart';
+import '../controllers/manajemen/operational_controller.dart';
+import '../controllers/tutor/tutor_dashboard_controller.dart';
+import '../controllers/tutor/tutor_schedule_controller.dart';
+import '../controllers/tutor/tutor_profile_controller.dart';
 
 class AppRoutes {
   static const splash = '/';
@@ -86,24 +96,30 @@ class AppRoutes {
         Get.lazyPut(() => DashboardController());
       }),
     ),
-    // GetPage(
-    //   name: tutorDashboard,
-    //   page: () => const TutorDashboardScreen(),
-    //   binding: BindingsBuilder(() {
-    //     Get.lazyPut(() => DashboardController());
-    //     Get.lazyPut(() => BookingController());
-    //   }),
-    // ),
-    // GetPage(
-    //   name: tutorSchedule,
-    //   page: () => const TutorScheduleScreen(),
-    //   binding: BindingsBuilder(() => Get.lazyPut(() => BookingController())),
-    // ),
-    // GetPage(
-    //   name: tutorProfile,
-    //   page: () => const TutorProfileScreen(),
-    //   binding: BindingsBuilder(() => Get.lazyPut(() => AuthController())),
-    // ),
+    // ── Tutor routes ──────────────────────────────────────────────────────────
+    GetPage(
+      name: tutorDashboard,
+      page: () => const TutorDashboardScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => AuthController());
+        Get.lazyPut(() => TutorDashboardController());
+      }),
+    ),
+    GetPage(
+      name: tutorSchedule,
+      page: () => const TutorScheduleScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => TutorScheduleController());
+      }),
+    ),
+    GetPage(
+      name: tutorProfile,
+      page: () => const TutorProfileScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => TutorProfileController());
+      }),
+    ),
+    // ── Shared routes ─────────────────────────────────────────────────────────
     GetPage(
       name: session,
       page: () => const SessionScreen(),

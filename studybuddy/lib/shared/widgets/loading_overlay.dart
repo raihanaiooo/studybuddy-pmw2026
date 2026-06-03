@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
+import '../constants/app_colors.dart';
 
 /// Overlay loading semi-transparan untuk blok interaksi saat proses async
 class LoadingOverlay extends StatelessWidget {

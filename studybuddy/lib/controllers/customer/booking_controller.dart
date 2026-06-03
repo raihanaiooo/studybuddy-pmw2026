@@ -1,11 +1,11 @@
 import 'package:get/get.dart';
-import '../core/services/supabase_service.dart';
-import '../core/services/auth_service.dart';
-import '../core/constants/supabase_constants.dart';
-import '../core/utils/date_utils.dart';
-import '../models/booking_model.dart';
-import '../core/constants/prototype.dart';
-import '../core/services/mock_service.dart';
+import '../../core/services/supabase_service.dart';
+import '../../core/services/auth_service.dart';
+import '../../shared/constants/supabase_constants.dart';
+import '../../core/utils/date_utils.dart';
+import '../../models/booking_model.dart';
+import '../../shared/constants/prototype.dart';
+import '../../core/services/mock_service.dart';
 
 /// Controller untuk pembuatan dan manajemen booking
 class BookingController extends GetxController {

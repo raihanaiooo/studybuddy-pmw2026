@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import '../../controllers/operational_controller.dart';
+import '../../controllers/manajemen/operational_controller.dart';
 import '../../mock/mock_data.dart';
-import '../../core/constants/app_colors.dart';
-import '../../core/constants/app_text_styles.dart';
+import '../../shared/constants/app_colors.dart';
+import '../../shared/constants/app_text_styles.dart';
 
 class OperationalScreen extends StatelessWidget {
   const OperationalScreen({super.key});

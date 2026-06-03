@@ -1,7 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'supabase_service.dart';
-import '../constants/supabase_constants.dart';
+import '../../shared/constants/supabase_constants.dart';
 
 /// Service untuk FCM push notification
 class NotificationService {

@@ -1,6 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'supabase_service.dart';
-import '../constants/supabase_constants.dart';
+import '../../shared/constants/supabase_constants.dart';
 
 /// Service untuk Supabase Realtime — online tutor & booking updates
 class RealtimeService {

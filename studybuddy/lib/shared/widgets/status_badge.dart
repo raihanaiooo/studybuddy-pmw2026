@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_text_styles.dart';
+import '../constants/app_colors.dart';
+import '../constants/app_text_styles.dart';
 
 /// Badge status booking: pending, confirmed, ongoing, done, cancelled
 class StatusBadge extends StatelessWidget {

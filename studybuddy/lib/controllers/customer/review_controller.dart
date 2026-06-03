@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
-import '../core/services/supabase_service.dart';
-import '../core/services/auth_service.dart';
-import '../core/constants/supabase_constants.dart';
-import '../app/routes.dart';
+import '../../core/services/supabase_service.dart';
+import '../../core/services/auth_service.dart';
+import '../../shared/constants/supabase_constants.dart';
+import '../../app/routes.dart';
 
 /// Controller untuk submit dan tampilkan rating & ulasan
 class ReviewController extends GetxController {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/auth_controller.dart';
-import '../../core/constants/app_colors.dart';
-import '../../core/constants/app_text_styles.dart';
+import '../../shared/constants/app_colors.dart';
+import '../../shared/constants/app_text_styles.dart';
 import '../../core/utils/validator_utils.dart';
 
 /// Screen registrasi dengan pilihan role customer atau tutor

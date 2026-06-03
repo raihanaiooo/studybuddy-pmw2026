@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../controllers/auth_controller.dart';
-import '../../controllers/dashboard_controller.dart';
-import '../../core/constants/app_colors.dart';
-import '../../core/constants/app_text_styles.dart';
+import '../../controllers/manajemen/dashboard_controller.dart';
+import '../../shared/constants/app_colors.dart';
+import '../../shared/constants/app_text_styles.dart';
 import '../../app/routes.dart';
-import '../shared/widgets/app_bottom_nav.dart';
+import '../../shared/widgets/app_bottom_nav.dart';
 
 /// Profile screen untuk customer: menampilkan info, stats, dan preferensi belajar
 class CustomerProfileScreen extends StatefulWidget {

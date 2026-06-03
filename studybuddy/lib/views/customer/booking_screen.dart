@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import '../../controllers/booking_controller.dart';
+import '../../controllers/customer/booking_controller.dart';
 import '../../models/tutor_model.dart';
-import '../../core/constants/app_colors.dart';
-import '../../core/constants/app_text_styles.dart';
+import '../../shared/constants/app_colors.dart';
+import '../../shared/constants/app_text_styles.dart';
 
 /// Screen booking: pilih tanggal, waktu, durasi, dan tipe sesi
 class BookingScreen extends StatefulWidget {

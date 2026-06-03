@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
-import '../models/booking_model.dart';
-import '../mock/mock_data.dart';
+import '../../models/booking_model.dart';
+import '../../mock/mock_data.dart';
 
 class OperationalController extends GetxController {
   final RxList<BookingModel> bookings = <BookingModel>[].obs;

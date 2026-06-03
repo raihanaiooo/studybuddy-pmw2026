@@ -1,4 +1,5 @@
 import '../../models/tutor_model.dart';
+import '../../models/booking_model.dart';
 import '../../models/review_model.dart';
 import '../../mock/mock_data.dart';
 
@@ -10,7 +11,6 @@ class MockService {
 
   static Future<List<ReviewModel>> fetchReviews(String tutorId) async {
     await Future.delayed(const Duration(milliseconds: 200));
-    // Simple demo reviews
     return [
       ReviewModel(
         id: 'r1',
@@ -25,7 +25,18 @@ class MockService {
     ];
   }
 
-  // Bookings
+  // ── Bookings ──────────────────────────────────────────────────────────────
+
+  static Future<List<BookingModel>> fetchBookingsForTutor(
+    String tutorId,
+  ) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    return mockBookings
+        .where((b) => b['tutor_id'] == tutorId)
+        .map((b) => BookingModel.fromMap(b))
+        .toList();
+  }
+
   static Future<List<Map<String, dynamic>>> fetchBookingsForUser(
     String userId, {
     required String role,
@@ -58,7 +69,8 @@ class MockService {
     if (idx != -1) mockBookings[idx]['status'] = 'cancelled';
   }
 
-  // Sessions
+  // ── Sessions ──────────────────────────────────────────────────────────────
+
   static Future<Map<String, dynamic>> startSession(
     Map<String, dynamic> sessionData,
   ) async {

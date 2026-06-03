@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../constants/supabase_constants.dart';
+import '../../shared/constants/supabase_constants.dart';
 
 /// Singleton wrapper untuk inisialisasi dan akses Supabase client
 class SupabaseService {

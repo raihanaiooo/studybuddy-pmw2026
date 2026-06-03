@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../controllers/review_controller.dart';
-import '../../controllers/session_controller.dart';
-import '../../core/constants/app_colors.dart';
-import '../../core/constants/app_text_styles.dart';
+import '../../controllers/customer/review_controller.dart';
+import '../../controllers/customer/session_controller.dart';
+import '../../shared/constants/app_colors.dart';
+import '../../shared/constants/app_text_styles.dart';
 
 /// Screen rating & review setelah sesi selesai
 class ReviewScreen extends StatefulWidget {

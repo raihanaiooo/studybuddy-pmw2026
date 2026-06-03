@@ -1,8 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../constants/supabase_constants.dart';
+import '../../shared/constants/supabase_constants.dart';
 import 'supabase_service.dart';
 import '../../models/user_model.dart';
-import '../constants/prototype.dart';
+import '../../shared/constants/prototype.dart';
 
 /// Service layer untuk semua operasi autentikasi via Supabase Auth
 class AuthService {

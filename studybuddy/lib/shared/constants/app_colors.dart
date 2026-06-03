@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Semua warna brand Study Buddy berdasarkan design system HTML mockup
 class AppColors {
   AppColors._();
 
