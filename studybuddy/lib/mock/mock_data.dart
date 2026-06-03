@@ -1,4 +1,31 @@
 import '../models/tutor_model.dart';
+import '../models/user_model.dart';
+
+// ── Mock Users (per role) ──────────────────────────────────────────────────────
+
+final mockCustomer = UserModel(
+  id: 'c_demo',
+  email: 'customer@demo.com',
+  fullName: 'Rania Putri',
+  role: 'customer',
+  createdAt: DateTime.now(),
+);
+
+final mockTutorUser = UserModel(
+  id: 't_demo',
+  email: 'tutor@demo.com',
+  fullName: 'Arif Rahmat',
+  role: 'tutor',
+  createdAt: DateTime.now(),
+);
+
+final mockManagementUser = UserModel(
+  id: 'm_demo',
+  email: 'admin@demo.com',
+  fullName: 'Budi Santoso',
+  role: 'management',
+  createdAt: DateTime.now(),
+);
 
 // ── Mock Tutors ───────────────────────────────────────────────────────────────
 
@@ -35,17 +62,55 @@ final List<TutorModel> mockTutors = [
     university: 'UI',
     gpa: 3.8,
   ),
+  TutorModel(
+    id: 't3',
+    userId: 'u3',
+    fullName: 'Dimas Pratama',
+    avatarUrl: null,
+    bio: 'Ahli Pemrograman dan Algoritma. Mantan juara Olimpiade Informatika.',
+    subjects: ['Pemrograman', 'Algoritma', 'Data Structures'],
+    rating: 4.8,
+    totalSessions: 95,
+    totalReviews: 42,
+    isOnline: true,
+    pricePerHour: 75000,
+    gmeetLink: 'meet.google.com/dimas-cs-abc',
+    university: 'UGM',
+    gpa: 3.9,
+  ),
+  TutorModel(
+    id: 't4',
+    userId: 'u4',
+    fullName: 'Sari Dewi',
+    avatarUrl: null,
+    bio: 'Tutor Akuntansi dan Manajemen Keuangan. Bersertifikat CPA.',
+    subjects: ['Akuntansi', 'Manajemen Keuangan'],
+    rating: 4.6,
+    totalSessions: 65,
+    totalReviews: 28,
+    isOnline: true,
+    pricePerHour: 55000,
+    gmeetLink: 'meet.google.com/sari-acc-def',
+    university: 'UNPAD',
+    gpa: 3.6,
+  ),
+  TutorModel(
+    id: 't5',
+    userId: 'u5',
+    fullName: 'Reza Firmansyah',
+    avatarUrl: null,
+    bio: 'Spesialis Bahasa Inggris & TOEFL Prep. Pengalaman mengajar 3 tahun.',
+    subjects: ['Bahasa Inggris', 'TOEFL', 'IELTS'],
+    rating: 4.5,
+    totalSessions: 110,
+    totalReviews: 48,
+    isOnline: false,
+    pricePerHour: 45000,
+    gmeetLink: null,
+    university: 'UNAIR',
+    gpa: 3.5,
+  ),
 ];
-
-// ── Mock Users ────────────────────────────────────────────────────────────────
-
-final mockUser = {
-  'id': 'c_demo',
-  'email': 'demo@user.test',
-  'full_name': 'Demo User',
-  'role': 'customer',
-  'created_at': DateTime.now().toIso8601String(),
-};
 
 // ── Mock Bookings ─────────────────────────────────────────────────────────────
 
@@ -128,8 +193,146 @@ final List<Map<String, dynamic>> mockBookings = [
     'notes': null,
     'created_at': _now.toIso8601String(),
   },
+  {
+    'id': 'b5',
+    'customer_id': 'c_demo5',
+    'customer_name': 'Maya Sari',
+    'tutor_id': 't3',
+    'session_date': DateTime(
+      _now.year,
+      _now.month,
+      _now.day + 2,
+    ).toIso8601String().split('T')[0],
+    'start_time': '10:00:00',
+    'end_time': '12:00:00',
+    'duration_minutes': 120,
+    'subject': 'Algoritma Pemrograman',
+    'session_type': 'video',
+    'status': 'pending',
+    'notes': 'Persiapan UAS',
+    'created_at': _now.toIso8601String(),
+  },
+  {
+    'id': 'b6',
+    'customer_id': 'c_demo6',
+    'customer_name': 'Andi Wijaya',
+    'tutor_id': 't4',
+    'session_date': DateTime(
+      _now.year,
+      _now.month,
+      _now.day + 3,
+    ).toIso8601String().split('T')[0],
+    'start_time': '15:00:00',
+    'end_time': '16:00:00',
+    'duration_minutes': 60,
+    'subject': 'Akuntansi Dasar',
+    'session_type': 'video',
+    'status': 'confirmed',
+    'notes': null,
+    'created_at': _now.toIso8601String(),
+  },
+  {
+    'id': 'b7',
+    'customer_id': 'c_demo7',
+    'customer_name': 'Lestari Ningrum',
+    'tutor_id': 't2',
+    'session_date': DateTime(
+      _now.year,
+      _now.month,
+      _now.day - 2,
+    ).toIso8601String().split('T')[0],
+    'start_time': '09:00:00',
+    'end_time': '10:00:00',
+    'duration_minutes': 60,
+    'subject': 'Statistika',
+    'session_type': 'chat',
+    'status': 'done',
+    'notes': null,
+    'created_at': _now.toIso8601String(),
+  },
+  {
+    'id': 'b8',
+    'customer_id': 'c_demo8',
+    'customer_name': 'Rizky Pratama',
+    'tutor_id': 't5',
+    'session_date': DateTime(
+      _now.year,
+      _now.month,
+      _now.day - 1,
+    ).toIso8601String().split('T')[0],
+    'start_time': '16:00:00',
+    'end_time': '17:30:00',
+    'duration_minutes': 90,
+    'subject': 'TOEFL Preparation',
+    'session_type': 'video',
+    'status': 'cancelled',
+    'notes': null,
+    'created_at': _now.toIso8601String(),
+  },
 ];
 
 // ── Mock Sessions ─────────────────────────────────────────────────────────────
 
 final List<Map<String, dynamic>> mockSessions = <Map<String, dynamic>>[];
+
+// ── Mock Reviews ──────────────────────────────────────────────────────────────
+
+final List<Map<String, dynamic>> mockReviews = [
+  {
+    'id': 'rev1',
+    'session_id': 's_done1',
+    'customer_id': 'c_demo5',
+    'customer_name': 'Maya Sari',
+    'tutor_id': 't1',
+    'rating': 5,
+    'comment': 'Penjelasan sangat jelas dan sabar. Highly recommended!',
+    'subject': 'Fisika',
+    'created_at': DateTime.now().subtract(const Duration(days: 5)).toIso8601String(),
+  },
+  {
+    'id': 'rev2',
+    'session_id': 's_done2',
+    'customer_id': 'c_demo6',
+    'customer_name': 'Andi Wijaya',
+    'tutor_id': 't1',
+    'rating': 4,
+    'comment': 'Bagus, cuma agak cepet di bagian integral.',
+    'subject': 'Matematika',
+    'created_at': DateTime.now().subtract(const Duration(days: 3)).toIso8601String(),
+  },
+  {
+    'id': 'rev3',
+    'session_id': 's_done3',
+    'customer_id': 'c_demo7',
+    'customer_name': 'Lestari Ningrum',
+    'tutor_id': 't2',
+    'rating': 5,
+    'comment': 'Materi Statistik jadi mudah dipahami!',
+    'subject': 'Statistika',
+    'created_at': DateTime.now().subtract(const Duration(days: 2)).toIso8601String(),
+  },
+  {
+    'id': 'rev4',
+    'session_id': 's_done4',
+    'customer_id': 'c_demo8',
+    'customer_name': 'Rizky Pratama',
+    'tutor_id': 't3',
+    'rating': 5,
+    'comment': 'Algoritma jadi gampang banget. Makasih Kak Dimas!',
+    'subject': 'Algoritma',
+    'created_at': DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
+  },
+];
+
+// ── Management Stats ──────────────────────────────────────────────────────────
+
+final mockManagementStats = {
+  'totalUsers': 156,
+  'totalTutors': 24,
+  'totalBookings': 342,
+  'totalSessions': 289,
+  'revenue': 18750000,
+  'activeTutors': 12,
+  'pendingBookings': 8,
+  'completedToday': 5,
+};

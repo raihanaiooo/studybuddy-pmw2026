@@ -14,6 +14,7 @@ import '../views/customer/profile_screen.dart';
 import '../views/session/session_screen.dart';
 import '../views/session/review_screen.dart';
 import '../views/management/operational_screen.dart';
+import '../views/management/management_dashboard_screen.dart';
 import '../views/tutor/tutor_schedule_screen.dart';
 import '../views/tutor/tutor_profile_screen.dart';
 import '../views/tutor/tutor_dashboard_screen.dart';
@@ -46,6 +47,7 @@ class AppRoutes {
   static const session = '/session';
   static const review = '/review';
   static const operational = '/operational';
+  static const managementDashboard = '/management/dashboard';
 
   static final pages = [
     GetPage(name: splash, page: () => const SplashScreen()),
@@ -66,6 +68,7 @@ class AppRoutes {
         Get.lazyPut(() => AuthController());
         Get.lazyPut(() => DashboardController());
         Get.lazyPut(() => TutorController());
+        Get.lazyPut(() => BookingController());
       }),
     ),
     GetPage(
@@ -103,6 +106,8 @@ class AppRoutes {
       binding: BindingsBuilder(() {
         Get.lazyPut(() => AuthController());
         Get.lazyPut(() => TutorDashboardController());
+        Get.lazyPut(() => TutorScheduleController());
+        Get.lazyPut(() => TutorProfileController());
       }),
     ),
     GetPage(
@@ -129,6 +134,15 @@ class AppRoutes {
       name: review,
       page: () => const ReviewScreen(),
       binding: BindingsBuilder(() => Get.lazyPut(() => ReviewController())),
+    ),
+    // ── Management routes ─────────────────────────────────────────────────────
+    GetPage(
+      name: managementDashboard,
+      page: () => const ManagementDashboardScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => AuthController());
+        Get.lazyPut(() => OperationalController());
+      }),
     ),
     GetPage(
       name: operational,

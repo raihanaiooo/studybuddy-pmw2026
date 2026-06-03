@@ -3,13 +3,17 @@ import 'package:get/get.dart';
 import '../../controllers/manajemen/dashboard_controller.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/tutor/tutor_controller.dart';
+import '../../controllers/customer/booking_controller.dart';
 import '../../shared/constants/app_colors.dart';
 import '../../shared/constants/app_text_styles.dart';
+import '../../shared/utils/responsive_helper.dart';
 import '../../app/routes.dart';
 import '../../shared/widgets/app_bottom_nav.dart';
 import '../../shared/widgets/tutor_card.dart';
+import '../../shared/widgets/status_badge.dart';
+import '../../core/utils/date_utils.dart';
 
-/// Dashboard utama customer: greeting, online tutors, quick access
+/// Dashboard utama customer dengan persistent bottom nav
 class CustomerDashboardScreen extends StatefulWidget {
   const CustomerDashboardScreen({super.key});
 
@@ -29,9 +33,6 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
   ];
 
   void _onNavTap(int i) {
-    if (i == 1) Get.toNamed(AppRoutes.tutorList);
-    if (i == 2) Get.toNamed(AppRoutes.customerSchedule);
-    if (i == 3) Get.toNamed(AppRoutes.customerProfile);
     setState(() => _navIndex = i);
   }
 
@@ -40,111 +41,489 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
     final dashboard = Get.find<DashboardController>();
     final auth = Get.find<AuthController>();
     final tutorCtrl = Get.find<TutorController>();
+    final isWide = ResponsiveHelper.isTablet(context) ||
+        ResponsiveHelper.isDesktop(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          // Header gradient
-          _buildHeader(auth),
-          // Body scrollable
+          // Header hanya tampil di tab Beranda
+          if (_navIndex == 0) _buildHeader(auth),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Butuh tutor sekarang? (on-demand)
-                  _buildOnDemandBanner(),
-                  const SizedBox(height: 24),
+            child: _buildContent(dashboard, tutorCtrl, auth, isWide),
+          ),
+        ],
+      ),
+      bottomNavigationBar: AppBottomNav(
+        currentIndex: _navIndex,
+        onTap: _onNavTap,
+        items: _navItems,
+      ),
+    );
+  }
 
-                  // Tutor online sekarang
-                  _buildSectionHeader(
-                    '🟢 Tutor Online Sekarang',
-                    onSeeAll: () {
-                      Get.toNamed(AppRoutes.tutorList);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  Obx(() {
-                    if (dashboard.isLoading.value) {
-                      return const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.primaryBlue,
-                        ),
-                      );
-                    }
-                    if (dashboard.onlineTutors.isEmpty) {
-                      return Center(
-                        child: Text(
-                          'Belum ada tutor online saat ini',
-                          style: AppTextStyles.caption,
-                        ),
-                      );
-                    }
-                    return SizedBox(
-                      height: 180,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: dashboard.onlineTutors.length,
-                        itemBuilder: (_, i) => TutorCard(
-                          tutor: dashboard.onlineTutors[i],
-                          compact: true,
-                          onTap: () {
-                            tutorCtrl.selectTutor(dashboard.onlineTutors[i]);
-                            Get.toNamed(AppRoutes.tutorDetail);
-                          },
-                        ),
-                      ),
-                    );
-                  }),
-                  const SizedBox(height: 24),
+  // ── Content Switcher ───────────────────────────────────────────────────
 
-                  // Semua tutor
-                  _buildSectionHeader(
-                    '👨‍🏫 Tutor Tersedia',
-                    onSeeAll: () {
-                      Get.toNamed(AppRoutes.tutorList);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  Obx(() {
-                    final tutors = tutorCtrl.tutors.take(4).toList();
-                    return Column(
-                      children: tutors
-                          .map(
-                            (t) => TutorCard(
-                              tutor: t,
-                              onTap: () {
-                                tutorCtrl.selectTutor(t);
-                                Get.toNamed(AppRoutes.tutorDetail);
-                              },
-                            ),
-                          )
-                          .toList(),
-                    );
-                  }),
-                ],
+  Widget _buildContent(
+    DashboardController dashboard,
+    TutorController tutorCtrl,
+    AuthController auth,
+    bool isWide,
+  ) {
+    switch (_navIndex) {
+      case 0:
+        return _buildHomeContent(dashboard, tutorCtrl, isWide);
+      case 1:
+        return _buildSearchContent(tutorCtrl);
+      case 2:
+        return _buildScheduleContent();
+      case 3:
+        return _buildProfileContent(auth);
+      default:
+        return _buildHomeContent(dashboard, tutorCtrl, isWide);
+    }
+  }
+
+  // ── Tab 0: Beranda ─────────────────────────────────────────────────────
+
+  Widget _buildHomeContent(
+    DashboardController dashboard,
+    TutorController tutorCtrl,
+    bool isWide,
+  ) {
+    return SingleChildScrollView(
+      padding: ResponsiveHelper.contentPadding(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 8),
+          _buildOnDemandBanner(),
+          const SizedBox(height: 24),
+
+          _buildSectionHeader(
+            '🟢 Tutor Online Sekarang',
+            onSeeAll: () => setState(() => _navIndex = 1),
+          ),
+          const SizedBox(height: 12),
+          Obx(() {
+            if (dashboard.isLoading.value) {
+              return const Center(
+                child: CircularProgressIndicator(color: AppColors.primaryBlue),
+              );
+            }
+            if (dashboard.onlineTutors.isEmpty) {
+              return Center(
+                child: Text('Belum ada tutor online saat ini', style: AppTextStyles.caption),
+              );
+            }
+            if (isWide) {
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: ResponsiveHelper.gridColumns(context),
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 1.6,
+                ),
+                itemCount: dashboard.onlineTutors.length,
+                itemBuilder: (_, i) => TutorCard(
+                  tutor: dashboard.onlineTutors[i],
+                  compact: true,
+                  onTap: () {
+                    tutorCtrl.selectTutor(dashboard.onlineTutors[i]);
+                    Get.toNamed(AppRoutes.tutorDetail);
+                  },
+                ),
+              );
+            }
+            return SizedBox(
+              height: 180,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: dashboard.onlineTutors.length,
+                itemBuilder: (_, i) => TutorCard(
+                  tutor: dashboard.onlineTutors[i],
+                  compact: true,
+                  onTap: () {
+                    tutorCtrl.selectTutor(dashboard.onlineTutors[i]);
+                    Get.toNamed(AppRoutes.tutorDetail);
+                  },
+                ),
               ),
+            );
+          }),
+          const SizedBox(height: 24),
+
+          _buildSectionHeader(
+            '👨‍🏫 Tutor Tersedia',
+            onSeeAll: () => setState(() => _navIndex = 1),
+          ),
+          const SizedBox(height: 12),
+          Obx(() {
+            final tutors = tutorCtrl.tutors.take(6).toList();
+            if (isWide) {
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: ResponsiveHelper.gridColumns(context),
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 1.8,
+                ),
+                itemCount: tutors.length,
+                itemBuilder: (_, i) => TutorCard(
+                  tutor: tutors[i],
+                  onTap: () {
+                    tutorCtrl.selectTutor(tutors[i]);
+                    Get.toNamed(AppRoutes.tutorDetail);
+                  },
+                ),
+              );
+            }
+            return Column(
+              children: tutors
+                  .map((t) => TutorCard(
+                        tutor: t,
+                        onTap: () {
+                          tutorCtrl.selectTutor(t);
+                          Get.toNamed(AppRoutes.tutorDetail);
+                        },
+                      ))
+                  .toList(),
+            );
+          }),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  // ── Tab 1: Cari Tutor ──────────────────────────────────────────────────
+
+  Widget _buildSearchContent(TutorController ctrl) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: TextField(
+            onChanged: (v) => ctrl.searchQuery.value = v,
+            decoration: InputDecoration(
+              hintText: 'Cari tutor atau mata kuliah...',
+              hintStyle: AppTextStyles.caption,
+              prefixIcon: const Icon(Icons.search, color: AppColors.textLight, size: 20),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(vertical: 12),
             ),
           ),
-          AppBottomNav(
-            currentIndex: _navIndex,
-            onTap: _onNavTap,
-            items: _navItems,
+        ),
+        Expanded(
+          child: Obx(() {
+            final list = ctrl.filtered;
+            if (ctrl.isLoading.value) {
+              return const Center(child: CircularProgressIndicator(color: AppColors.primaryBlue));
+            }
+            if (list.isEmpty) {
+              return Center(child: Text('Tidak ada tutor ditemukan', style: AppTextStyles.caption));
+            }
+            return ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: list.length,
+              itemBuilder: (_, i) => TutorCard(
+                tutor: list[i],
+                onTap: () {
+                  ctrl.selectTutor(list[i]);
+                  Get.toNamed(AppRoutes.tutorDetail);
+                },
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+
+  // ── Tab 2: Jadwal ──────────────────────────────────────────────────────
+
+  Widget _buildScheduleContent() {
+    final ctrl = Get.find<BookingController>();
+
+    return Obx(() {
+      if (ctrl.isLoading.value) {
+        return const Center(child: CircularProgressIndicator(color: AppColors.primaryBlue));
+      }
+      if (ctrl.myBookings.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('📅', style: TextStyle(fontSize: 48)),
+              const SizedBox(height: 12),
+              Text('Belum ada jadwal', style: AppTextStyles.heading3),
+              const SizedBox(height: 6),
+              Text('Booking tutor untuk mulai belajar!', style: AppTextStyles.caption),
+            ],
+          ),
+        );
+      }
+      return ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: ctrl.myBookings.length,
+        itemBuilder: (_, i) {
+          final b = ctrl.myBookings[i];
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primaryBlue.withAlpha((0.08 * 255).round()),
+                  blurRadius: 8,
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(child: Text(b.subject, style: AppTextStyles.heading3)),
+                    StatusBadge(status: b.status),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textLight),
+                    const SizedBox(width: 6),
+                    Text(AppDateUtils.formatDateTime(b.sessionTime), style: AppTextStyles.caption),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.timer_outlined, size: 14, color: AppColors.textLight),
+                    const SizedBox(width: 6),
+                    Text('${b.durationMinutes} menit', style: AppTextStyles.caption),
+                    const Spacer(),
+                    if (b.status == 'confirmed')
+                      TextButton(
+                        onPressed: () => Get.toNamed(AppRoutes.session, arguments: b),
+                        child: const Text('Mulai Sesi', style: TextStyle(color: AppColors.primaryBlue, fontWeight: FontWeight.w700)),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    });
+  }
+
+  // ── Tab 3: Profil ──────────────────────────────────────────────────────
+
+  Widget _buildProfileContent(AuthController auth) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+      child: Column(
+        children: [
+          // Profile card
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.primaryBlue, AppColors.primaryBlue.withAlpha((0.8 * 255).round())],
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryYellow,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: Text(
+                          (auth.currentUser.value?.fullName ?? 'U')[0].toUpperCase(),
+                          style: AppTextStyles.heading1.copyWith(color: Colors.white, fontSize: 28),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            auth.currentUser.value?.fullName ?? 'User',
+                            style: AppTextStyles.heading3.copyWith(color: Colors.white),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Teknik Industri · Semester 4 · Polban',
+                            style: AppTextStyles.caption.copyWith(color: Colors.white70),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha((0.2 * 255).round()),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.check_circle_rounded, color: Colors.white, size: 14),
+                                const SizedBox(width: 4),
+                                Text('Email Terverifikasi', style: AppTextStyles.caption.copyWith(color: Colors.white)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(Icons.star_rounded, color: Colors.white, size: 18),
+                    const SizedBox(width: 4),
+                    Text('4.9', style: AppTextStyles.heading3.copyWith(color: Colors.white)),
+                    const SizedBox(width: 2),
+                    Text('Rating dari 12 Ulasan', style: AppTextStyles.caption.copyWith(color: Colors.white70)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Stats
+          Row(
+            children: [
+              _profileStat('12', 'Total Booking'),
+              const SizedBox(width: 12),
+              _profileStat('8', 'Sesi Selesai'),
+              const SizedBox(width: 12),
+              _profileStat('4.9', 'Rating'),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Info
+          _profileInfoCard('Informasi Dasar', [
+            _profileInfoRow(Icons.person_outline, 'Nama', auth.currentUser.value?.fullName ?? '-'),
+            _profileInfoRow(Icons.phone_outlined, 'WhatsApp', '+62 812 9123 4567'),
+            _profileInfoRow(Icons.school_outlined, 'Universitas', 'Polban'),
+            _profileInfoRow(Icons.book_outlined, 'Semester', '4'),
+          ]),
+          const SizedBox(height: 16),
+
+          // Preferensi
+          _profileInfoCard('Preferensi Belajar', [
+            _profileInfoRow(Icons.bookmark_outline, 'Mata Kuliah Utama', 'Statistika Industri'),
+            _profileInfoRow(Icons.flag_outlined, 'Tujuan Belajar', 'Persiapan UTS/UAS'),
+          ]),
+          const SizedBox(height: 16),
+
+          // Logout
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => Get.find<AuthController>().logout(),
+              icon: const Icon(Icons.logout_rounded, color: AppColors.primaryRed),
+              label: Text('Keluar', style: TextStyle(color: AppColors.primaryRed)),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.primaryRed),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
+  Widget _profileStat(String value, String label) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Column(
+          children: [
+            Text(value, style: AppTextStyles.heading1.copyWith(fontSize: 20)),
+            const SizedBox(height: 4),
+            Text(label, style: AppTextStyles.caption, textAlign: TextAlign.center),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _profileInfoCard(String title, List<Widget> children) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: AppTextStyles.heading3),
+          const SizedBox(height: 12),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _profileInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: AppColors.textLight),
+          const SizedBox(width: 10),
+          Expanded(child: Text(label, style: AppTextStyles.caption)),
+          Text(value, style: AppTextStyles.bodySemiBold),
+        ],
+      ),
+    );
+  }
+
+  // ── Shared Widgets ─────────────────────────────────────────────────────
+
   Widget _buildHeader(AuthController auth) => Container(
     decoration: const BoxDecoration(gradient: AppColors.headerGradient),
     padding: EdgeInsets.fromLTRB(
-      22,
-      MediaQuery.of(context).padding.top + 20,
-      22,
-      28,
+      ResponsiveHelper.horizontalPadding(context),
+      MediaQuery.of(context).padding.top + 16,
+      ResponsiveHelper.horizontalPadding(context),
+      24,
     ),
     child: Row(
       children: [
@@ -154,66 +533,44 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
             Obx(
               () => Text(
                 'Hai, ${auth.currentUser.value?.fullName.split(' ').first ?? 'Pelajar'} 👋',
-                style: AppTextStyles.heading2.copyWith(
-                  color: Colors.white,
-                  fontFamily: 'Poppins',
-                ),
+                style: AppTextStyles.heading2.copyWith(color: Colors.white, fontFamily: 'Poppins'),
               ),
             ),
             const SizedBox(height: 4),
-            Text(
-              'Mau belajar apa hari ini?',
-              style: AppTextStyles.caption.copyWith(color: Colors.white70),
-            ),
+            Text('Mau belajar apa hari ini?', style: AppTextStyles.caption.copyWith(color: Colors.white70)),
           ],
         ),
         const Spacer(),
-        // Notif bell
         Container(
-          width: 40,
-          height: 40,
+          width: 40, height: 40,
           decoration: BoxDecoration(
             color: Colors.white.withAlpha((0.15 * 255).round()),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(
-            Icons.notifications_outlined,
-            color: Colors.white,
-            size: 22,
-          ),
+          child: const Icon(Icons.notifications_outlined, color: Colors.white, size: 22),
         ),
         const SizedBox(width: 8),
-        // Operational shortcut
         GestureDetector(
-          onTap: () => Get.toNamed(AppRoutes.operational),
+          onTap: () => Get.find<AuthController>().logout(),
           child: Container(
-            width: 40,
-            height: 40,
+            width: 40, height: 40,
             decoration: BoxDecoration(
               color: Colors.white.withAlpha((0.12 * 255).round()),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
-              Icons.admin_panel_settings_rounded,
-              color: Colors.white,
-              size: 20,
-            ),
+            child: const Icon(Icons.logout_rounded, color: Colors.white, size: 18),
           ),
         ),
       ],
     ),
   );
 
-  /// Banner on-demand "Butuh tutor sekarang?"
   Widget _buildOnDemandBanner() => GestureDetector(
-    onTap: () =>
-        Get.toNamed(AppRoutes.tutorList, arguments: {'onlineOnly': true}),
+    onTap: () => Get.toNamed(AppRoutes.tutorList, arguments: {'onlineOnly': true}),
     child: Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColors.primaryRed, AppColors.redLight],
-        ),
+        gradient: LinearGradient(colors: [AppColors.primaryRed, AppColors.redLight]),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -227,21 +584,16 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
         children: [
           const Text('⚡', style: TextStyle(fontSize: 28)),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Butuh Tutor Sekarang?',
-                style: AppTextStyles.heading3.copyWith(color: Colors.white),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                'Lihat tutor yang sedang online',
-                style: AppTextStyles.caption.copyWith(color: Colors.white70),
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Butuh Tutor Sekarang?', style: AppTextStyles.heading3.copyWith(color: Colors.white)),
+                const SizedBox(height: 2),
+                Text('Lihat tutor yang sedang online', style: AppTextStyles.caption.copyWith(color: Colors.white70)),
+              ],
+            ),
           ),
-          const Spacer(),
           const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
         ],
       ),
@@ -255,13 +607,7 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
       if (onSeeAll != null)
         GestureDetector(
           onTap: onSeeAll,
-          child: Text(
-            'Lihat Semua',
-            style: AppTextStyles.caption.copyWith(
-              color: AppColors.primaryBlue,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+          child: Text('Lihat Semua', style: AppTextStyles.caption.copyWith(color: AppColors.primaryBlue, fontWeight: FontWeight.w700)),
         ),
     ],
   );

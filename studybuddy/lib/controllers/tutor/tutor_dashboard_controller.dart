@@ -6,9 +6,6 @@ import '../../shared/constants/supabase_constants.dart';
 import '../../models/booking_model.dart';
 import '../../models/tutor_model.dart';
 import '../auth_controller.dart';
-import '../../mock/mock_data.dart';
-import '../../core/services/mock_service.dart';
-import 'package:studybuddy/mock/mock_data.dart';
 
 class TutorDashboardController extends GetxController {
   final _auth = Get.find<AuthController>();

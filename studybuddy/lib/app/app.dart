@@ -17,7 +17,7 @@ class StudyBuddyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryBlue),
         useMaterial3: true,
       ),
-      initialRoute: kUseMock ? AppRoutes.customerDashboard : AppRoutes.splash,
+      initialRoute: kUseMock ? AppRoutes.login : AppRoutes.splash,
       getPages: AppRoutes.pages,
     );
   }
