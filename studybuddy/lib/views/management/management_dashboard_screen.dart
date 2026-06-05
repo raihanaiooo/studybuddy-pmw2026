@@ -10,7 +10,6 @@ import '../../shared/widgets/app_bottom_nav.dart';
 import '../../shared/widgets/status_badge.dart';
 import '../../app/routes.dart';
 
-/// Dashboard utama Manajemen dengan persistent bottom nav
 class ManagementDashboardScreen extends StatefulWidget {
   const ManagementDashboardScreen({super.key});
 
@@ -29,25 +28,19 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
     BottomNavItem(icon: Icons.assessment_rounded, label: 'Laporan'),
   ];
 
-  void _onNavTap(int i) {
-    setState(() => _navIndex = i);
-  }
+  void _onNavTap(int i) => setState(() => _navIndex = i);
 
   @override
   Widget build(BuildContext context) {
     final auth = Get.find<AuthController>();
     final stats = mockManagementStats;
-    final isWide = ResponsiveHelper.isTablet(context) ||
-        ResponsiveHelper.isDesktop(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(
         children: [
           if (_navIndex == 0) _buildHeader(auth),
-          Expanded(
-            child: _buildContent(auth, stats, isWide),
-          ),
+          Expanded(child: _buildContent(auth, stats)),
         ],
       ),
       bottomNavigationBar: AppBottomNav(
@@ -58,10 +51,10 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
     );
   }
 
-  Widget _buildContent(AuthController auth, Map<String, dynamic> stats, bool isWide) {
+  Widget _buildContent(AuthController auth, Map<String, dynamic> stats) {
     switch (_navIndex) {
       case 0:
-        return _buildDashboardTab(stats, isWide);
+        return _buildDashboardTab(stats);
       case 1:
         return _buildBookingTab();
       case 2:
@@ -69,44 +62,831 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
       case 3:
         return _buildProfileTab(auth);
       default:
-        return _buildDashboardTab(stats, isWide);
+        return _buildDashboardTab(stats);
     }
   }
 
-  Widget _buildDashboardTab(Map<String, dynamic> stats, bool isWide) {
+  // ── DASHBOARD TAB ────────────────────────────────────────────────────
+
+  Widget _buildDashboardTab(Map<String, dynamic> stats) {
     return SingleChildScrollView(
-      padding: ResponsiveHelper.contentPadding(context),
+      physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 20),
-          if (isWide)
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(flex: 3, child: _buildStatsGrid(stats)),
-                const SizedBox(width: 20),
-                Expanded(flex: 2, child: _buildQuickActions()),
-              ],
-            )
-          else ...[
-            _buildStatsGrid(stats),
-            const SizedBox(height: 20),
-            _buildQuickActions(),
-          ],
-          const SizedBox(height: 20),
           _buildOprecCard(),
-          const SizedBox(height: 16),
           _buildSessionChart(),
-          const SizedBox(height: 16),
           _buildApprovalSection(),
-          const SizedBox(height: 20),
-          _buildRecentActivity(),
-          const SizedBox(height: 20),
+          _buildActiveTutorSection(),
+          const SizedBox(height: 24),
         ],
       ),
     );
   }
+
+  // ── HEADER ────────────────────────────────────────────────────────────
+
+  Widget _buildHeader(AuthController auth) {
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF1A1F3C), Color(0xFF2E3A6E), Color(0xFF1A5EAA)],
+        ),
+      ),
+      padding: EdgeInsets.fromLTRB(
+        22,
+        MediaQuery.of(context).padding.top + 20,
+        22,
+        28,
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -50,
+            top: -50,
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.04),
+              ),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Panel Manajemen',
+                        style: TextStyle(
+                          color: Color(0x99FFFFFF),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Obx(
+                        () => Text(
+                          auth.currentUser.value?.fullName ??
+                              'Admin Study Buddy',
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF4A200),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      '⚙️ Admin',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  _mgmtStat('5', 'Pending Approval', const Color(0xFFFFD166)),
+                  const SizedBox(width: 10),
+                  _mgmtStat('42', 'Tutor Aktif', const Color(0xFF6EE7B7)),
+                  const SizedBox(width: 10),
+                  _mgmtStat('128', 'Total Customer', Colors.white),
+                  const SizedBox(width: 10),
+                  _mgmtStat('3', 'Komplain', const Color(0xFFFF6B74)),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _mgmtStat(String num, String label, Color numColor) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.10),
+          border: Border.all(color: Colors.white.withOpacity(0.12)),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          children: [
+            Text(
+              num,
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+                color: numColor,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              style: TextStyle(
+                fontSize: 8,
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withOpacity(0.60),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── OPREC CARD ────────────────────────────────────────────────────────
+
+  Widget _buildOprecCard() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFF4A200), Color(0xFFFF9A3C)],
+        ),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFF4A200).withOpacity(0.30),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '📅 Jadwal Oprec Tutor',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white.withOpacity(0.75),
+                    letterSpacing: 1,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  '1 – 15 April 2026',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Pendaftaran tutor batch 3 sedang aktif',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withOpacity(0.80),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.25),
+              border: Border.all(color: Colors.white.withOpacity(0.35)),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Text(
+              'Edit',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── SESSION CHART ─────────────────────────────────────────────────────
+
+  Widget _buildSessionChart() {
+    final data = [
+      {'label': 'Sen', 'value': 38, 'color': AppColors.primaryBlue},
+      {'label': 'Sel', 'value': 52, 'color': AppColors.primaryBlue},
+      {'label': 'Rab', 'value': 45, 'color': AppColors.primaryBlue},
+      {'label': 'Kam', 'value': 60, 'color': AppColors.primaryYellow},
+      {'label': 'Jum', 'value': 48, 'color': AppColors.primaryBlue},
+      {'label': 'Sab', 'value': 30, 'color': AppColors.primaryRed},
+      {
+        'label': 'Min',
+        'value': 20,
+        'color': AppColors.primaryBlue.withOpacity(0.4),
+      },
+    ];
+    final maxVal = data
+        .map((d) => d['value'] as int)
+        .reduce((a, b) => a > b ? a : b);
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE5E7F0)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryBlue.withOpacity(0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '📊 Sesi Minggu Ini',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1A1F3C),
+            ),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            height: 80,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: data.map((d) {
+                final barH = ((d['value'] as int) / maxVal * 60).toDouble();
+                final color = d['color'] as Color;
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Container(
+                          height: barH,
+                          decoration: BoxDecoration(
+                            color: color,
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(6),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          d['label'] as String,
+                          style: const TextStyle(
+                            fontSize: 8,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF6B7280),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── APPROVAL SECTION ──────────────────────────────────────────────────
+
+  Widget _buildApprovalSection() {
+    final pendingTutors = [
+      {
+        'name': 'Muhammad Rizky',
+        'subject': 'Kimia Organik',
+        'univ': 'Universitas Gadjah Mada',
+        'date': '18 Mar\n2026',
+        'tags': ['Kimia Organik', 'Biokimia', 'S1 UGM', 'IPK 3.72'],
+        'initial': 'M',
+        'gradStart': const Color(0xFF7C3AED),
+        'gradEnd': const Color(0xFFA78BFA),
+      },
+      {
+        'name': 'Laila Nur Fadhilah',
+        'subject': 'Matematika',
+        'univ': 'Universitas Brawijaya',
+        'date': '17 Mar\n2026',
+        'tags': ['Kalkulus', 'Aljabar Linear', 'S1 UB', 'IPK 3.89'],
+        'initial': 'L',
+        'gradStart': const Color(0xFF0891B2),
+        'gradEnd': const Color(0xFF22D3EE),
+      },
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text(
+                'Approval Tutor',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF1A1F3C),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryRed,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text(
+                  '5 pending',
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const Spacer(),
+              GestureDetector(
+                onTap: () => Get.toNamed(AppRoutes.tutorApproval),
+                child: Text(
+                  'Lihat Semua',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryBlue,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ...pendingTutors.map((t) => _approvalCard(t)),
+        ],
+      ),
+    );
+  }
+
+  Widget _approvalCard(Map<String, dynamic> t) {
+    final tags = t['tags'] as List<String>;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE5E7F0)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryBlue.withOpacity(0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Top row: avatar + name + date
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [t['gradStart'] as Color, t['gradEnd'] as Color],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  t['initial'] as String,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      t['name'] as String,
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A1F3C),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${t['subject']} · ${t['univ']}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF6B7280),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                t['date'] as String,
+                textAlign: TextAlign.right,
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: Color(0xFF9CA3AF),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Tags
+          Wrap(
+            spacing: 5,
+            runSpacing: 5,
+            children: tags.map((tag) {
+              final isBlue =
+                  tag.contains(' ') &&
+                  !tag.startsWith('S1') &&
+                  !tag.startsWith('IPK');
+              return Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 3,
+                ),
+                decoration: BoxDecoration(
+                  color: isBlue
+                      ? const Color(0xFFEEF4FF)
+                      : const Color(0xFFF0F4FF),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  tag,
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    color: isBlue
+                        ? AppColors.primaryBlue
+                        : const Color(0xFF6B7280),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 12),
+          // Docs
+          Row(
+            children: [
+              Expanded(child: _docChip('📄', 'KTM / KHS', 'PDF · 1.2 MB')),
+              const SizedBox(width: 8),
+              Expanded(child: _docChip('🎓', 'Transkrip', 'PDF · 0.8 MB')),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Action Buttons
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 11),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: const Color(0xFFE5E7F0),
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Text(
+                    '✕ Tolak',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF6B7280),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 11),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF16A34A), Color(0xFF22C55E)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF22C55E).withOpacity(0.30),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  alignment: Alignment.center,
+                  child: const Text(
+                    '✓ Setujui Tutor',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _docChip(String emoji, String name, String type) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0F4FF),
+        border: Border.all(color: const Color(0xFFE5E7F0)),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 16)),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1A1F3C),
+                  ),
+                ),
+                Text(
+                  type,
+                  style: const TextStyle(fontSize: 9, color: Color(0xFF6B7280)),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── ACTIVE TUTOR LIST ─────────────────────────────────────────────────
+
+  Widget _buildActiveTutorSection() {
+    final tutors = [
+      {
+        'initial': 'A',
+        'name': 'Arif Rahmat',
+        'subject': 'Fisika & Matematika',
+        'status': 'active',
+        'sessions': '320 sesi',
+        'gradStart': AppColors.primaryBlue,
+        'gradEnd': AppColors.blueLight,
+      },
+      {
+        'initial': 'S',
+        'name': 'Siti Nuraini',
+        'subject': 'Kimia Dasar',
+        'status': 'active',
+        'sessions': '210 sesi',
+        'gradStart': AppColors.primaryRed,
+        'gradEnd': const Color(0xFFFF6B74),
+      },
+      {
+        'initial': 'B',
+        'name': 'Budi Santoso',
+        'subject': 'Matematika',
+        'status': 'pending',
+        'sessions': '185 sesi',
+        'gradStart': AppColors.primaryYellow,
+        'gradEnd': const Color(0xFFFFD166),
+      },
+      {
+        'initial': 'D',
+        'name': 'Dewi Angraini',
+        'subject': 'Statistik & Data Science',
+        'status': 'active',
+        'sessions': '142 sesi',
+        'gradStart': const Color(0xFF7C3AED),
+        'gradEnd': const Color(0xFFA78BFA),
+      },
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Tutor Aktif',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF1A1F3C),
+                ),
+              ),
+              Text(
+                'Lihat Semua',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryBlue,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ...tutors.map((t) => _tutorListItem(t)),
+        ],
+      ),
+    );
+  }
+
+  Widget _tutorListItem(Map<String, dynamic> t) {
+    final status = t['status'] as String;
+    final isActive = status == 'active';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE5E7F0)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryBlue.withOpacity(0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [t['gradStart'] as Color, t['gradEnd'] as Color],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(13),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              t['initial'] as String,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  t['name'] as String,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1A1F3C),
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  t['subject'] as String,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: Color(0xFF6B7280),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 3,
+                ),
+                decoration: BoxDecoration(
+                  color: isActive
+                      ? const Color(0xFFDCFCE7)
+                      : const Color(0xFFFEF3C7),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  isActive ? '● Aktif' : '⏸ Cuti',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    color: isActive
+                        ? const Color(0xFF16A34A)
+                        : const Color(0xFFD97706),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                t['sessions'] as String,
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: Color(0xFF6B7280),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── BOOKING TAB ────────────────────────────────────────────────────────
 
   Widget _buildBookingTab() {
     final ctrl = Get.put(OperationalController());
@@ -115,10 +895,11 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
       child: Column(
         children: [
           const SizedBox(height: 16),
-          // Summary
           Obx(() {
             final total = ctrl.bookings.length;
-            final pending = ctrl.bookings.where((b) => b.status == 'pending').length;
+            final pending = ctrl.bookings
+                .where((b) => b.status == 'pending')
+                .length;
             final done = ctrl.bookings.where((b) => b.status == 'done').length;
             return Row(
               children: [
@@ -131,57 +912,87 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
             );
           }),
           const SizedBox(height: 12),
-          // Filter
           SizedBox(
             height: 36,
-            child: Obx(() => ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                _filterChip('Semua', '', ctrl),
-                const SizedBox(width: 8),
-                _filterChip('Pending', 'pending', ctrl),
-                const SizedBox(width: 8),
-                _filterChip('Confirmed', 'confirmed', ctrl),
-                const SizedBox(width: 8),
-                _filterChip('Done', 'done', ctrl),
-              ],
-            )),
+            child: Obx(
+              () => ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  _filterChip('Semua', '', ctrl),
+                  const SizedBox(width: 8),
+                  _filterChip('Pending', 'pending', ctrl),
+                  const SizedBox(width: 8),
+                  _filterChip('Confirmed', 'confirmed', ctrl),
+                  const SizedBox(width: 8),
+                  _filterChip('Done', 'done', ctrl),
+                ],
+              ),
+            ),
           ),
           const SizedBox(height: 12),
-          // List
           Expanded(
             child: Obx(() {
               final items = ctrl.filtered;
               if (items.isEmpty) {
-                return Center(child: Text('Tidak ada booking', style: AppTextStyles.caption));
+                return Center(
+                  child: Text(
+                    'Tidak ada booking',
+                    style: AppTextStyles.caption,
+                  ),
+                );
               }
               return ListView.separated(
                 itemCount: items.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (_, i) {
                   final b = items[i];
-                  final tutor = mockTutors.firstWhere((t) => t.id == b.tutorId, orElse: () => mockTutors.first);
+                  final tutor = mockTutors.firstWhere(
+                    (t) => t.id == b.tutorId,
+                    orElse: () => mockTutors.first,
+                  );
                   return Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border(left: BorderSide(color: _statusColor(b.status), width: 4)),
+                      border: Border(
+                        left: BorderSide(
+                          color: _statusColor(b.status),
+                          width: 4,
+                        ),
+                      ),
                     ),
                     child: Row(
                       children: [
                         CircleAvatar(
                           radius: 16,
-                          backgroundColor: AppColors.primaryBlue.withAlpha((0.1 * 255).round()),
-                          child: Text(tutor.fullName[0], style: TextStyle(color: AppColors.primaryBlue, fontWeight: FontWeight.w800, fontSize: 12)),
+                          backgroundColor: AppColors.primaryBlue.withOpacity(
+                            0.1,
+                          ),
+                          child: Text(
+                            tutor.fullName[0],
+                            style: TextStyle(
+                              color: AppColors.primaryBlue,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 12,
+                            ),
+                          ),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(tutor.fullName, style: AppTextStyles.bodySemiBold),
-                              Text('${b.customerName ?? "Customer"} • ${b.subject}', style: AppTextStyles.caption.copyWith(fontSize: 11)),
+                              Text(
+                                tutor.fullName,
+                                style: AppTextStyles.bodySemiBold,
+                              ),
+                              Text(
+                                '${b.customerName ?? "Customer"} • ${b.subject}',
+                                style: AppTextStyles.caption.copyWith(
+                                  fontSize: 11,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -190,12 +1001,32 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.check_circle_rounded, color: AppColors.onlineGreen, size: 20),
-                                onPressed: () { ctrl.approveBooking(b.id); Get.snackbar('Approved', 'Booking ${b.id} disetujui'); },
+                                icon: const Icon(
+                                  Icons.check_circle_rounded,
+                                  color: AppColors.onlineGreen,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  ctrl.approveBooking(b.id);
+                                  Get.snackbar(
+                                    'Approved',
+                                    'Booking ${b.id} disetujui',
+                                  );
+                                },
                               ),
                               IconButton(
-                                icon: const Icon(Icons.cancel_rounded, color: AppColors.primaryRed, size: 20),
-                                onPressed: () { ctrl.cancelBooking(b.id); Get.snackbar('Cancelled', 'Booking ${b.id} dibatalkan'); },
+                                icon: const Icon(
+                                  Icons.cancel_rounded,
+                                  color: AppColors.primaryRed,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  ctrl.cancelBooking(b.id);
+                                  Get.snackbar(
+                                    'Cancelled',
+                                    'Booking ${b.id} dibatalkan',
+                                  );
+                                },
                               ),
                             ],
                           )
@@ -217,10 +1048,21 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: Column(
           children: [
-            Text('$value', style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.w800, color: color)),
+            Text(
+              '$value',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: color,
+              ),
+            ),
             const SizedBox(height: 2),
             Text(label, style: AppTextStyles.caption.copyWith(fontSize: 10)),
           ],
@@ -239,20 +1081,33 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
           color: selected ? AppColors.primaryBlue : Colors.white,
           borderRadius: BorderRadius.circular(20),
         ),
-        child: Text(label, style: AppTextStyles.bodySemiBold.copyWith(fontSize: 12, color: selected ? Colors.white : AppColors.textSecondary)),
+        child: Text(
+          label,
+          style: AppTextStyles.bodySemiBold.copyWith(
+            fontSize: 12,
+            color: selected ? Colors.white : AppTextStyles.caption.color,
+          ),
+        ),
       ),
     );
   }
 
   Color _statusColor(String status) {
     switch (status) {
-      case 'pending': return AppColors.primaryYellow;
-      case 'confirmed': return AppColors.primaryBlue;
-      case 'done': return AppColors.onlineGreen;
-      case 'cancelled': return AppColors.primaryRed;
-      default: return AppColors.textLight;
+      case 'pending':
+        return AppColors.primaryYellow;
+      case 'confirmed':
+        return AppColors.primaryBlue;
+      case 'done':
+        return AppColors.onlineGreen;
+      case 'cancelled':
+        return AppColors.primaryRed;
+      default:
+        return AppColors.textLight;
     }
   }
+
+  // ── TUTOR TAB ──────────────────────────────────────────────────────────
 
   Widget _buildTutorTab() {
     return ListView.builder(
@@ -263,17 +1118,30 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
         return Container(
           margin: const EdgeInsets.only(top: 12),
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Row(
             children: [
               Container(
-                width: 48, height: 48,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [AppColors.primaryBlue, AppColors.blueLight]),
+                  gradient: LinearGradient(
+                    colors: [AppColors.primaryBlue, AppColors.blueLight],
+                  ),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 alignment: Alignment.center,
-                child: Text(t.fullName[0], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 20)),
+                child: Text(
+                  t.fullName[0],
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 20,
+                  ),
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -281,7 +1149,10 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(t.fullName, style: AppTextStyles.heading3),
-                    Text('${t.university} • ${t.subjects.take(2).join(", ")}', style: AppTextStyles.caption),
+                    Text(
+                      '${t.university} · ${t.subjects.take(2).join(", ")}',
+                      style: AppTextStyles.caption,
+                    ),
                   ],
                 ),
               ),
@@ -291,12 +1162,24 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.circle, size: 8, color: t.isOnline ? AppColors.onlineGreen : AppColors.textLight),
+                      Icon(
+                        Icons.circle,
+                        size: 8,
+                        color: t.isOnline
+                            ? AppColors.onlineGreen
+                            : AppColors.textLight,
+                      ),
                       const SizedBox(width: 4),
-                      Text(t.isOnline ? 'Online' : 'Offline', style: AppTextStyles.caption.copyWith(fontSize: 10)),
+                      Text(
+                        t.isOnline ? 'Online' : 'Offline',
+                        style: AppTextStyles.caption.copyWith(fontSize: 10),
+                      ),
                     ],
                   ),
-                  Text('⭐ ${t.rating}', style: AppTextStyles.bodySemiBold.copyWith(fontSize: 12)),
+                  Text(
+                    '⭐ ${t.rating}',
+                    style: AppTextStyles.bodySemiBold.copyWith(fontSize: 12),
+                  ),
                 ],
               ),
             ],
@@ -305,6 +1188,8 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
       },
     );
   }
+
+  // ── PROFILE TAB ────────────────────────────────────────────────────────
 
   Widget _buildProfileTab(AuthController auth) {
     return SingleChildScrollView(
@@ -316,43 +1201,102 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [AppColors.primaryBlue, AppColors.primaryBlue.withAlpha((0.8 * 255).round())]),
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primaryBlue,
+                  AppColors.primaryBlue.withOpacity(0.8),
+                ],
+              ),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
               children: [
                 Container(
-                  width: 72, height: 72,
-                  decoration: BoxDecoration(color: AppColors.primaryYellow, borderRadius: BorderRadius.circular(12)),
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryYellow,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   alignment: Alignment.center,
-                  child: Text((auth.currentUser.value?.fullName ?? 'A')[0].toUpperCase(), style: AppTextStyles.heading1.copyWith(color: Colors.white, fontSize: 28)),
+                  child: Obx(
+                    () => Text(
+                      (auth.currentUser.value?.fullName ?? 'A')[0]
+                          .toUpperCase(),
+                      style: AppTextStyles.heading1.copyWith(
+                        color: Colors.white,
+                        fontSize: 28,
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 12),
-                Text(auth.currentUser.value?.fullName ?? 'Admin', style: AppTextStyles.heading3.copyWith(color: Colors.white)),
+                Obx(
+                  () => Text(
+                    auth.currentUser.value?.fullName ?? 'Admin',
+                    style: AppTextStyles.heading3.copyWith(color: Colors.white),
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text('admin@demo.com', style: AppTextStyles.caption.copyWith(color: Colors.white70)),
+                Text(
+                  'admin@demo.com',
+                  style: AppTextStyles.caption.copyWith(color: Colors.white70),
+                ),
                 const SizedBox(height: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(color: Colors.white.withAlpha((0.2 * 255).round()), borderRadius: BorderRadius.circular(8)),
-                  child: Text('Manajemen', style: AppTextStyles.caption.copyWith(color: Colors.white)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Manajemen',
+                    style: AppTextStyles.caption.copyWith(color: Colors.white),
+                  ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 20),
-          _profileMenu(Icons.dashboard_rounded, 'Dashboard', 'Statistik platform'),
-          _profileMenu(Icons.receipt_long_rounded, 'Kelola Booking', 'Approve & batalkan'),
-          _profileMenu(Icons.school_rounded, 'Kelola Tutor', 'Data tutor aktif'),
+          _profileMenu(
+            Icons.dashboard_rounded,
+            'Dashboard',
+            'Statistik platform',
+          ),
+          _profileMenu(
+            Icons.receipt_long_rounded,
+            'Kelola Booking',
+            'Approve & batalkan',
+          ),
+          _profileMenu(
+            Icons.school_rounded,
+            'Kelola Tutor',
+            'Data tutor aktif',
+          ),
           _profileMenu(Icons.assessment_rounded, 'Laporan', 'Detail statistik'),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: () => Get.find<AuthController>().logout(),
-              icon: const Icon(Icons.logout_rounded, color: AppColors.primaryRed),
-              label: Text('Keluar', style: TextStyle(color: AppColors.primaryRed)),
-              style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.primaryRed), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), padding: const EdgeInsets.symmetric(vertical: 14)),
+              icon: const Icon(
+                Icons.logout_rounded,
+                color: AppColors.primaryRed,
+              ),
+              label: Text(
+                'Keluar',
+                style: TextStyle(color: AppColors.primaryRed),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.primaryRed),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
             ),
           ),
         ],
@@ -364,689 +1308,30 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
-      child: Row(
-        children: [
-          Icon(icon, color: AppColors.primaryBlue, size: 22),
-          const SizedBox(width: 14),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: AppTextStyles.bodySemiBold), Text(subtitle, style: AppTextStyles.caption)])),
-          Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textLight),
-        ],
-      ),
-    );
-  }
-
-  // ── Header ──────────────────────────────────────────────────────────────
-
-  Widget _buildHeader(AuthController auth) {
-    return Container(
-      decoration: const BoxDecoration(gradient: AppColors.headerGradient),
-      padding: EdgeInsets.fromLTRB(
-        ResponsiveHelper.horizontalPadding(context),
-        MediaQuery.of(context).padding.top + 16,
-        ResponsiveHelper.horizontalPadding(context),
-        24,
-      ),
-      child: Row(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Panel Manajemen 🎯',
-                style: AppTextStyles.heading2.copyWith(
-                  color: Colors.white,
-                  fontFamily: 'Poppins',
-                ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Obx(
-                    () => Text(
-                      'Halo, ${auth.currentUser.value?.fullName ?? 'Admin'}',
-                      style: AppTextStyles.caption.copyWith(color: Colors.white70),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withAlpha((0.2 * 255).round()),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      '⚙️ Admin',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const Spacer(),
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.white.withAlpha((0.15 * 255).round()),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.notifications_outlined,
-              color: Colors.white,
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 10),
-          GestureDetector(
-            onTap: () => Get.find<AuthController>().logout(),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white.withAlpha((0.15 * 255).round()),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.logout_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Stats Grid ─────────────────────────────────────────────────────────
-
-  Widget _buildStatsGrid(Map<String, dynamic> stats) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Statistik Platform', style: AppTextStyles.heading3),
-        const SizedBox(height: 12),
-        GridView.count(
-          crossAxisCount: ResponsiveHelper.isDesktop(context)
-              ? 4
-              : ResponsiveHelper.isTablet(context)
-                  ? 4
-                  : 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1.4,
-          children: [
-            _statCard(
-              icon: Icons.hourglass_top_rounded,
-              value: '5',
-              label: 'Pending Approval',
-              color: AppColors.primaryYellow,
-            ),
-            _statCard(
-              icon: Icons.school_rounded,
-              value: '42',
-              label: 'Tutor Aktif',
-              color: AppColors.onlineGreen,
-            ),
-            _statCard(
-              icon: Icons.people_rounded,
-              value: '128',
-              label: 'Total Customer',
-              color: Colors.white,
-            ),
-            _statCard(
-              icon: Icons.report_problem_rounded,
-              value: '3',
-              label: 'Komplain',
-              color: AppColors.primaryRed,
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        // Revenue card
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF7C3AED), Color(0xFFAB5CF7)],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Total Pendapatan',
-                      style: AppTextStyles.caption.copyWith(
-                        color: Colors.white70,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Rp ${_formatCurrency(stats['revenue'])}',
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: Colors.white.withAlpha((0.15 * 255).round()),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Icon(
-                  Icons.account_balance_wallet_rounded,
-                  color: Colors.white,
-                  size: 26,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _statCard({
-    required IconData icon,
-    required String value,
-    required String label,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: color.withAlpha((0.08 * 255).round()),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: color.withAlpha((0.1 * 255).round()),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            value,
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(label, style: AppTextStyles.caption),
-        ],
-      ),
-    );
-  }
-
-  // ── Quick Actions ──────────────────────────────────────────────────────
-
-  Widget _buildQuickActions() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Aksi Cepat', style: AppTextStyles.heading3),
-        const SizedBox(height: 12),
-        _actionCard(
-          icon: Icons.receipt_long_rounded,
-          title: 'Kelola Booking',
-          subtitle: '${mockManagementStats['pendingBookings']} menunggu',
-          color: AppColors.primaryYellow,
-          onTap: () => Get.toNamed(AppRoutes.operational),
-        ),
-        const SizedBox(height: 10),
-        _actionCard(
-          icon: Icons.school_rounded,
-          title: 'Kelola Tutor',
-          subtitle: '${mockManagementStats['activeTutors']} aktif',
-          color: AppColors.onlineGreen,
-          onTap: () => Get.toNamed(AppRoutes.tutorApproval),
-        ),
-        const SizedBox(height: 10),
-        _actionCard(
-          icon: Icons.assessment_rounded,
-          title: 'Laporan & Statistik',
-          subtitle: 'Lihat detail',
-          color: AppColors.primaryBlue,
-          onTap: () {},
-        ),
-      ],
-    );
-  }
-
-  Widget _actionCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primaryBlue.withAlpha((0.06 * 255).round()),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: color.withAlpha((0.1 * 255).round()),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 22),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: AppTextStyles.bodySemiBold),
-                  const SizedBox(height: 2),
-                  Text(subtitle, style: AppTextStyles.caption),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 16,
-              color: AppColors.textLight,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ── Recent Activity ────────────────────────────────────────────────────
-
-  Widget _buildRecentActivity() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Aktivitas Terbaru', style: AppTextStyles.heading3),
-        const SizedBox(height: 12),
-        _activityTile(
-          icon: Icons.add_circle_outline,
-          color: AppColors.onlineGreen,
-          title: 'Tutor baru terdaftar',
-          subtitle: 'Dimas Pratama - UGM',
-          time: '2 jam lalu',
-        ),
-        _activityTile(
-          icon: Icons.check_circle_outline,
-          color: AppColors.primaryBlue,
-          title: 'Booking dikonfirmasi',
-          subtitle: 'b4 - Statistika oleh Fikri Akbar',
-          time: '3 jam lalu',
-        ),
-        _activityTile(
-          icon: Icons.cancel_outlined,
-          color: AppColors.primaryRed,
-          title: 'Booking dibatalkan',
-          subtitle: 'b8 - TOEFL Prep oleh Rizky Pratama',
-          time: '5 jam lalu',
-        ),
-        _activityTile(
-          icon: Icons.star_outline,
-          color: AppColors.primaryYellow,
-          title: 'Review baru',
-          subtitle: '5⭐ untuk Arif Rahmat',
-          time: '1 hari lalu',
-        ),
-      ],
-    );
-  }
-
-  Widget _activityTile({
-    required IconData icon,
-    required Color color,
-    required String title,
-    required String subtitle,
-    required String time,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color.withAlpha((0.1 * 255).round()),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(width: 12),
+          Icon(icon, color: AppColors.primaryBlue, size: 22),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: AppTextStyles.bodySemiBold),
-                const SizedBox(height: 2),
                 Text(subtitle, style: AppTextStyles.caption),
               ],
             ),
           ),
-          Text(time, style: AppTextStyles.caption.copyWith(fontSize: 10)),
-        ],
-      ),
-    );
-  }
-
-  // ── Oprec Schedule Card ────────────────────────────────────────────────
-
-  Widget _buildOprecCard() {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFF4A200), Color(0xFFFF9A3C)],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFF4A200).withAlpha((0.3 * 255).round()),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '📅 Jadwal Oprec Tutor',
-                  style: AppTextStyles.caption.copyWith(
-                    color: Colors.white70,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  '1 – 15 April 2026',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Pendaftaran tutor batch 3 sedang aktif',
-                  style: AppTextStyles.caption.copyWith(color: Colors.white70),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withAlpha((0.25 * 255).round()),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withAlpha((0.35 * 255).round())),
-            ),
-            child: const Text(
-              'Edit',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-              ),
-            ),
+          Icon(
+            Icons.arrow_forward_ios_rounded,
+            size: 14,
+            color: AppColors.textLight,
           ),
         ],
       ),
     );
-  }
-
-  // ── Session Chart ──────────────────────────────────────────────────────
-
-  Widget _buildSessionChart() {
-    final data = [
-      {'label': 'Sen', 'value': 38, 'color': AppColors.primaryBlue},
-      {'label': 'Sel', 'value': 52, 'color': AppColors.primaryBlue},
-      {'label': 'Rab', 'value': 45, 'color': AppColors.primaryBlue},
-      {'label': 'Kam', 'value': 60, 'color': AppColors.primaryYellow},
-      {'label': 'Jum', 'value': 48, 'color': AppColors.primaryBlue},
-      {'label': 'Sab', 'value': 30, 'color': AppColors.primaryRed},
-      {'label': 'Min', 'value': 20, 'color': AppColors.textLight},
-    ];
-    final maxVal = data.map((d) => d['value'] as int).reduce((a, b) => a > b ? a : b);
-
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryBlue.withAlpha((0.06 * 255).round()),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('📊 Sesi Minggu Ini', style: AppTextStyles.heading3),
-          const SizedBox(height: 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: data.map((d) {
-              final height = ((d['value'] as int) / maxVal * 60).toDouble();
-              final color = d['color'] as Color;
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Column(
-                    children: [
-                      Container(
-                        height: height,
-                        decoration: BoxDecoration(
-                          color: color,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        d['label'] as String,
-                        style: AppTextStyles.caption.copyWith(fontSize: 10),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Approval Tutor Section ─────────────────────────────────────────────
-
-  Widget _buildApprovalSection() {
-    final pendingTutors = [
-      {'name': 'Muhammad Rizky', 'univ': 'UGM', 'subject': 'Kimia Organik'},
-      {'name': 'Laila Nur Fadhilah', 'univ': 'UB', 'subject': 'Kalkulus'},
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Text('Approval Tutor', style: AppTextStyles.heading3),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.primaryRed,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                '${pendingTutors.length} pending',
-                style: AppTextStyles.label.copyWith(color: Colors.white),
-              ),
-            ),
-            const Spacer(),
-            GestureDetector(
-              onTap: () => Get.toNamed(AppRoutes.tutorApproval),
-              child: Text(
-                'Lihat Semua',
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.primaryBlue,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        ...pendingTutors.map((t) => Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primaryBlue.withAlpha((0.06 * 255).round()),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: AppColors.accentPurple.withAlpha((0.2 * 255).round()),
-                child: Text(
-                  (t['name'] as String)[0],
-                  style: AppTextStyles.heading3.copyWith(
-                    color: AppColors.accentPurple,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(t['name']!, style: AppTextStyles.bodySemiBold),
-                    Text(
-                      '${t['subject']} • ${t['univ']}',
-                      style: AppTextStyles.caption,
-                    ),
-                  ],
-                ),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.close_rounded,
-                        color: AppColors.primaryRed, size: 20),
-                  ),
-                  const SizedBox(width: 4),
-                  ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.onlineGreen,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 8),
-                      elevation: 0,
-                    ),
-                    child: const Text('Setujui',
-                        style: TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.w700)),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        )),
-      ],
-    );
-  }
-
-  String _formatCurrency(dynamic amount) {
-    final str = amount.toStringAsFixed(0);
-    final buffer = StringBuffer();
-    for (int i = 0; i < str.length; i++) {
-      if (i > 0 && (str.length - i) % 3 == 0) buffer.write('.');
-      buffer.write(str[i]);
-    }
-    return buffer.toString();
   }
 }
