@@ -24,7 +24,11 @@ class TutorProfileScreen extends StatelessWidget {
             slivers: [
               _buildHeader(c),
               _buildGmeetSection(c),
+              _buildDivider(),
               _buildBioSection(c),
+              _buildDivider(),
+              _buildSubjectsSection(c),
+              _buildSaveButton(c),
               const SliverToBoxAdapter(child: SizedBox(height: 24)),
             ],
           ),
@@ -450,6 +454,17 @@ class TutorProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
+            const SizedBox(height: 6),
+            Obx(
+              () => Text(
+                'Maks. 200 karakter · ${c.bioCharCount.value}/200',
+                style: AppTextStyles.caption.copyWith(
+                  color: c.bioCharCount.value > 200
+                      ? AppColors.primaryRed
+                      : AppColors.primaryBlue,
+                ),
+              ),
+            ),
             // Error message
             Obx(
               () => c.saveError.value.isNotEmpty
@@ -475,6 +490,210 @@ class TutorProfileScreen extends StatelessWidget {
                   : const SizedBox.shrink(),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  // ── Divider ─────────────────────────────────────────────────────────────────
+
+  Widget _buildDivider() {
+    return SliverToBoxAdapter(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        child: const Divider(color: AppColors.border, thickness: 1),
+      ),
+    );
+  }
+
+  // ── Subjects Section ───────────────────────────────────────────────────────
+
+  Widget _buildSubjectsSection(TutorProfileController c) {
+    return SliverToBoxAdapter(
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryBlue.withAlpha((0.06 * 255).round()),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Text('📚', style: TextStyle(fontSize: 16)),
+                const SizedBox(width: 8),
+                Text(
+                  'Mata Kuliah yang Diajarkan',
+                  style: AppTextStyles.heading3,
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            // Input row with add button
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: c.subjectInputCtrl,
+                    style: AppTextStyles.body,
+                    onSubmitted: (_) => c.addSubject(),
+                    decoration: InputDecoration(
+                      hintText: 'Tambah mata kuliah...',
+                      hintStyle: AppTextStyles.body.copyWith(
+                        color: AppColors.textLight,
+                      ),
+                      filled: true,
+                      fillColor: AppColors.background,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(
+                          color: AppColors.primaryBlue,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                GestureDetector(
+                  onTap: c.addSubject,
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryBlue,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(
+                      Icons.add_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            // Subject tags
+            Obx(
+              () => Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: c.subjects.map((subject) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryBlue.withAlpha(
+                        (0.08 * 255).round(),
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: AppColors.primaryBlue.withAlpha(
+                          (0.2 * 255).round(),
+                        ),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          subject,
+                          style: AppTextStyles.bodySemiBold.copyWith(
+                            color: AppColors.primaryBlue,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        GestureDetector(
+                          onTap: () => c.removeSubject(subject),
+                          child: Icon(
+                            Icons.close_rounded,
+                            size: 16,
+                            color: AppColors.primaryBlue.withAlpha(
+                              (0.6 * 255).round(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Obx(
+              () => Text(
+                '${c.subjects.length} mata kuliah terdaftar · Maks. 8',
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Save Button ────────────────────────────────────────────────────────────
+
+  Widget _buildSaveButton(TutorProfileController c) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+        child: GestureDetector(
+          onTap: c.isSaving.value ? null : c.saveProfile,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(
+              gradient: AppColors.headerGradient,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primaryBlue.withAlpha((0.3 * 255).round()),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.save_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Simpan Perubahan',
+                  style: AppTextStyles.bodySemiBold.copyWith(
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

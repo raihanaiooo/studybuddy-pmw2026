@@ -149,6 +149,46 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
 
                       // Preferences section
                       _buildPreferencesSection(),
+                      const SizedBox(height: 24),
+
+                      // Menu section
+                      _buildMenuSection(),
+                      const SizedBox(height: 24),
+
+                      // Save button
+                      if (_isEditing) ...[
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              setState(() => _isEditing = false);
+                              Get.snackbar(
+                                'Berhasil',
+                                'Profil berhasil diperbarui',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: AppColors.onlineGreen,
+                                colorText: Colors.white,
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryBlue,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'Simpan Perubahan Profil',
+                              style: AppTextStyles.body.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                       const SizedBox(height: 32),
                     ],
                   ),
@@ -251,71 +291,26 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 8),
-                    Row(
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.check_circle_rounded,
-                                color: Colors.white,
-                                size: 14,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Email Terverifikasi',
-                                style: AppTextStyles.caption.copyWith(
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
+                        _buildTrustChip(
+                          icon: Icons.verified_rounded,
+                          label: 'Verifikasi Email',
                         ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.onlineGreen.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            '8 Sesi Selesai',
-                            style: AppTextStyles.caption.copyWith(
-                              color: AppColors.onlineGreen,
-                            ),
-                          ),
+                        _buildTrustChip(
+                          icon: Icons.school_rounded,
+                          label: '8 Sesi Selesai',
+                        ),
+                        _buildTrustChip(
+                          icon: Icons.star_rounded,
+                          label: 'Rating 4.9',
                         ),
                       ],
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              const Icon(Icons.star_rounded, color: Colors.white, size: 18),
-              const SizedBox(width: 4),
-              Text(
-                '4.9',
-                style: AppTextStyles.heading3.copyWith(color: Colors.white),
-              ),
-              const SizedBox(width: 2),
-              Text(
-                'Rating dari 12 Ulasan',
-                style: AppTextStyles.caption.copyWith(color: Colors.white70),
               ),
             ],
           ),
@@ -451,6 +446,8 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
           label: 'Tujuan Belajar',
           value: 'Persiapan UTS/UAS',
         ),
+        const SizedBox(height: 16),
+        _buildKuesionerCard(),
       ],
     );
   }
@@ -526,6 +523,166 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
               const SizedBox(height: 4),
               Text(value, style: AppTextStyles.body),
             ],
+          ),
+          const Icon(
+            Icons.arrow_forward_ios_rounded,
+            size: 14,
+            color: AppColors.textLight,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrustChip({required IconData icon, required String label}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white, size: 14),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: AppTextStyles.caption.copyWith(color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKuesionerCard() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.accentPurple.withValues(alpha: 0.08),
+        border: Border.all(
+          color: AppColors.accentPurple.withValues(alpha: 0.3),
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Kuesioner rekomendasi aktif',
+                  style: AppTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Update terakhir: 2 hari lalu \u2022 5 tutor cocok',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: () => Get.toNamed(AppRoutes.questionnaire),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.accentPurple,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                'Isi Ulang',
+                style: AppTextStyles.caption.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Menu Profil Lainnya', style: AppTextStyles.heading2),
+        const SizedBox(height: 16),
+        _buildMenuItem(
+          icon: Icons.star_rounded,
+          iconColor: AppColors.primaryYellow,
+          title: 'Riwayat Rating & Review',
+          subtitle: 'Lihat ulasan yang pernah diberikan',
+        ),
+        const SizedBox(height: 10),
+        _buildMenuItem(
+          icon: Icons.favorite_rounded,
+          iconColor: AppColors.primaryRed,
+          title: 'Tutor Favorit',
+          subtitle: 'Daftar tutor pilihan untuk booking cepat',
+        ),
+        const SizedBox(height: 10),
+        _buildMenuItem(
+          icon: Icons.account_balance_wallet_rounded,
+          iconColor: AppColors.accentTeal,
+          title: 'Metode Pembayaran',
+          subtitle: 'Atur rekening dan e-wallet utama',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMenuItem({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: iconColor, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
           ),
           const Icon(
             Icons.arrow_forward_ios_rounded,

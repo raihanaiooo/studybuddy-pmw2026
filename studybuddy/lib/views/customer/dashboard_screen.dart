@@ -13,7 +13,6 @@ import '../../shared/widgets/tutor_card.dart';
 import '../../shared/widgets/status_badge.dart';
 import '../../core/utils/date_utils.dart';
 
-/// Dashboard utama customer dengan persistent bottom nav
 class CustomerDashboardScreen extends StatefulWidget {
   const CustomerDashboardScreen({super.key});
 
@@ -48,7 +47,6 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          // Header hanya tampil di tab Beranda
           if (_navIndex == 0) _buildHeader(auth),
           Expanded(
             child: _buildContent(dashboard, tutorCtrl, auth, isWide),
@@ -62,8 +60,6 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
       ),
     );
   }
-
-  // ── Content Switcher ───────────────────────────────────────────────────
 
   Widget _buildContent(
     DashboardController dashboard,
@@ -98,9 +94,14 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 8),
+          _buildQuickStats(),
+          const SizedBox(height: 16),
           _buildOnDemandBanner(),
+          const SizedBox(height: 16),
+          _buildRekomendasiBanner(),
           const SizedBox(height: 24),
 
+          // Online Tutors
           _buildSectionHeader(
             '🟢 Tutor Online Sekarang',
             onSeeAll: () => setState(() => _navIndex = 1),
@@ -114,7 +115,8 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
             }
             if (dashboard.onlineTutors.isEmpty) {
               return Center(
-                child: Text('Belum ada tutor online saat ini', style: AppTextStyles.caption),
+                child: Text('Belum ada tutor online saat ini',
+                    style: AppTextStyles.caption),
               );
             }
             if (isWide) {
@@ -156,6 +158,16 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
           }),
           const SizedBox(height: 24),
 
+          // Subject Filter + Rekomendasi
+          _buildSectionHeader(
+            '⭐ Tutor Untukmu',
+            onSeeAll: () => setState(() => _navIndex = 1),
+          ),
+          const SizedBox(height: 12),
+          _buildSubjectFilter(tutorCtrl),
+          const SizedBox(height: 16),
+
+          // Tutor Tersedia
           _buildSectionHeader(
             '👨‍🏫 Tutor Tersedia',
             onSeeAll: () => setState(() => _navIndex = 1),
@@ -201,6 +213,211 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
     );
   }
 
+  // ── Quick Stats ────────────────────────────────────────────────────────
+
+  Widget _buildQuickStats() => Row(
+        children: [
+          _quickStatCard('📚', '12', 'Sesi Selesai'),
+          const SizedBox(width: 10),
+          _quickStatCard('⏱️', '24', 'Jam Belajar'),
+          const SizedBox(width: 10),
+          _quickStatCard('🔥', '7', 'Hari Streak'),
+        ],
+      );
+
+  Widget _quickStatCard(String emoji, String value, String label) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primaryBlue.withAlpha((0.1 * 255).round()),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 20)),
+              const SizedBox(height: 6),
+              Text(
+                value,
+                style: AppTextStyles.heading2.copyWith(
+                  fontFamily: 'Poppins',
+                  fontSize: 20,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: AppTextStyles.caption.copyWith(fontSize: 10),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+
+  // ── Subject Filter ─────────────────────────────────────────────────────
+
+  Widget _buildSubjectFilter(TutorController tutorCtrl) {
+    final subjects = [
+      'Semua',
+      'Matematika',
+      'Fisika',
+      'Kimia',
+      'Statistik',
+      'Pemrograman'
+    ];
+    return SizedBox(
+      height: 36,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        itemCount: subjects.length,
+        itemBuilder: (_, i) {
+          final s = subjects[i];
+          final selected = tutorCtrl.selectedSubject.value == s;
+          return GestureDetector(
+            onTap: () {
+              tutorCtrl.selectedSubject.value = s;
+              if (s == 'Semua') {
+                tutorCtrl.searchQuery.value = '';
+              } else {
+                tutorCtrl.searchQuery.value = s;
+              }
+            },
+            child: Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: selected ? AppColors.primaryBlue : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color:
+                      selected ? AppColors.primaryBlue : AppColors.border,
+                ),
+              ),
+              child: Text(
+                s,
+                style: AppTextStyles.bodySemiBold.copyWith(
+                  fontSize: 12,
+                  color:
+                      selected ? Colors.white : AppColors.textSecondary,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ── Banners ────────────────────────────────────────────────────────────
+
+  Widget _buildOnDemandBanner() => GestureDetector(
+        onTap: () =>
+            Get.toNamed(AppRoutes.tutorList, arguments: {'onlineOnly': true}),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+                colors: [AppColors.primaryRed, AppColors.redLight]),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color:
+                    AppColors.primaryRed.withAlpha((0.3 * 255).round()),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              const Text('⚡', style: TextStyle(fontSize: 28)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Butuh Tutor Sekarang?',
+                        style: AppTextStyles.heading3
+                            .copyWith(color: Colors.white)),
+                    const SizedBox(height: 2),
+                    Obx(() {
+                      final count = Get.find<DashboardController>().onlineTutors.length;
+                      return Text('$count tutor online & siap membantu',
+                          style: AppTextStyles.caption
+                              .copyWith(color: Colors.white70));
+                    }),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Text('Cari 🚀',
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primaryRed)),
+              ),
+            ],
+          ),
+        ),
+      );
+
+  Widget _buildRekomendasiBanner() => GestureDetector(
+        onTap: () => Get.toNamed(AppRoutes.questionnaire),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+                colors: [AppColors.accentPurple, AppColors.primaryBlue]),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color:
+                    AppColors.accentPurple.withAlpha((0.3 * 255).round()),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              const Text('🎯', style: TextStyle(fontSize: 28)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Temukan Tutor Ideal',
+                        style: AppTextStyles.heading3
+                            .copyWith(color: Colors.white)),
+                    const SizedBox(height: 2),
+                    Text(
+                        'Isi kuesioner untuk rekomendasi tutor yang sesuai',
+                        style: AppTextStyles.caption
+                            .copyWith(color: Colors.white70)),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios,
+                  color: Colors.white, size: 16),
+            ],
+          ),
+        ),
+      );
+
   // ── Tab 1: Cari Tutor ──────────────────────────────────────────────────
 
   Widget _buildSearchContent(TutorController ctrl) {
@@ -213,7 +430,8 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
             decoration: InputDecoration(
               hintText: 'Cari tutor atau mata kuliah...',
               hintStyle: AppTextStyles.caption,
-              prefixIcon: const Icon(Icons.search, color: AppColors.textLight, size: 20),
+              prefixIcon: const Icon(Icons.search,
+                  color: AppColors.textLight, size: 20),
               filled: true,
               fillColor: Colors.white,
               border: OutlineInputBorder(
@@ -228,10 +446,14 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
           child: Obx(() {
             final list = ctrl.filtered;
             if (ctrl.isLoading.value) {
-              return const Center(child: CircularProgressIndicator(color: AppColors.primaryBlue));
+              return const Center(
+                  child: CircularProgressIndicator(
+                      color: AppColors.primaryBlue));
             }
             if (list.isEmpty) {
-              return Center(child: Text('Tidak ada tutor ditemukan', style: AppTextStyles.caption));
+              return Center(
+                  child: Text('Tidak ada tutor ditemukan',
+                      style: AppTextStyles.caption));
             }
             return ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -257,7 +479,8 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
 
     return Obx(() {
       if (ctrl.isLoading.value) {
-        return const Center(child: CircularProgressIndicator(color: AppColors.primaryBlue));
+        return const Center(
+            child: CircularProgressIndicator(color: AppColors.primaryBlue));
       }
       if (ctrl.myBookings.isEmpty) {
         return Center(
@@ -268,7 +491,8 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
               const SizedBox(height: 12),
               Text('Belum ada jadwal', style: AppTextStyles.heading3),
               const SizedBox(height: 6),
-              Text('Booking tutor untuk mulai belajar!', style: AppTextStyles.caption),
+              Text('Booking tutor untuk mulai belajar!',
+                  style: AppTextStyles.caption),
             ],
           ),
         );
@@ -286,7 +510,8 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primaryBlue.withAlpha((0.08 * 255).round()),
+                  color:
+                      AppColors.primaryBlue.withAlpha((0.08 * 255).round()),
                   blurRadius: 8,
                 ),
               ],
@@ -296,29 +521,39 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
               children: [
                 Row(
                   children: [
-                    Expanded(child: Text(b.subject, style: AppTextStyles.heading3)),
+                    Expanded(
+                        child:
+                            Text(b.subject, style: AppTextStyles.heading3)),
                     StatusBadge(status: b.status),
                   ],
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textLight),
+                    const Icon(Icons.calendar_today_outlined,
+                        size: 14, color: AppColors.textLight),
                     const SizedBox(width: 6),
-                    Text(AppDateUtils.formatDateTime(b.sessionTime), style: AppTextStyles.caption),
+                    Text(AppDateUtils.formatDateTime(b.sessionTime),
+                        style: AppTextStyles.caption),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(Icons.timer_outlined, size: 14, color: AppColors.textLight),
+                    const Icon(Icons.timer_outlined,
+                        size: 14, color: AppColors.textLight),
                     const SizedBox(width: 6),
-                    Text('${b.durationMinutes} menit', style: AppTextStyles.caption),
+                    Text('${b.durationMinutes} menit',
+                        style: AppTextStyles.caption),
                     const Spacer(),
                     if (b.status == 'confirmed')
                       TextButton(
-                        onPressed: () => Get.toNamed(AppRoutes.session, arguments: b),
-                        child: const Text('Mulai Sesi', style: TextStyle(color: AppColors.primaryBlue, fontWeight: FontWeight.w700)),
+                        onPressed: () =>
+                            Get.toNamed(AppRoutes.session, arguments: b),
+                        child: const Text('Mulai Sesi',
+                            style: TextStyle(
+                                color: AppColors.primaryBlue,
+                                fontWeight: FontWeight.w700)),
                       ),
                   ],
                 ),
@@ -342,9 +577,10 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.primaryBlue, AppColors.primaryBlue.withAlpha((0.8 * 255).round())],
-              ),
+              gradient: LinearGradient(colors: [
+                AppColors.primaryBlue,
+                AppColors.primaryBlue.withAlpha((0.8 * 255).round())
+              ]),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -360,8 +596,10 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
                       ),
                       child: Center(
                         child: Text(
-                          (auth.currentUser.value?.fullName ?? 'U')[0].toUpperCase(),
-                          style: AppTextStyles.heading1.copyWith(color: Colors.white, fontSize: 28),
+                          (auth.currentUser.value?.fullName ?? 'U')[0]
+                              .toUpperCase(),
+                          style: AppTextStyles.heading1
+                              .copyWith(color: Colors.white, fontSize: 28),
                         ),
                       ),
                     ),
@@ -372,26 +610,33 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
                         children: [
                           Text(
                             auth.currentUser.value?.fullName ?? 'User',
-                            style: AppTextStyles.heading3.copyWith(color: Colors.white),
+                            style: AppTextStyles.heading3
+                                .copyWith(color: Colors.white),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             'Teknik Industri · Semester 4 · Polban',
-                            style: AppTextStyles.caption.copyWith(color: Colors.white70),
+                            style: AppTextStyles.caption
+                                .copyWith(color: Colors.white70),
                           ),
                           const SizedBox(height: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: Colors.white.withAlpha((0.2 * 255).round()),
+                              color: Colors.white
+                                  .withAlpha((0.2 * 255).round()),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.check_circle_rounded, color: Colors.white, size: 14),
+                                const Icon(Icons.check_circle_rounded,
+                                    color: Colors.white, size: 14),
                                 const SizedBox(width: 4),
-                                Text('Email Terverifikasi', style: AppTextStyles.caption.copyWith(color: Colors.white)),
+                                Text('Email Terverifikasi',
+                                    style: AppTextStyles.caption
+                                        .copyWith(color: Colors.white)),
                               ],
                             ),
                           ),
@@ -403,11 +648,16 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    const Icon(Icons.star_rounded, color: Colors.white, size: 18),
+                    const Icon(Icons.star_rounded,
+                        color: Colors.white, size: 18),
                     const SizedBox(width: 4),
-                    Text('4.9', style: AppTextStyles.heading3.copyWith(color: Colors.white)),
+                    Text('4.9',
+                        style: AppTextStyles.heading3
+                            .copyWith(color: Colors.white)),
                     const SizedBox(width: 2),
-                    Text('Rating dari 12 Ulasan', style: AppTextStyles.caption.copyWith(color: Colors.white70)),
+                    Text('Rating dari 12 Ulasan',
+                        style: AppTextStyles.caption
+                            .copyWith(color: Colors.white70)),
                   ],
                 ),
               ],
@@ -429,8 +679,10 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
 
           // Info
           _profileInfoCard('Informasi Dasar', [
-            _profileInfoRow(Icons.person_outline, 'Nama', auth.currentUser.value?.fullName ?? '-'),
-            _profileInfoRow(Icons.phone_outlined, 'WhatsApp', '+62 812 9123 4567'),
+            _profileInfoRow(Icons.person_outline, 'Nama',
+                auth.currentUser.value?.fullName ?? '-'),
+            _profileInfoRow(
+                Icons.phone_outlined, 'WhatsApp', '+62 812 9123 4567'),
             _profileInfoRow(Icons.school_outlined, 'Universitas', 'Polban'),
             _profileInfoRow(Icons.book_outlined, 'Semester', '4'),
           ]),
@@ -438,8 +690,10 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
 
           // Preferensi
           _profileInfoCard('Preferensi Belajar', [
-            _profileInfoRow(Icons.bookmark_outline, 'Mata Kuliah Utama', 'Statistika Industri'),
-            _profileInfoRow(Icons.flag_outlined, 'Tujuan Belajar', 'Persiapan UTS/UAS'),
+            _profileInfoRow(Icons.bookmark_outline, 'Mata Kuliah Utama',
+                'Statistika Industri'),
+            _profileInfoRow(Icons.flag_outlined, 'Tujuan Belajar',
+                'Persiapan UTS/UAS'),
           ]),
           const SizedBox(height: 16),
 
@@ -448,11 +702,14 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: () => Get.find<AuthController>().logout(),
-              icon: const Icon(Icons.logout_rounded, color: AppColors.primaryRed),
-              label: Text('Keluar', style: TextStyle(color: AppColors.primaryRed)),
+              icon: const Icon(Icons.logout_rounded,
+                  color: AppColors.primaryRed),
+              label: const Text('Keluar',
+                  style: TextStyle(color: AppColors.primaryRed)),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppColors.primaryRed),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
             ),
@@ -473,9 +730,12 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
         ),
         child: Column(
           children: [
-            Text(value, style: AppTextStyles.heading1.copyWith(fontSize: 20)),
+            Text(value,
+                style: AppTextStyles.heading1.copyWith(fontSize: 20)),
             const SizedBox(height: 4),
-            Text(label, style: AppTextStyles.caption, textAlign: TextAlign.center),
+            Text(label,
+                style: AppTextStyles.caption,
+                textAlign: TextAlign.center),
           ],
         ),
       ),
@@ -515,100 +775,99 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
     );
   }
 
-  // ── Shared Widgets ─────────────────────────────────────────────────────
+  // ── Header & Section ───────────────────────────────────────────────────
 
   Widget _buildHeader(AuthController auth) => Container(
-    decoration: const BoxDecoration(gradient: AppColors.headerGradient),
-    padding: EdgeInsets.fromLTRB(
-      ResponsiveHelper.horizontalPadding(context),
-      MediaQuery.of(context).padding.top + 16,
-      ResponsiveHelper.horizontalPadding(context),
-      24,
-    ),
-    child: Row(
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        decoration: const BoxDecoration(gradient: AppColors.headerGradient),
+        padding: EdgeInsets.fromLTRB(
+          ResponsiveHelper.horizontalPadding(context),
+          MediaQuery.of(context).padding.top + 16,
+          ResponsiveHelper.horizontalPadding(context),
+          24,
+        ),
+        child: Row(
           children: [
-            Obx(
-              () => Text(
-                'Hai, ${auth.currentUser.value?.fullName.split(' ').first ?? 'Pelajar'} 👋',
-                style: AppTextStyles.heading2.copyWith(color: Colors.white, fontFamily: 'Poppins'),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text('Mau belajar apa hari ini?', style: AppTextStyles.caption.copyWith(color: Colors.white70)),
-          ],
-        ),
-        const Spacer(),
-        Container(
-          width: 40, height: 40,
-          decoration: BoxDecoration(
-            color: Colors.white.withAlpha((0.15 * 255).round()),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(Icons.notifications_outlined, color: Colors.white, size: 22),
-        ),
-        const SizedBox(width: 8),
-        GestureDetector(
-          onTap: () => Get.find<AuthController>().logout(),
-          child: Container(
-            width: 40, height: 40,
-            decoration: BoxDecoration(
-              color: Colors.white.withAlpha((0.12 * 255).round()),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.logout_rounded, color: Colors.white, size: 18),
-          ),
-        ),
-      ],
-    ),
-  );
-
-  Widget _buildOnDemandBanner() => GestureDetector(
-    onTap: () => Get.toNamed(AppRoutes.tutorList, arguments: {'onlineOnly': true}),
-    child: Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [AppColors.primaryRed, AppColors.redLight]),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryRed.withAlpha((0.3 * 255).round()),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          const Text('⚡', style: TextStyle(fontSize: 28)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Butuh Tutor Sekarang?', style: AppTextStyles.heading3.copyWith(color: Colors.white)),
-                const SizedBox(height: 2),
-                Text('Lihat tutor yang sedang online', style: AppTextStyles.caption.copyWith(color: Colors.white70)),
+                Obx(
+                  () => Text(
+                    'Hai, ${auth.currentUser.value?.fullName.split(' ').first ?? 'Pelajar'} 👋',
+                    style: AppTextStyles.heading2.copyWith(
+                        color: Colors.white, fontFamily: 'Poppins'),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text('Mau belajar apa hari ini?',
+                    style: AppTextStyles.caption
+                        .copyWith(color: Colors.white70)),
               ],
             ),
-          ),
-          const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
-        ],
-      ),
-    ),
-  );
+            const Spacer(),
+            Stack(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha((0.15 * 255).round()),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.notifications_outlined,
+                      color: Colors.white, size: 22),
+                ),
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: Container(
+                    width: 16,
+                    height: 16,
+                    decoration: const BoxDecoration(
+                      color: AppColors.primaryRed,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Center(
+                      child: Text('3',
+                          style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: 8),
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                    colors: [AppColors.primaryYellow, AppColors.primaryRed]),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                    color: Colors.white.withAlpha((0.3 * 255).round())),
+              ),
+              child: const Center(
+                child: Text('🎓', style: TextStyle(fontSize: 18)),
+              ),
+            ),
+          ],
+        ),
+      );
 
   Widget _buildSectionHeader(String title, {VoidCallback? onSeeAll}) => Row(
-    children: [
-      Text(title, style: AppTextStyles.heading3),
-      const Spacer(),
-      if (onSeeAll != null)
-        GestureDetector(
-          onTap: onSeeAll,
-          child: Text('Lihat Semua', style: AppTextStyles.caption.copyWith(color: AppColors.primaryBlue, fontWeight: FontWeight.w700)),
-        ),
-    ],
-  );
+        children: [
+          Text(title, style: AppTextStyles.heading3),
+          const Spacer(),
+          if (onSeeAll != null)
+            GestureDetector(
+              onTap: onSeeAll,
+              child: Text('Lihat Semua',
+                  style: AppTextStyles.caption.copyWith(
+                      color: AppColors.primaryBlue,
+                      fontWeight: FontWeight.w700)),
+            ),
+        ],
+      );
 }

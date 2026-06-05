@@ -14,6 +14,7 @@ class TutorController extends GetxController {
   final RxList<ReviewModel> tutorReviews = <ReviewModel>[].obs;
   final RxBool isLoading = true.obs;
   final RxString searchQuery = ''.obs;
+  final RxString selectedSubject = 'Semua'.obs;
 
   @override
   void onInit() {

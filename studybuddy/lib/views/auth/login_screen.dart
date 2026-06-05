@@ -122,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: const Center(
-                        child: Text('📚', style: TextStyle(fontSize: 40)),
+                        child: Text('🧩', style: TextStyle(fontSize: 40)),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -185,8 +185,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ],
             ),
-            child: const Center(
-              child: Text('📚', style: TextStyle(fontSize: 36)),
+              child: const Center(
+              child: Text('🧩', style: TextStyle(fontSize: 36)),
             ),
           ),
           const SizedBox(height: 20),
@@ -260,7 +260,11 @@ class _LoginScreenState extends State<LoginScreen> {
           style: AppTextStyles.heading2.copyWith(fontFamily: 'Poppins'),
         ),
         const SizedBox(height: 6),
-        Text('Selamat datang kembali!', style: AppTextStyles.caption),
+        Text('Pilih peranmu untuk melanjutkan', style: AppTextStyles.caption),
+        const SizedBox(height: 20),
+
+        // Role Tabs (segmented control)
+        _buildRoleTabs(),
         const SizedBox(height: 20),
 
         // Quick login section (prototype)
@@ -282,7 +286,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
-                  'atau login manual',
+                  'atau masuk dengan',
                   style: AppTextStyles.caption.copyWith(fontSize: 11),
                 ),
               ),
@@ -326,7 +330,23 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 8),
+
+        // Forgot password link
+        Align(
+          alignment: Alignment.centerRight,
+          child: GestureDetector(
+            onTap: () => Get.toNamed('/forgot-password'),
+            child: Text(
+              'Lupa password?',
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.primaryBlue,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
 
         // Error message
         Obx(
@@ -374,7 +394,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     )
                   : Text(
-                      'Masuk',
+                      '🚀 Masuk',
                       style: AppTextStyles.bodySemiBold.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
@@ -384,6 +404,70 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
         const SizedBox(height: 20),
+
+        // Google login button
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: OutlinedButton.icon(
+            onPressed: () {},
+            icon: SizedBox(
+              width: 18,
+              height: 18,
+              child: CustomPaint(painter: _GoogleLogoPainter()),
+            ),
+            label: Text(
+              'Lanjut dengan Google',
+              style: AppTextStyles.bodySemiBold.copyWith(
+                fontSize: 14,
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            style: OutlinedButton.styleFrom(
+              backgroundColor: Colors.white,
+              side: BorderSide(color: AppColors.border),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Tutor registration notice
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFEF3C7),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFFDE68A), width: 1.5),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '🎓 Daftar sebagai Tutor?',
+                style: AppTextStyles.bodySemiBold.copyWith(
+                  fontSize: 11,
+                  color: const Color(0xFFD97706),
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                'Pendaftaran tutor dibuka saat jadwal oprec aktif. Pantau pengumuman dari manajemen.',
+                style: AppTextStyles.caption.copyWith(
+                  fontSize: 10,
+                  color: const Color(0xFF92400E),
+                  height: 1.6,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
 
         // Hint text for prototype
         if (kUseMock)
@@ -471,6 +555,58 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  // ── Role Tabs (segmented control) ───────────────────────────────────────
+
+  Widget _buildRoleTabs() {
+    final tabs = [
+      {'icon': '👤', 'label': 'Customer'},
+      {'icon': '🎓', 'label': 'Tutor'},
+      {'icon': '⚙️', 'label': 'Manajemen'},
+    ];
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: List.generate(tabs.length, (i) {
+          final isActive = i == 0;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () {},
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: isActive ? Colors.white : Colors.transparent,
+                  borderRadius: BorderRadius.circular(11),
+                  boxShadow: isActive
+                      ? [
+                          BoxShadow(
+                            color: Colors.black.withAlpha((0.06 * 255).round()),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Text(
+                  '${tabs[i]['icon']} ${tabs[i]['label']}',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodySemiBold.copyWith(
+                    fontSize: 12,
+                    color: isActive ? AppColors.primaryBlue : AppColors.textLight,
+                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
     );
   }
 
@@ -567,4 +703,69 @@ class _LoginScreenState extends State<LoginScreen> {
     height: size,
     decoration: BoxDecoration(color: color, shape: BoxShape.circle),
   );
+}
+
+class _GoogleLogoPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final cx = w / 2;
+    final cy = h / 2;
+    final r = w * 0.42;
+
+    // Blue (right)
+    final blue = Paint()..color = const Color(0xFF4285F4);
+    canvas.drawArc(
+      Rect.fromCircle(center: Offset(cx, cy), radius: r),
+      -90 * 3.14159 / 180,
+      90 * 3.14159 / 180,
+      true,
+      blue,
+    );
+
+    // Green (bottom)
+    final green = Paint()..color = const Color(0xFF34A853);
+    canvas.drawArc(
+      Rect.fromCircle(center: Offset(cx, cy), radius: r),
+      0 * 3.14159 / 180,
+      90 * 3.14159 / 180,
+      true,
+      green,
+    );
+
+    // Yellow (left)
+    final yellow = Paint()..color = const Color(0xFFFBBC05);
+    canvas.drawArc(
+      Rect.fromCircle(center: Offset(cx, cy), radius: r),
+      90 * 3.14159 / 180,
+      90 * 3.14159 / 180,
+      true,
+      yellow,
+    );
+
+    // Red (top)
+    final red = Paint()..color = const Color(0xFFEA4335);
+    canvas.drawArc(
+      Rect.fromCircle(center: Offset(cx, cy), radius: r),
+      180 * 3.14159 / 180,
+      90 * 3.14159 / 180,
+      true,
+      red,
+    );
+
+    // White center cutout
+    final white = Paint()..color = Colors.white;
+    canvas.drawCircle(Offset(cx, cy), r * 0.45, white);
+
+    // Horizontal bar (right side)
+    final bar = Paint()..color = const Color(0xFF4285F4);
+    canvas.drawRect(
+      Rect.fromLTWH(cx, cy - r * 0.15, r * 0.55, r * 0.3),
+      bar,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

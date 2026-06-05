@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/services/supabase_service.dart';
 import '../../shared/constants/supabase_constants.dart';
 import '../../models/session_model.dart';
+import '../../models/booking_model.dart';
 import '../../app/routes.dart';
 import '../../shared/constants/prototype.dart';
 import '../../core/services/mock_service.dart';
@@ -13,10 +14,13 @@ class SessionController extends GetxController {
   final Rx<SessionModel?> currentSession = Rx<SessionModel?>(null);
   final RxInt timerSeconds = 0.obs;
   final RxBool isTimerRunning = false.obs;
+  final Rx<BookingModel?> currentBooking = Rx<BookingModel?>(null);
   Timer? _timer;
 
   /// Mulai sesi dari data booking
-  Future<void> startSession(String bookingId, String? gmeetLink) async {
+  Future<void> startSession(String bookingId, String? gmeetLink, {BookingModel? booking}) async {
+    currentBooking.value = booking;
+    
     if (kUseMock) {
       final data = await MockService.startSession({
         'booking_id': bookingId,

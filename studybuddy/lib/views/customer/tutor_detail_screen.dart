@@ -15,8 +15,9 @@ class TutorDetailScreen extends StatelessWidget {
 
     return Obx(() {
       final tutor = ctrl.selectedTutor.value;
-      if (tutor == null)
+      if (tutor == null) {
         return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      }
 
       return Scaffold(
         backgroundColor: AppColors.background,
@@ -31,6 +32,12 @@ class TutorDetailScreen extends StatelessWidget {
                 icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
                 onPressed: Get.back,
               ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.share, color: Colors.white),
+                  onPressed: () {},
+                ),
+              ],
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
                   decoration: const BoxDecoration(
@@ -100,6 +107,18 @@ class TutorDetailScreen extends StatelessWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 10),
+                      // Profile badges
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _profileBadge('⭐ Top Tutor'),
+                          const SizedBox(width: 8),
+                          _profileBadge('✅ Terverifikasi'),
+                          const SizedBox(width: 8),
+                          _profileBadge('🎓 S1 UI'),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -132,24 +151,24 @@ class TutorDetailScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           _stat(
-                            '${tutor.rating}',
-                            '★ Rating',
-                            AppColors.primaryYellow,
-                          ),
-                          _divider(),
-                          _stat(
-                            '${tutor.totalSessions}',
-                            'Sesi',
+                            '128',
+                            'Ulasan',
                             AppColors.primaryBlue,
                           ),
                           _divider(),
                           _stat(
-                            '${tutor.totalReviews}',
-                            'Ulasan',
+                            '4.9',
+                            'Rating ★',
+                            AppColors.primaryYellow,
+                          ),
+                          _divider(),
+                          _stat(
+                            '320+',
+                            'Sesi Selesai',
                             AppColors.accentTeal,
                           ),
                           _divider(),
-                          _stat('${tutor.gpa}', 'IPK', AppColors.onlineGreen),
+                          _stat('98%', 'Resp. Rate', AppColors.primaryRed),
                         ],
                       ),
                     ),
@@ -189,9 +208,80 @@ class TutorDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
 
+                    // Pencapaian
+                    Text('🏆 Pencapaian', style: AppTextStyles.heading3),
+                    const SizedBox(height: 12),
+                    _buildAchievements(),
+                    const SizedBox(height: 24),
+
                     // Rating summary
                     Text('⭐ Rating & Ulasan', style: AppTextStyles.heading3),
                     const SizedBox(height: 12),
+                    // Rating summary card
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primaryBlue.withAlpha(
+                              (0.06 * 255).round(),
+                            ),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          // Left: big number
+                          Column(
+                            children: [
+                              Text(
+                                '4.9',
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 36,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.primaryYellow,
+                                ),
+                              ),
+                              Text(
+                                '★★★★★',
+                                style: TextStyle(
+                                  color: AppColors.primaryYellow,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'dari 128 ulasan',
+                                style: AppTextStyles.caption,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 24),
+                          // Right: bars
+                          Expanded(
+                            child: Column(
+                              children: [
+                                _ratingBar(5, 0.92, 118, AppColors.primaryYellow),
+                                const SizedBox(height: 6),
+                                _ratingBar(4, 0.06, 7, const Color(0xFFFFD166)),
+                                const SizedBox(height: 6),
+                                _ratingBar(3, 0.02, 2, const Color(0xFFFCA5A5)),
+                                const SizedBox(height: 6),
+                                _ratingBar(2, 0.0, 0, AppColors.border),
+                                const SizedBox(height: 6),
+                                _ratingBar(1, 0.0, 0, AppColors.border),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     Obx(() {
                       final reviews = ctrl.tutorReviews;
                       if (reviews.isEmpty) {
@@ -246,7 +336,7 @@ class TutorDetailScreen extends StatelessWidget {
                                                     AppTextStyles.bodySemiBold,
                                               ),
                                               Text(
-                                                r.subject,
+                                                '15 Maret 2026',
                                                 style: AppTextStyles.caption,
                                               ),
                                             ],
@@ -263,6 +353,26 @@ class TutorDetailScreen extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 8),
                                     Text(r.comment, style: AppTextStyles.body),
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primaryBlue.withAlpha(
+                                          (0.08 * 255).round(),
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        r.subject,
+                                        style: AppTextStyles.caption.copyWith(
+                                          color: AppColors.primaryBlue,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -341,6 +451,60 @@ class TutorDetailScreen extends StatelessWidget {
     });
   }
 
+  Widget _buildAchievements() {
+    final achievements = [
+      {'icon': '🥇', 'title': 'Top Tutor', 'subtitle': 'Bulan Maret 2026'},
+      {'icon': '💯', 'title': 'Kepuasan 100%', 'subtitle': '12 bulan berturut'},
+      {'icon': '⚡', 'title': 'Respon Cepat', 'subtitle': '< 5 menit rata-rata'},
+      {'icon': '🔥', 'title': '300+ Sesi', 'subtitle': 'Milestone tercapai'},
+    ];
+
+    return SizedBox(
+      height: 120,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: achievements.length,
+        itemBuilder: (_, i) {
+          final a = achievements[i];
+          return Container(
+            width: 120,
+            margin: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primaryBlue.withAlpha((0.06 * 255).round()),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(a['icon']!, style: const TextStyle(fontSize: 28)),
+                const SizedBox(height: 8),
+                Text(
+                  a['title']!,
+                  style: AppTextStyles.bodySemiBold.copyWith(fontSize: 12),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  a['subtitle']!,
+                  style: AppTextStyles.caption.copyWith(fontSize: 10),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Widget _stat(String value, String label, Color color) => Column(
     children: [
       Text(
@@ -358,4 +522,61 @@ class TutorDetailScreen extends StatelessWidget {
   );
 
   Widget _divider() => Container(width: 1, height: 36, color: AppColors.border);
+
+  Widget _profileBadge(String text) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+    decoration: BoxDecoration(
+      color: Colors.white.withAlpha((0.2 * 255).round()),
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Text(
+      text,
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+      ),
+    ),
+  );
+
+  Widget _ratingBar(int stars, double percent, int count, Color color) => Row(
+    children: [
+      SizedBox(
+        width: 16,
+        child: Text(
+          '$stars',
+          style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600),
+        ),
+      ),
+      const SizedBox(width: 8),
+      Expanded(
+        child: Container(
+          height: 8,
+          decoration: BoxDecoration(
+            color: AppColors.border.withAlpha((0.3 * 255).round()),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: FractionallySizedBox(
+            widthFactor: percent,
+            alignment: Alignment.centerLeft,
+            child: Container(
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+        ),
+      ),
+      const SizedBox(width: 8),
+      SizedBox(
+        width: 32,
+        child: Text(
+          '$count',
+          style: AppTextStyles.caption,
+          textAlign: TextAlign.right,
+        ),
+      ),
+    ],
+  );
 }

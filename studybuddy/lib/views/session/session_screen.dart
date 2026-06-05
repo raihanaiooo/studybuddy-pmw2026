@@ -6,6 +6,7 @@ import '../../controllers/auth_controller.dart';
 import '../../models/booking_model.dart';
 import '../../shared/constants/app_colors.dart';
 import '../../shared/constants/app_text_styles.dart';
+import '../../mock/mock_data.dart';
 // UI-only prototype: no mock persistence
 
 /// Session screen: chat interface dengan timer sesi
@@ -21,6 +22,7 @@ class _SessionScreenState extends State<SessionScreen> {
   late ScrollController _scrollCtrl;
   late List<ChatMessage> _messages;
   bool _isPaused = false;
+  bool _isTyping = false;
 
   @override
   void initState() {
@@ -46,9 +48,16 @@ class _SessionScreenState extends State<SessionScreen> {
 
     final booking = Get.arguments as BookingModel?;
     if (booking != null) {
+      // Ambil GMeet link dari tutor jika sesi video
+      String? gmeetLink;
+      if (booking.sessionType == 'video') {
+        final tutor = mockTutors.firstWhereOrNull((t) => t.id == booking.tutorId);
+        gmeetLink = tutor?.gmeetLink;
+      }
       Get.find<SessionController>().startSession(
         booking.id,
-        booking.sessionType == 'video' ? null : null,
+        gmeetLink,
+        booking: booking,
       );
     }
 
@@ -76,36 +85,28 @@ class _SessionScreenState extends State<SessionScreen> {
     if (_messageCtrl.text.trim().isEmpty) return;
     final text = _messageCtrl.text.trim();
 
-    // Add locally and persist to mock if available
-    final chat = ChatMessage(
-      sender: 'You',
-      message: text,
-      isFromTutor: false,
-      time: DateTime.now(),
-    );
-
-    setState(() => _messages.add(chat));
-    _messageCtrl.clear();
-    _scrollToBottom();
-
     setState(() {
-      _messages.add(
-        ChatMessage(
-          sender: 'You',
-          message: text,
-          isFromTutor: false,
-          time: DateTime.now(),
-        ),
-      );
+      _messages.add(ChatMessage(
+        sender: 'You',
+        message: text,
+        isFromTutor: false,
+        time: DateTime.now(),
+      ));
     });
-
     _messageCtrl.clear();
     _scrollToBottom();
 
-    // Simulated tutor response (UI-only prototype, no persistence)
-    Future.delayed(const Duration(milliseconds: 800), () {
+    // Simulated tutor typing + response (UI-only prototype)
+    Future.delayed(const Duration(milliseconds: 400), () {
+      if (mounted) {
+        setState(() => _isTyping = true);
+        _scrollToBottom();
+      }
+    });
+    Future.delayed(const Duration(milliseconds: 2200), () {
       if (mounted) {
         setState(() {
+          _isTyping = false;
           _messages.add(
             ChatMessage(
               sender: 'Arif Rahmat, S.Si',
@@ -131,6 +132,9 @@ class _SessionScreenState extends State<SessionScreen> {
       backgroundColor: AppColors.background,
       body: Column(
         children: [
+          // White chat header bar
+          _buildChatHeader(),
+
           // Header dengan timer
           _buildSessionHeader(ctrl, booking, auth),
 
@@ -139,8 +143,15 @@ class _SessionScreenState extends State<SessionScreen> {
             child: ListView.builder(
               controller: _scrollCtrl,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              itemCount: _messages.length,
-              itemBuilder: (_, i) => _buildChatBubble(_messages[i]),
+              itemCount: _messages.length + 1 + (_isTyping ? 1 : 0),
+              itemBuilder: (_, i) {
+                if (i == 0) return _buildDateDivider();
+                final msgIndex = i - 1;
+                if (msgIndex < _messages.length) {
+                  return _buildChatBubble(_messages[msgIndex]);
+                }
+                return _buildTypingIndicator();
+              },
             ),
           ),
 
@@ -172,10 +183,10 @@ class _SessionScreenState extends State<SessionScreen> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryYellow.withOpacity(0.12),
+                    color: AppColors.primaryYellow.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: AppColors.primaryYellow.withOpacity(0.2),
+                      color: AppColors.primaryYellow.withValues(alpha: 0.2),
                     ),
                   ),
                   child: Text(
@@ -403,7 +414,7 @@ class _SessionScreenState extends State<SessionScreen> {
             ? CrossAxisAlignment.start
             : CrossAxisAlignment.end,
         children: [
-          // Time (optional)
+          // Time
           Text(
             DateFormat('HH:mm').format(msg.time),
             style: AppTextStyles.caption.copyWith(
@@ -412,19 +423,279 @@ class _SessionScreenState extends State<SessionScreen> {
             ),
           ),
           const SizedBox(height: 4),
-          // Message bubble
-          Container(
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.75,
+          // Message row with optional avatar
+          isFromTutor
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [AppColors.primaryBlue, AppColors.blueLight],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'A',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Container(
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.72,
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(16),
+                            topRight: Radius.circular(16),
+                            bottomLeft: Radius.circular(0),
+                            bottomRight: Radius.circular(16),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.08),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          msg.message,
+                          style: AppTextStyles.body.copyWith(
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : Align(
+                  alignment: Alignment.centerRight,
+                  child: Container(
+                    constraints: BoxConstraints(
+                      maxWidth: MediaQuery.of(context).size.width * 0.75,
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryBlue,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(16),
+                        topRight: Radius.circular(16),
+                        bottomLeft: Radius.circular(16),
+                        bottomRight: Radius.circular(0),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      msg.message,
+                      style: AppTextStyles.body.copyWith(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChatHeader() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+      child: SafeArea(
+        bottom: false,
+        child: Row(
+          children: [
+            GestureDetector(
+              onTap: () => Get.back(),
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.arrow_back_rounded,
+                  color: Color(0xFF1A1F3C),
+                  size: 18,
+                ),
+              ),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            const SizedBox(width: 10),
+            // Tutor avatar with online dot
+            SizedBox(
+              width: 36,
+              height: 36,
+              child: Stack(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.primaryBlue, AppColors.blueLight],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'A',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: AppColors.onlineGreen,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            // Name & subtitle
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Arif Rahmat, S.Si',
+                    style: AppTextStyles.body.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '● Online · Fisika & Matematika',
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textSecondary,
+                      fontSize: 11,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            // Three-dot menu
+            GestureDetector(
+              onTap: () {},
+              child: Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: const Icon(
+                  Icons.more_vert_rounded,
+                  color: AppColors.textSecondary,
+                  size: 18,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateDivider() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Row(
+        children: [
+          Expanded(child: Divider(color: AppColors.border, thickness: 1)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              'Hari ini, 13.00',
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.textLight,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Expanded(child: Divider(color: AppColors.border, thickness: 1)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTypingIndicator() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Container(
+            width: 28,
+            height: 28,
             decoration: BoxDecoration(
-              color: isFromTutor ? Colors.white : AppColors.primaryBlue,
-              borderRadius: BorderRadius.only(
-                topLeft: const Radius.circular(16),
-                topRight: const Radius.circular(16),
-                bottomLeft: Radius.circular(isFromTutor ? 0 : 16),
-                bottomRight: Radius.circular(isFromTutor ? 16 : 0),
+              gradient: const LinearGradient(
+                colors: [AppColors.primaryBlue, AppColors.blueLight],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            alignment: Alignment.center,
+            child: const Text(
+              'A',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 11,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+                bottomLeft: Radius.circular(0),
+                bottomRight: Radius.circular(16),
               ),
               boxShadow: [
                 BoxShadow(
@@ -434,16 +705,24 @@ class _SessionScreenState extends State<SessionScreen> {
                 ),
               ],
             ),
-            child: Text(
-              msg.message,
-              style: AppTextStyles.body.copyWith(
-                color: isFromTutor ? AppColors.textPrimary : Colors.white,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildBounceDot(0),
+                const SizedBox(width: 4),
+                _buildBounceDot(200),
+                const SizedBox(width: 4),
+                _buildBounceDot(400),
+              ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildBounceDot(int delayMs) {
+    return _BouncingDot(delayMs: delayMs);
   }
 
   Widget _buildMessageInput() {
@@ -503,7 +782,7 @@ class _SessionScreenState extends State<SessionScreen> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: AppColors.primaryBlue,
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(14),
               ),
               child: const Icon(
                 Icons.send_rounded,
@@ -531,4 +810,55 @@ class ChatMessage {
     required this.isFromTutor,
     required this.time,
   });
+}
+
+class _BouncingDot extends StatefulWidget {
+  final int delayMs;
+  const _BouncingDot({required this.delayMs});
+
+  @override
+  State<_BouncingDot> createState() => _BouncingDotState();
+}
+
+class _BouncingDotState extends State<_BouncingDot>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+    Future.delayed(Duration(milliseconds: widget.delayMs), () {
+      if (mounted) _ctrl.repeat();
+    });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (context, child) {
+        final t = _ctrl.value;
+        final dy = -4 * (0.5 - (t - 0.5).abs()).abs();
+        return Transform.translate(offset: Offset(0, dy), child: child);
+      },
+      child: Container(
+        width: 7,
+        height: 7,
+        decoration: BoxDecoration(
+          color: AppColors.textLight,
+          shape: BoxShape.circle,
+        ),
+      ),
+    );
+  }
 }

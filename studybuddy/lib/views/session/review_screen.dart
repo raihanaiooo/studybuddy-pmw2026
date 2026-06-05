@@ -26,7 +26,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
   @override
   Widget build(BuildContext context) {
     final ctrl = Get.find<ReviewController>();
-    final session = Get.find<SessionController>().currentSession.value;
+    final sessionCtrl = Get.find<SessionController>();
+    final session = sessionCtrl.currentSession.value;
+    final booking = sessionCtrl.currentBooking.value;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -120,10 +122,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
                           if (session == null) return;
                           ctrl.submitReview(
                             sessionId: session.id,
-                            tutorId: '', // isi dari session/booking
+                            tutorId: booking?.tutorId ?? '',
                             rating: _rating,
                             comment: _commentCtrl.text,
-                            subject: '',
+                            subject: booking?.subject ?? '',
                           );
                         },
                   style: ElevatedButton.styleFrom(
@@ -155,10 +157,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
             TextButton(
               onPressed: () => Get.find<ReviewController>().submitReview(
                 sessionId: session?.id ?? '',
-                tutorId: '',
+                tutorId: booking?.tutorId ?? '',
                 rating: 1,
                 comment: 'Tidak ada ulasan',
-                subject: '',
+                subject: booking?.subject ?? '',
               ),
               child: Text(
                 'Lewati',

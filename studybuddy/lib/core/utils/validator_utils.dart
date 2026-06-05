@@ -19,8 +19,9 @@ class ValidatorUtils {
 
   /// Validasi field tidak kosong
   static String? required(String? value, [String label = 'Field']) {
-    if (value == null || value.trim().isEmpty)
+    if (value == null || value.trim().isEmpty) {
       return '$label tidak boleh kosong';
+    }
     return null;
   }
 }

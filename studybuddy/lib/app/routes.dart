@@ -15,9 +15,11 @@ import '../views/session/session_screen.dart';
 import '../views/session/review_screen.dart';
 import '../views/management/operational_screen.dart';
 import '../views/management/management_dashboard_screen.dart';
+import '../views/management/tutor_approval_screen.dart';
 import '../views/tutor/tutor_schedule_screen.dart';
 import '../views/tutor/tutor_profile_screen.dart';
 import '../views/tutor/tutor_dashboard_screen.dart';
+import '../views/customer/questionnaire_screen.dart';
 
 // ─────IMPORT CONTROLLERS──────────────────────────────────────────────────────────────────────────────
 import '../controllers/auth_controller.dart';
@@ -27,9 +29,11 @@ import '../controllers/customer/booking_controller.dart';
 import '../controllers/customer/session_controller.dart';
 import '../controllers/customer/review_controller.dart';
 import '../controllers/manajemen/operational_controller.dart';
+import '../controllers/manajemen/tutor_approval_controller.dart';
 import '../controllers/tutor/tutor_dashboard_controller.dart';
 import '../controllers/tutor/tutor_schedule_controller.dart';
 import '../controllers/tutor/tutor_profile_controller.dart';
+import '../controllers/customer/questionnaire_controller.dart';
 
 class AppRoutes {
   static const splash = '/';
@@ -41,6 +45,7 @@ class AppRoutes {
   static const booking = '/customer/booking';
   static const customerSchedule = '/customer/schedule';
   static const customerProfile = '/customer/profile';
+  static const questionnaire = '/customer/questionnaire';
   static const tutorDashboard = '/tutor/dashboard';
   static const tutorSchedule = '/tutor/schedule';
   static const tutorProfile = '/tutor/profile';
@@ -48,6 +53,7 @@ class AppRoutes {
   static const review = '/review';
   static const operational = '/operational';
   static const managementDashboard = '/management/dashboard';
+  static const tutorApproval = '/management/tutor-approval';
 
   static final pages = [
     GetPage(name: splash, page: () => const SplashScreen()),
@@ -99,6 +105,13 @@ class AppRoutes {
         Get.lazyPut(() => DashboardController());
       }),
     ),
+    GetPage(
+      name: questionnaire,
+      page: () => const QuestionnaireScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => QuestionnaireController());
+      }),
+    ),
     // ── Tutor routes ──────────────────────────────────────────────────────────
     GetPage(
       name: tutorDashboard,
@@ -142,6 +155,13 @@ class AppRoutes {
       binding: BindingsBuilder(() {
         Get.lazyPut(() => AuthController());
         Get.lazyPut(() => OperationalController());
+      }),
+    ),
+    GetPage(
+      name: tutorApproval,
+      page: () => const TutorApprovalScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => TutorApprovalController());
       }),
     ),
     GetPage(

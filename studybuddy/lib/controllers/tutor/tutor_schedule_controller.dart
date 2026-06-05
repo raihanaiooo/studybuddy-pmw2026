@@ -31,23 +31,6 @@ class TutorScheduleController extends GetxController {
   // Hari aktif minggu ini (Sen - Min)
   final List<_DayItem> weekDays = [];
 
-  static const List<String> _allSlots = [
-    '08.00',
-    '09.00',
-    '10.00',
-    '11.00',
-    '12.00',
-    '13.00',
-    '14.00',
-    '15.00',
-    '16.00',
-    '17.00',
-    '18.00',
-    '19.00',
-    '20.00',
-    '21.00',
-  ];
-
   // Slot yang tutor aktifkan (bisa disimpan ke DB)
   final RxSet<String> activatedSlots = <String>{
     '08.00',
@@ -122,10 +105,12 @@ class TutorScheduleController extends GetxController {
     ];
 
     timeSlots.value = displaySlots.map((t) {
-      if (bookedSlots.contains(t))
+      if (bookedSlots.contains(t)) {
         return TimeSlot(time: t, status: SlotStatus.booked);
-      if (activatedSlots.contains(t))
+      }
+      if (activatedSlots.contains(t)) {
         return TimeSlot(time: t, status: SlotStatus.available);
+      }
       return TimeSlot(time: t, status: SlotStatus.inactive);
     }).toList();
   }

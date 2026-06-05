@@ -136,7 +136,7 @@ class TutorScheduleScreen extends StatelessWidget {
                     () => Switch(
                       value: c.isOnline.value,
                       onChanged: c.toggleOnlineStatus,
-                      activeColor: Colors.white,
+                      activeThumbColor: Colors.white,
                       activeTrackColor: AppColors.onlineGreen,
                       inactiveThumbColor: Colors.white54,
                       inactiveTrackColor: Colors.white24,
@@ -326,11 +326,49 @@ class TutorScheduleScreen extends StatelessWidget {
             // Legend
             Row(
               children: [
-                _legend(AppColors.onlineGreen, 'Slot tersedia'),
+                _legend(AppColors.onlineGreen, 'Slot tersedia', true),
                 const SizedBox(width: 16),
-                _legend(AppColors.primaryBlue, 'Sudah dibooking'),
+                _legend(AppColors.primaryBlue, 'Sudah dibooking', true),
                 const SizedBox(width: 16),
-                _legend(AppColors.border, 'Nonaktif'),
+                _legend(AppColors.border, 'Nonaktif', true),
+              ],
+            ),
+            const SizedBox(height: 20),
+            // Action buttons
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Get.toNamed(AppRoutes.tutorProfile),
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: const Text('Atur Link GMeet'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Get.snackbar('Berhasil', 'Jadwal berhasil disimpan');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryBlue,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      elevation: 0,
+                    ),
+                    child: const Text('Simpan Jadwal',
+                        style: TextStyle(fontWeight: FontWeight.w700)),
+                  ),
+                ),
               ],
             ),
           ],
@@ -339,16 +377,19 @@ class TutorScheduleScreen extends StatelessWidget {
     );
   }
 
-  Widget _legend(Color color, String label) {
+  Widget _legend(Color color, String label, bool isSquare) {
     return Row(
       children: [
         Container(
           width: 10,
           height: 10,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(isSquare ? 3 : 5),
+          ),
         ),
         const SizedBox(width: 4),
-        Text(label, style: AppTextStyles.caption),
+        Text(label, style: AppTextStyles.caption.copyWith(fontSize: 10)),
       ],
     );
   }

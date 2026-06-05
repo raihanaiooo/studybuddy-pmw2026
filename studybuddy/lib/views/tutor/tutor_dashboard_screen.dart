@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../shared/constants/app_colors.dart';
 import '../../shared/constants/app_text_styles.dart';
 import '../../shared/utils/responsive_helper.dart';
@@ -90,75 +91,73 @@ class _TutorDashboardScreenState extends State<TutorDashboardScreen> {
 
   Widget _buildHeader(TutorDashboardController c) {
     return SliverToBoxAdapter(
-      child: Container(
-        padding: EdgeInsets.fromLTRB(
-          ResponsiveHelper.horizontalPadding(context),
-          MediaQuery.of(context).padding.top + 16,
-          ResponsiveHelper.horizontalPadding(context),
-          24,
-        ),
-        decoration: const BoxDecoration(
-          gradient: AppColors.headerGradient,
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text('Selamat pagi, Tutor ', style: AppTextStyles.body.copyWith(color: Colors.white70)),
-                          const Text('👋', style: TextStyle(fontSize: 14)),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Obx(() => Text(
-                        c.tutorProfile.value?.fullName ?? 'Tutor',
-                        style: AppTextStyles.heading1.copyWith(color: Colors.white),
-                      )),
-                    ],
-                  ),
-                ),
-                _buildAvatar(c),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withAlpha((0.15 * 255).round()),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
+      child: SafeArea(
+        bottom: false,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          decoration: const BoxDecoration(
+            gradient: AppColors.headerGradient,
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Container(width: 10, height: 10, decoration: const BoxDecoration(color: AppColors.onlineGreen, shape: BoxShape.circle)),
-                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Status Online', style: AppTextStyles.bodySemiBold.copyWith(color: Colors.white)),
-                        Text('Kamu bisa ditemukan customer', style: AppTextStyles.caption.copyWith(color: Colors.white70)),
+                        Row(
+                          children: [
+                            Text('Selamat pagi, Tutor ', style: AppTextStyles.body.copyWith(color: Colors.white70)),
+                            const Text('👋', style: TextStyle(fontSize: 14)),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Obx(() => Text(
+                          c.tutorProfile.value?.fullName ?? 'Tutor',
+                          style: AppTextStyles.heading1.copyWith(color: Colors.white),
+                        )),
                       ],
                     ),
                   ),
-                  Obx(() => Switch(
-                    value: c.isOnline.value,
-                    onChanged: c.toggleOnlineStatus,
-                    activeColor: Colors.white,
-                    activeTrackColor: AppColors.onlineGreen,
-                    inactiveThumbColor: Colors.white54,
-                    inactiveTrackColor: Colors.white24,
-                  )),
+                  _buildAvatar(c),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha((0.15 * 255).round()),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    Container(width: 10, height: 10, decoration: const BoxDecoration(color: AppColors.onlineGreen, shape: BoxShape.circle)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Status Online', style: AppTextStyles.bodySemiBold.copyWith(color: Colors.white, fontSize: 13)),
+                          Text('Kamu bisa ditemukan customer', style: AppTextStyles.caption.copyWith(color: Colors.white70, fontSize: 11)),
+                        ],
+                      ),
+                    ),
+                    Obx(() => Switch(
+                      value: c.isOnline.value,
+                      onChanged: c.toggleOnlineStatus,
+                      activeThumbColor: Colors.white,
+                      activeTrackColor: AppColors.onlineGreen,
+                      inactiveThumbColor: Colors.white54,
+                      inactiveTrackColor: Colors.white24,
+                    )),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -267,14 +266,20 @@ class _TutorDashboardScreenState extends State<TutorDashboardScreen> {
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-        child: Obx(() => Row(
-          children: [
-            _filterChip(c: c, label: 'Semua', value: 'all', count: c.bookings.length),
-            const SizedBox(width: 8),
-            _filterChip(c: c, label: 'Menunggu', value: 'pending', count: c.pendingCount),
-            const SizedBox(width: 8),
-            _filterChip(c: c, label: 'Dikonfirmasi', value: 'confirmed', count: c.confirmedCount),
-          ],
+        child: Obx(() => SizedBox(
+          height: 36,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              _filterChip(c: c, label: 'Semua', value: 'all', count: c.bookings.length),
+              const SizedBox(width: 8),
+              _filterChip(c: c, label: 'Menunggu', value: 'pending', count: c.pendingCount),
+              const SizedBox(width: 8),
+              _filterChip(c: c, label: 'Dikonfirmasi', value: 'confirmed', count: c.confirmedCount),
+              const SizedBox(width: 8),
+              _filterChip(c: c, label: 'Selesai', value: 'done', count: 0),
+            ],
+          ),
         )),
       ),
     );
@@ -657,15 +662,15 @@ class _BookingCard extends StatelessWidget {
           const SizedBox(height: 12),
           const Divider(color: AppColors.border, height: 1),
           const SizedBox(height: 12),
-          Row(
+           Row(
             children: [
               Icon(Icons.calendar_today_rounded, size: 13, color: AppColors.primaryBlue),
               const SizedBox(width: 4),
-              Text(_formatDate(booking.sessionDate), style: AppTextStyles.caption),
+              Flexible(child: Text(_formatDate(booking.sessionDate), style: AppTextStyles.caption, overflow: TextOverflow.ellipsis)),
               const SizedBox(width: 12),
               Icon(Icons.access_time_rounded, size: 13, color: AppColors.accentTeal),
               const SizedBox(width: 4),
-              Text('${_formatTime(booking.startTime)} – ${_formatTime(booking.endTime)}', style: AppTextStyles.caption),
+              Flexible(child: Text('${_formatTime(booking.startTime)} – ${_formatTime(booking.endTime)}', style: AppTextStyles.caption, overflow: TextOverflow.ellipsis)),
             ],
           ),
           if (isPending) ...[
@@ -675,6 +680,16 @@ class _BookingCard extends StatelessWidget {
                 Expanded(child: OutlinedButton.icon(onPressed: () => controller.rejectBooking(booking.id), icon: const Icon(Icons.close_rounded, size: 16), label: const Text('Tolak'), style: OutlinedButton.styleFrom(foregroundColor: AppColors.primaryRed, side: const BorderSide(color: AppColors.primaryRed), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))))),
                 const SizedBox(width: 10),
                 Expanded(flex: 2, child: ElevatedButton.icon(onPressed: () => controller.confirmBooking(booking.id), icon: const Icon(Icons.check_rounded, size: 16), label: const Text('Konfirmasi'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryBlue, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0))),
+              ],
+            ),
+          ],
+          if (booking.status == 'confirmed') ...[
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(child: OutlinedButton.icon(onPressed: () {}, icon: const Icon(Icons.info_outline_rounded, size: 16), label: const Text('Detail'), style: OutlinedButton.styleFrom(foregroundColor: AppColors.textSecondary, side: const BorderSide(color: AppColors.border), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))))),
+                const SizedBox(width: 10),
+                Expanded(flex: 2, child: ElevatedButton.icon(onPressed: () => _launchGmeet(), icon: const Icon(Icons.videocam_rounded, size: 16), label: const Text('Buka GMeet'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.onlineGreen, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0))),
               ],
             ),
           ],
@@ -690,4 +705,11 @@ class _BookingCard extends StatelessWidget {
   }
 
   String _formatTime(String time) => time.substring(0, 5);
+
+  void _launchGmeet() async {
+    final uri = Uri.parse('https://meet.google.com/arif-fis-xyz');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
 }

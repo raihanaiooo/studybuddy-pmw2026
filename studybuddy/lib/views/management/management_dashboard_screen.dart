@@ -24,9 +24,9 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
 
   final _navItems = const [
     BottomNavItem(icon: Icons.dashboard_rounded, label: 'Dashboard'),
-    BottomNavItem(icon: Icons.receipt_long_rounded, label: 'Booking'),
     BottomNavItem(icon: Icons.school_rounded, label: 'Tutor'),
-    BottomNavItem(icon: Icons.person_rounded, label: 'Profil'),
+    BottomNavItem(icon: Icons.people_rounded, label: 'Customer'),
+    BottomNavItem(icon: Icons.assessment_rounded, label: 'Laporan'),
   ];
 
   void _onNavTap(int i) {
@@ -94,6 +94,12 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
             const SizedBox(height: 20),
             _buildQuickActions(),
           ],
+          const SizedBox(height: 20),
+          _buildOprecCard(),
+          const SizedBox(height: 16),
+          _buildSessionChart(),
+          const SizedBox(height: 16),
+          _buildApprovalSection(),
           const SizedBox(height: 20),
           _buildRecentActivity(),
           const SizedBox(height: 20),
@@ -394,11 +400,32 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
                 ),
               ),
               const SizedBox(height: 4),
-              Obx(
-                () => Text(
-                  'Halo, ${auth.currentUser.value?.fullName ?? 'Admin'}',
-                  style: AppTextStyles.caption.copyWith(color: Colors.white70),
-                ),
+              Row(
+                children: [
+                  Obx(
+                    () => Text(
+                      'Halo, ${auth.currentUser.value?.fullName ?? 'Admin'}',
+                      style: AppTextStyles.caption.copyWith(color: Colors.white70),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha((0.2 * 255).round()),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      '⚙️ Admin',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -459,28 +486,28 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
           childAspectRatio: 1.4,
           children: [
             _statCard(
-              icon: Icons.people_rounded,
-              value: '${stats['totalUsers']}',
-              label: 'Total User',
-              color: AppColors.primaryBlue,
-            ),
-            _statCard(
-              icon: Icons.school_rounded,
-              value: '${stats['totalTutors']}',
-              label: 'Total Tutor',
-              color: AppColors.onlineGreen,
-            ),
-            _statCard(
-              icon: Icons.receipt_long_rounded,
-              value: '${stats['totalBookings']}',
-              label: 'Total Booking',
+              icon: Icons.hourglass_top_rounded,
+              value: '5',
+              label: 'Pending Approval',
               color: AppColors.primaryYellow,
             ),
             _statCard(
-              icon: Icons.play_circle_rounded,
-              value: '${stats['totalSessions']}',
-              label: 'Total Sesi',
-              color: AppColors.accentTeal,
+              icon: Icons.school_rounded,
+              value: '42',
+              label: 'Tutor Aktif',
+              color: AppColors.onlineGreen,
+            ),
+            _statCard(
+              icon: Icons.people_rounded,
+              value: '128',
+              label: 'Total Customer',
+              color: Colors.white,
+            ),
+            _statCard(
+              icon: Icons.report_problem_rounded,
+              value: '3',
+              label: 'Komplain',
+              color: AppColors.primaryRed,
             ),
           ],
         ),
@@ -612,7 +639,7 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
           title: 'Kelola Tutor',
           subtitle: '${mockManagementStats['activeTutors']} aktif',
           color: AppColors.onlineGreen,
-          onTap: () {},
+          onTap: () => Get.toNamed(AppRoutes.tutorApproval),
         ),
         const SizedBox(height: 10),
         _actionCard(
@@ -760,6 +787,256 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
           Text(time, style: AppTextStyles.caption.copyWith(fontSize: 10)),
         ],
       ),
+    );
+  }
+
+  // ── Oprec Schedule Card ────────────────────────────────────────────────
+
+  Widget _buildOprecCard() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFF4A200), Color(0xFFFF9A3C)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFF4A200).withAlpha((0.3 * 255).round()),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '📅 Jadwal Oprec Tutor',
+                  style: AppTextStyles.caption.copyWith(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  '1 – 15 April 2026',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Pendaftaran tutor batch 3 sedang aktif',
+                  style: AppTextStyles.caption.copyWith(color: Colors.white70),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha((0.25 * 255).round()),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withAlpha((0.35 * 255).round())),
+            ),
+            child: const Text(
+              'Edit',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Session Chart ──────────────────────────────────────────────────────
+
+  Widget _buildSessionChart() {
+    final data = [
+      {'label': 'Sen', 'value': 38, 'color': AppColors.primaryBlue},
+      {'label': 'Sel', 'value': 52, 'color': AppColors.primaryBlue},
+      {'label': 'Rab', 'value': 45, 'color': AppColors.primaryBlue},
+      {'label': 'Kam', 'value': 60, 'color': AppColors.primaryYellow},
+      {'label': 'Jum', 'value': 48, 'color': AppColors.primaryBlue},
+      {'label': 'Sab', 'value': 30, 'color': AppColors.primaryRed},
+      {'label': 'Min', 'value': 20, 'color': AppColors.textLight},
+    ];
+    final maxVal = data.map((d) => d['value'] as int).reduce((a, b) => a > b ? a : b);
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryBlue.withAlpha((0.06 * 255).round()),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('📊 Sesi Minggu Ini', style: AppTextStyles.heading3),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: data.map((d) {
+              final height = ((d['value'] as int) / maxVal * 60).toDouble();
+              final color = d['color'] as Color;
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Column(
+                    children: [
+                      Container(
+                        height: height,
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        d['label'] as String,
+                        style: AppTextStyles.caption.copyWith(fontSize: 10),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Approval Tutor Section ─────────────────────────────────────────────
+
+  Widget _buildApprovalSection() {
+    final pendingTutors = [
+      {'name': 'Muhammad Rizky', 'univ': 'UGM', 'subject': 'Kimia Organik'},
+      {'name': 'Laila Nur Fadhilah', 'univ': 'UB', 'subject': 'Kalkulus'},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Text('Approval Tutor', style: AppTextStyles.heading3),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.primaryRed,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '${pendingTutors.length} pending',
+                style: AppTextStyles.label.copyWith(color: Colors.white),
+              ),
+            ),
+            const Spacer(),
+            GestureDetector(
+              onTap: () => Get.toNamed(AppRoutes.tutorApproval),
+              child: Text(
+                'Lihat Semua',
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.primaryBlue,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ...pendingTutors.map((t) => Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primaryBlue.withAlpha((0.06 * 255).round()),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: AppColors.accentPurple.withAlpha((0.2 * 255).round()),
+                child: Text(
+                  (t['name'] as String)[0],
+                  style: AppTextStyles.heading3.copyWith(
+                    color: AppColors.accentPurple,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(t['name']!, style: AppTextStyles.bodySemiBold),
+                    Text(
+                      '${t['subject']} • ${t['univ']}',
+                      style: AppTextStyles.caption,
+                    ),
+                  ],
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.close_rounded,
+                        color: AppColors.primaryRed, size: 20),
+                  ),
+                  const SizedBox(width: 4),
+                  ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.onlineGreen,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 8),
+                      elevation: 0,
+                    ),
+                    child: const Text('Setujui',
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.w700)),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        )),
+      ],
     );
   }
 

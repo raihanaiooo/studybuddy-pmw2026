@@ -14,11 +14,21 @@ class TutorProfileController extends GetxController {
   final RxBool isSaving = false.obs;
   final RxString saveError = ''.obs;
   final RxBool saveSuccess = false.obs;
+  final RxInt bioCharCount = 0.obs;
 
   // Form controllers
   late final TextEditingController gmeetCurrentCtrl;
   late final TextEditingController gmeetNewCtrl;
   late final TextEditingController bioCtrl;
+  late final TextEditingController subjectInputCtrl;
+
+  final RxList<String> subjects = <String>[
+    'Fisika Dasar',
+    'Kalkulus',
+    'Mekanika',
+    'Termodinamika',
+    'Fisika Modern',
+  ].obs;
 
   @override
   void onInit() {
@@ -30,6 +40,9 @@ class TutorProfileController extends GetxController {
     );
     gmeetNewCtrl = TextEditingController();
     bioCtrl = TextEditingController(text: profile.value?.bio ?? '');
+    bioCharCount.value = bioCtrl.text.length;
+    bioCtrl.addListener(() => bioCharCount.value = bioCtrl.text.length);
+    subjectInputCtrl = TextEditingController();
   }
 
   @override
@@ -37,10 +50,31 @@ class TutorProfileController extends GetxController {
     gmeetCurrentCtrl.dispose();
     gmeetNewCtrl.dispose();
     bioCtrl.dispose();
+    subjectInputCtrl.dispose();
     super.onClose();
   }
 
   bool get hasNewGmeetLink => gmeetNewCtrl.text.trim().isNotEmpty;
+
+  void addSubject() {
+    final name = subjectInputCtrl.text.trim();
+    if (name.isEmpty) return;
+    if (subjects.length >= 8) {
+      saveError.value = 'Maksimal 8 mata kuliah';
+      return;
+    }
+    if (subjects.any((s) => s.toLowerCase() == name.toLowerCase())) {
+      saveError.value = 'Mata kuliah sudah ada';
+      return;
+    }
+    subjects.add(name);
+    subjectInputCtrl.clear();
+    saveError.value = '';
+  }
+
+  void removeSubject(String name) {
+    subjects.remove(name);
+  }
 
   Future<void> saveProfile() async {
     saveError.value = '';
