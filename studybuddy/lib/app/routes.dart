@@ -127,7 +127,10 @@ class AppRoutes {
       name: tutorSchedule,
       page: () => const TutorScheduleScreen(),
       binding: BindingsBuilder(() {
+        Get.lazyPut(() => AuthController());
+        Get.lazyPut(() => TutorDashboardController());
         Get.lazyPut(() => TutorScheduleController());
+        Get.lazyPut(() => TutorProfileController());
       }),
     ),
     GetPage(

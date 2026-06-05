@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../shared/constants/app_colors.dart';
-import '../../shared/constants/app_text_styles.dart';
+
 import '../../controllers/tutor/tutor_schedule_controller.dart';
 import '../../shared/widgets/app_bottom_nav.dart';
-import '../../shared/widgets/loading_overlay.dart';
-import '../../shared/widgets/status_badge.dart';
+
 import '../../../app/routes.dart';
 
 class TutorScheduleScreen extends StatelessWidget {
@@ -13,456 +11,663 @@ class TutorScheduleScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = Get.find<TutorScheduleController>();
+    final TutorScheduleController c = Get.put(
+      TutorScheduleController(),
+      permanent: false,
+    );
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Obx(
-        () => LoadingOverlay(
-          isLoading: c.isLoading.value,
-          child: RefreshIndicator(
-            color: AppColors.primaryBlue,
-            onRefresh: c.loadSchedule,
-            child: CustomScrollView(
-              slivers: [
-                _buildHeader(c),
-                _buildBookingRuleCard(),
-                _buildDayPicker(c),
-                _buildTimeSlots(c),
-                _buildTodayBookings(c),
-                const SliverToBoxAdapter(child: SizedBox(height: 24)),
-              ],
+      backgroundColor: const Color(0xFFF1F6FF),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  children: [
+                    _buildHeader(c),
+                    _buildWarningCard(),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
+                      child: Column(
+                        children: [
+                          _buildWeekSection(c),
+                          const SizedBox(height: 18),
+                          _buildSlotsSection(c),
+                          const SizedBox(height: 18),
+                          _buildTodayBookingSection(c),
+                          const SizedBox(height: 18),
+                          _buildActionButtons(),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
+            _buildBottomNav(),
+          ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
-  // ── Header ──────────────────────────────────────────────────────────────────
-
   Widget _buildHeader(TutorScheduleController c) {
-    return SliverToBoxAdapter(
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 56, 20, 24),
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF0891B2), Color(0xFF06B6D4), Color(0xFF22D3EE)],
-          ),
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 22),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF0F6B57), Color(0xFF1DBF83), Color(0xFF46D7A2)],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Back + Title + Refresh
-            Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Get.back(),
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withAlpha((0.2 * 255).round()),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      color: Colors.white,
-                      size: 18,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    'Kelola Jadwal Tutor',
-                    style: AppTextStyles.heading2.copyWith(color: Colors.white),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: c.loadSchedule,
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withAlpha((0.2 * 255).round()),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.refresh_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            // Status toggle
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: -60,
+            right: -55,
+            child: Container(
+              width: 170,
+              height: 170,
               decoration: BoxDecoration(
-                color: Colors.white.withAlpha((0.15 * 255).round()),
-                borderRadius: BorderRadius.circular(16),
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.10),
               ),
-              child: Row(
+            ),
+          ),
+          Column(
+            children: [
+              Row(
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Obx(
-                          () => Text(
-                            'Status Ketersediaan: ${c.isOnline.value ? "Online" : "Offline"}',
-                            style: AppTextStyles.bodySemiBold.copyWith(
-                              color: Colors.white,
+                  _miniButton(
+                    icon: Icons.arrow_back_ios_new_rounded,
+                    onTap: () => Get.back(),
+                  ),
+                  const Expanded(
+                    child: Center(
+                      child: Text(
+                        'Kelola Jadwal Tutor',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ),
+                  _miniButton(icon: Icons.sync_rounded, onTap: c.loadSchedule),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.16),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.white.withOpacity(0.28)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Obx(
+                        () => Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Status: ${c.isOnline.value ? "Online" : "Offline"}',
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Customer bisa booking slot aktif',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.82),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Obx(
+                      () => GestureDetector(
+                        onTap: () => c.toggleOnlineStatus(!c.isOnline.value),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: 46,
+                          height: 25,
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(999),
+                            color: c.isOnline.value
+                                ? const Color(0xFFDDF8EE)
+                                : Colors.white24,
+                          ),
+                          child: Align(
+                            alignment: c.isOnline.value
+                                ? Alignment.centerRight
+                                : Alignment.centerLeft,
+                            child: Container(
+                              width: 19,
+                              height: 19,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: c.isOnline.value
+                                    ? const Color(0xFF1DBF83)
+                                    : Colors.white,
+                              ),
                             ),
                           ),
                         ),
-                        Text(
-                          'Customer bisa booking slot yang aktif sekarang',
-                          style: AppTextStyles.caption.copyWith(
-                            color: Colors.white70,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                  Obx(
-                    () => Switch(
-                      value: c.isOnline.value,
-                      onChanged: c.toggleOnlineStatus,
-                      activeThumbColor: Colors.white,
-                      activeTrackColor: AppColors.onlineGreen,
-                      inactiveThumbColor: Colors.white54,
-                      inactiveTrackColor: Colors.white24,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  // ── Booking Rule Card ────────────────────────────────────────────────────────
-
-  Widget _buildBookingRuleCard() {
-    return SliverToBoxAdapter(
+  Widget _miniButton({required IconData icon, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-        padding: const EdgeInsets.all(14),
+        width: 34,
+        height: 34,
         decoration: BoxDecoration(
-          color: const Color(0xFFFFFBEB),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFFDE68A)),
+          borderRadius: BorderRadius.circular(11),
+          color: Colors.white.withOpacity(0.16),
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Icon(
-              Icons.warning_amber_rounded,
-              color: AppColors.primaryYellow,
-              size: 18,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Aturan Booking MVP',
-                    style: AppTextStyles.bodySemiBold.copyWith(
-                      color: AppColors.primaryYellow,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Slot hanya bisa dipesan minimal H-5 jam sebelum sesi dimulai. Slot yang terlalu dekat otomatis disembunyikan dari customer.',
-                    style: AppTextStyles.caption,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+        child: Icon(icon, color: Colors.white, size: 16),
       ),
     );
   }
 
-  // ── Day Picker ───────────────────────────────────────────────────────────────
-
-  Widget _buildDayPicker(TutorScheduleController c) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(
-                  Icons.calendar_month_rounded,
-                  size: 18,
-                  color: AppColors.primaryBlue,
+  Widget _buildWarningCard() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF6EB),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFFD8AD)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: const [
+              Icon(
+                Icons.warning_amber_rounded,
+                size: 14,
+                color: Color(0xFF9A5300),
+              ),
+              SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'Aturan Booking MVP',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Color(0xFF9A5300),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  'Pilih Hari Aktif Mingguan',
-                  style: AppTextStyles.heading3,
-                ),
-              ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Slot hanya bisa dipesan minimal H-5 jam sebelum sesi dimulai. Slot yang terlalu dekat otomatis disembunyikan dari customer.',
+            style: TextStyle(
+              color: Color(0xFFB06A13),
+              fontSize: 10,
+              height: 1.4,
+              fontWeight: FontWeight.w500,
             ),
-            const SizedBox(height: 14),
-            Obx(
-              () => Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: List.generate(c.weekDays.length, (i) {
-                  final day = c.weekDays[i];
-                  final active = c.selectedDayIndex.value == i;
-                  final isDisabled = day.label == 'Min';
-                  return GestureDetector(
-                    onTap: isDisabled ? null : () => c.selectDay(i),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWeekSection(TutorScheduleController c) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle(
+          icon: Icons.calendar_month_outlined,
+          title: 'Pilih Hari Aktif Mingguan',
+        ),
+        const SizedBox(height: 10),
+        GetBuilder<TutorScheduleController>(
+          builder: (_) => GridView.builder(
+            shrinkWrap: true,
+            itemCount: c.weekDays.length,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 7,
+              mainAxisSpacing: 6,
+              crossAxisSpacing: 6,
+              childAspectRatio: .82,
+            ),
+            itemBuilder: (_, i) {
+              final day = c.weekDays[i];
+              final active = c.selectedDayIndex.value == i;
+              final isSunday = day.label == 'Min';
+
+              return GestureDetector(
+                onTap: isSunday ? null : () => c.selectDay(i),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 6,
+                    horizontal: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: active ? const Color(0xFFE8FFF6) : Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: active
+                          ? const Color(0xFF9CE3C8)
+                          : const Color(0xFFDCE5F2),
+                    ),
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
                           day.label,
-                          style: AppTextStyles.caption.copyWith(
-                            color: active
-                                ? AppColors.primaryBlue
-                                : isDisabled
-                                ? AppColors.textLight
-                                : AppColors.textSecondary,
-                            fontWeight: active
-                                ? FontWeight.w700
-                                : FontWeight.w500,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 8,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF5F6F85),
                           ),
                         ),
-                        const SizedBox(height: 6),
-                        Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: active
-                                ? AppColors.primaryBlue
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(10),
-                            border: !active && !isDisabled
-                                ? Border.all(color: AppColors.border)
-                                : null,
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            isDisabled ? '–' : day.date.toString(),
-                            style: AppTextStyles.bodySemiBold.copyWith(
-                              color: active
-                                  ? Colors.white
-                                  : isDisabled
-                                  ? AppColors.textLight
-                                  : AppColors.textPrimary,
-                            ),
+                        const SizedBox(height: 2),
+                        Text(
+                          isSunday ? '-' : '${day.date}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF10233F),
                           ),
                         ),
                       ],
                     ),
-                  );
-                }),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSlotsSection(TutorScheduleController c) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle(
+          icon: Icons.access_time_rounded,
+          title: 'Slot Jam Mengajar',
+        ),
+        const SizedBox(height: 10),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(13),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFDCE5F2)),
+          ),
+          child: Column(
+            children: [
+              GetBuilder<TutorScheduleController>(
+                builder: (_) => GridView.builder(
+                  shrinkWrap: true,
+                  itemCount: c.timeSlots.length,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                    childAspectRatio: 2.5,
+                  ),
+                  itemBuilder: (_, i) {
+                    final slot = c.timeSlots[i];
+                    return GestureDetector(
+                      onTap: slot.status == SlotStatus.booked
+                          ? null
+                          : () => c.toggleSlot(slot.time),
+                      child: _slotItem(slot),
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 10,
+                runSpacing: 8,
+                children: [
+                  _legend(const Color(0xFF1DBF83), 'Tersedia'),
+                  _legend(const Color(0xFFCEDDFF), 'Booked'),
+                  _legend(const Color(0xFFDfe4eb), 'Nonaktif'),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _slotItem(TimeSlot slot) {
+    Color bg;
+    Color border;
+    Color text;
+    TextDecoration? decoration;
+
+    switch (slot.status) {
+      case SlotStatus.available:
+        bg = const Color(0xFF1DBF83);
+        border = const Color(0xFF1DBF83);
+        text = Colors.white;
+        break;
+      case SlotStatus.booked:
+        bg = const Color(0xFFEDF3FF);
+        border = const Color(0xFFC8DAFB);
+        text = const Color(0xFF24539F);
+        break;
+      case SlotStatus.inactive:
+        bg = const Color(0xFFF3F4F6);
+        border = const Color(0xFFE5E7EB);
+        text = const Color(0xFF98A1AE);
+        decoration = TextDecoration.lineThrough;
+        break;
+    }
+
+    return Container(
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(11),
+        border: Border.all(color: border, width: 1.4),
+      ),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          slot.time,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: text,
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            decoration: decoration,
+          ),
         ),
       ),
     );
   }
 
-  // ── Time Slots ───────────────────────────────────────────────────────────────
-
-  Widget _buildTimeSlots(TutorScheduleController c) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(
-                  Icons.access_time_rounded,
-                  size: 18,
-                  color: AppColors.primaryBlue,
-                ),
-                const SizedBox(width: 8),
-                Text('Slot Jam Mengajar', style: AppTextStyles.heading3),
-              ],
-            ),
-            const SizedBox(height: 14),
-            Obx(
-              () => GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 2.4,
-                ),
-                itemCount: c.timeSlots.length,
-                itemBuilder: (_, i) {
-                  final slot = c.timeSlots[i];
-                  return _TimeSlotChip(
-                    slot: slot,
-                    onTap: () => c.toggleSlot(slot.time),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 14),
-            // Legend
-            Row(
-              children: [
-                _legend(AppColors.onlineGreen, 'Slot tersedia', true),
-                const SizedBox(width: 16),
-                _legend(AppColors.primaryBlue, 'Sudah dibooking', true),
-                const SizedBox(width: 16),
-                _legend(AppColors.border, 'Nonaktif', true),
-              ],
-            ),
-            const SizedBox(height: 20),
-            // Action buttons
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Get.toNamed(AppRoutes.tutorProfile),
-                    style: OutlinedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    child: const Text('Atur Link GMeet'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 2,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Get.snackbar('Berhasil', 'Jadwal berhasil disimpan');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryBlue,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      elevation: 0,
-                    ),
-                    child: const Text('Simpan Jadwal',
-                        style: TextStyle(fontWeight: FontWeight.w700)),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _legend(Color color, String label, bool isSquare) {
+  Widget _legend(Color color, String label) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           width: 10,
           height: 10,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(isSquare ? 3 : 5),
+            borderRadius: BorderRadius.circular(4),
           ),
         ),
         const SizedBox(width: 4),
-        Text(label, style: AppTextStyles.caption.copyWith(fontSize: 10)),
+        Text(
+          label,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            fontSize: 9,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF5F6F85),
+          ),
+        ),
       ],
     );
   }
 
-  // ── Today Bookings ───────────────────────────────────────────────────────────
-
-  Widget _buildTodayBookings(TutorScheduleController c) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-        child: Obx(() {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(
-                    Icons.chat_bubble_outline_rounded,
-                    size: 18,
-                    color: AppColors.primaryBlue,
-                  ),
-                  const SizedBox(width: 8),
-                  Text('Booking Masuk Hari Ini', style: AppTextStyles.heading3),
-                  const Spacer(),
-                  if (c.pendingConfirmCount > 0)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryYellow.withAlpha(
-                          (0.15 * 255).round(),
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        '${c.pendingConfirmCount} perlu konfirmasi',
-                        style: AppTextStyles.caption.copyWith(
-                          color: AppColors.primaryYellow,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                ],
+  Widget _buildTodayBookingSection(TutorScheduleController c) {
+    return GetBuilder<TutorScheduleController>(
+      builder: (_) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionTitle(
+            icon: Icons.chat_bubble_outline_rounded,
+            title: 'Booking Hari Ini',
+            rightText: '${c.pendingConfirmCount} pending',
+          ),
+          const SizedBox(height: 10),
+          if (c.todayBookings.isEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFDCE5F2)),
               ),
-              const SizedBox(height: 12),
-              if (c.todayBookings.isEmpty)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text(
-                      'Tidak ada booking hari ini',
-                      style: AppTextStyles.caption,
-                    ),
-                  ),
-                )
-              else
-                ...c.todayBookings.map((b) => _TodayBookingItem(booking: b)),
-            ],
-          );
-        }),
+              child: const Text(
+                'Belum ada booking hari ini',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF5F6F85),
+                ),
+              ),
+            )
+          else
+            Column(
+              children: c.todayBookings.map((b) => _bookingItem(b)).toList(),
+            ),
+        ],
       ),
     );
   }
 
-  // ── Bottom Nav ───────────────────────────────────────────────────────────────
+  Widget _bookingItem(dynamic booking) {
+    final isPending = booking.status == 'pending';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(11),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFDCE5F2)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${booking.customerName ?? "Customer"} - ${booking.subject}',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF10233F),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${booking.startTime.substring(0, 5)} - ${booking.endTime.substring(0, 5)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: Color(0xFF5F6F85),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(999),
+              color: isPending
+                  ? const Color(0xFFFFF1DC)
+                  : const Color(0xFFDDF8EE),
+            ),
+            child: Text(
+              isPending ? 'Menunggu' : 'Confirmed',
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w800,
+                color: isPending
+                    ? const Color(0xFFAD6A11)
+                    : const Color(0xFF0F7F57),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 11),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFDCE5F2), width: 1.5),
+            ),
+            alignment: Alignment.center,
+            child: const Text(
+              'Atur GMeet',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF5F6F85),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 11),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0F6B57), Color(0xFF1DBF83)],
+              ),
+            ),
+            alignment: Alignment.center,
+            child: const Text(
+              'Simpan Jadwal',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _sectionTitle({
+    required IconData icon,
+    required String title,
+    String? rightText,
+  }) {
+    return Row(
+      children: [
+        Container(
+          width: 20,
+          height: 20,
+          decoration: BoxDecoration(
+            color: const Color(0xFFE9F0FF),
+            borderRadius: BorderRadius.circular(7),
+          ),
+          child: Icon(icon, size: 12, color: const Color(0xFF295DB7)),
+        ),
+        const SizedBox(width: 7),
+        Expanded(
+          child: Text(
+            title,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF10233F),
+            ),
+          ),
+        ),
+        if (rightText != null)
+          Text(
+            rightText,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF5F6F85),
+            ),
+          ),
+      ],
+    );
+  }
 
   Widget _buildBottomNav() {
     return AppBottomNav(
       currentIndex: 1,
       items: const [
-        BottomNavItem(icon: Icons.grid_view_rounded, label: 'Home'),
+        BottomNavItem(icon: Icons.home_rounded, label: 'Home'),
         BottomNavItem(icon: Icons.calendar_month_rounded, label: 'Jadwal'),
         BottomNavItem(icon: Icons.chat_bubble_outline_rounded, label: 'Chat'),
         BottomNavItem(icon: Icons.person_outline_rounded, label: 'Profil'),
@@ -473,119 +678,10 @@ class TutorScheduleScreen extends StatelessWidget {
             Get.offNamed(AppRoutes.tutorDashboard);
             break;
           case 3:
-            Get.toNamed(AppRoutes.tutorProfile);
+            Get.offNamed(AppRoutes.tutorProfile);
             break;
         }
       },
-    );
-  }
-}
-
-// ── Time Slot Chip ────────────────────────────────────────────────────────────
-
-class _TimeSlotChip extends StatelessWidget {
-  final TimeSlot slot;
-  final VoidCallback onTap;
-
-  const _TimeSlotChip({required this.slot, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    Color bg;
-    Color text;
-
-    switch (slot.status) {
-      case SlotStatus.available:
-        bg = AppColors.onlineGreen;
-        text = Colors.white;
-        break;
-      case SlotStatus.booked:
-        bg = AppColors.primaryBlue.withAlpha((0.15 * 255).round());
-        text = AppColors.primaryBlue;
-        break;
-      case SlotStatus.inactive:
-        bg = Colors.white;
-        text = AppColors.textSecondary;
-        break;
-    }
-
-    return GestureDetector(
-      onTap: slot.status == SlotStatus.booked ? null : onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(12),
-          border: slot.status == SlotStatus.inactive
-              ? Border.all(color: AppColors.border)
-              : null,
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          slot.time,
-          style: AppTextStyles.bodySemiBold.copyWith(color: text),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Today Booking Item ────────────────────────────────────────────────────────
-
-class _TodayBookingItem extends StatelessWidget {
-  final dynamic booking;
-
-  const _TodayBookingItem({required this.booking});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryBlue.withAlpha((0.06 * 255).round()),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: AppColors.primaryBlue.withAlpha((0.1 * 255).round()),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.bar_chart_rounded,
-              color: AppColors.primaryBlue,
-              size: 18,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${booking.customerName ?? "Customer"} – ${booking.subject}',
-                  style: AppTextStyles.bodySemiBold,
-                ),
-                Text(
-                  '${booking.startTime.substring(0, 5)} – ${booking.endTime.substring(0, 5)} · ${booking.sessionType == "chat" ? "sesi chat + timer" : "via Google Meet"}',
-                  style: AppTextStyles.caption,
-                ),
-              ],
-            ),
-          ),
-          StatusBadge(status: booking.status),
-        ],
-      ),
     );
   }
 }
