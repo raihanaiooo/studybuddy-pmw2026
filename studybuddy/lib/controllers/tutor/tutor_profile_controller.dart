@@ -7,16 +7,17 @@ import '../../models/tutor_model.dart';
 import 'tutor_dashboard_controller.dart';
 
 class TutorProfileController extends GetxController {
-  final _dashboard = Get.find<TutorDashboardController>();
+  final TutorDashboardController _dashboard =
+      Get.find<TutorDashboardController>();
 
   final Rx<TutorModel?> profile = Rx<TutorModel?>(null);
+
   final RxBool isLoading = false.obs;
   final RxBool isSaving = false.obs;
   final RxString saveError = ''.obs;
   final RxBool saveSuccess = false.obs;
   final RxInt bioCharCount = 0.obs;
 
-  // Form controllers
   late final TextEditingController gmeetCurrentCtrl;
   late final TextEditingController gmeetNewCtrl;
   late final TextEditingController bioCtrl;
@@ -30,18 +31,36 @@ class TutorProfileController extends GetxController {
     'Fisika Modern',
   ].obs;
 
+  TutorModel? get tutorProfile => profile.value;
+
+  RxString get gmeetLink => (profile.value?.gmeetLink ?? '').obs;
+
+  TextEditingController get newGmeetController => gmeetNewCtrl;
+
+  TextEditingController get bioController => bioCtrl;
+
+  TextEditingController get newSubjectController => subjectInputCtrl;
+
   @override
   void onInit() {
     super.onInit();
+
     profile.value = _dashboard.tutorProfile.value;
 
     gmeetCurrentCtrl = TextEditingController(
       text: profile.value?.gmeetLink ?? '',
     );
+
     gmeetNewCtrl = TextEditingController();
+
     bioCtrl = TextEditingController(text: profile.value?.bio ?? '');
+
     bioCharCount.value = bioCtrl.text.length;
-    bioCtrl.addListener(() => bioCharCount.value = bioCtrl.text.length);
+
+    bioCtrl.addListener(() {
+      bioCharCount.value = bioCtrl.text.length;
+    });
+
     subjectInputCtrl = TextEditingController();
   }
 
@@ -58,15 +77,25 @@ class TutorProfileController extends GetxController {
 
   void addSubject() {
     final name = subjectInputCtrl.text.trim();
+
     if (name.isEmpty) return;
+
     if (subjects.length >= 8) {
       saveError.value = 'Maksimal 8 mata kuliah';
+
+      Get.snackbar('Gagal', saveError.value, snackPosition: SnackPosition.TOP);
+
       return;
     }
+
     if (subjects.any((s) => s.toLowerCase() == name.toLowerCase())) {
       saveError.value = 'Mata kuliah sudah ada';
+
+      Get.snackbar('Gagal', saveError.value, snackPosition: SnackPosition.TOP);
+
       return;
     }
+
     subjects.add(name);
     subjectInputCtrl.clear();
     saveError.value = '';
@@ -81,6 +110,7 @@ class TutorProfileController extends GetxController {
     saveSuccess.value = false;
 
     final tutorId = profile.value?.id;
+
     if (tutorId == null) return;
 
     final newLink = gmeetNewCtrl.text.trim();
@@ -88,10 +118,14 @@ class TutorProfileController extends GetxController {
 
     if (newLink.isNotEmpty && !newLink.contains('meet.google.com')) {
       saveError.value = 'Link Google Meet tidak valid';
+
+      Get.snackbar('Gagal', saveError.value, snackPosition: SnackPosition.TOP);
+
       return;
     }
 
     isSaving.value = true;
+
     try {
       final updates = <String, dynamic>{
         'bio': newBio,
@@ -105,13 +139,22 @@ class TutorProfileController extends GetxController {
             .eq('id', tutorId);
       }
 
-      // Update local state
+      final updatedProfile = profile.value?.copyWith(
+        bio: newBio,
+        gmeetLink: newLink.isNotEmpty ? newLink : profile.value?.gmeetLink,
+      );
+
+      profile.value = updatedProfile;
+
+      _dashboard.tutorProfile.value = updatedProfile;
+
       if (newLink.isNotEmpty) {
         gmeetCurrentCtrl.text = newLink;
         gmeetNewCtrl.clear();
       }
 
       saveSuccess.value = true;
+
       Get.snackbar(
         'Berhasil',
         'Profil berhasil disimpan',
@@ -120,6 +163,8 @@ class TutorProfileController extends GetxController {
       );
     } catch (e) {
       saveError.value = 'Gagal menyimpan profil';
+
+      Get.snackbar('Gagal', saveError.value, snackPosition: SnackPosition.TOP);
     } finally {
       isSaving.value = false;
     }

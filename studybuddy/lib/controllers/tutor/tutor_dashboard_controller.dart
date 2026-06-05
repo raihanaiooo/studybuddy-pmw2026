@@ -8,21 +8,35 @@ import '../../models/tutor_model.dart';
 import '../auth_controller.dart';
 
 class TutorDashboardController extends GetxController {
-  final _auth = Get.find<AuthController>();
+  final AuthController _auth = Get.find<AuthController>();
 
   final Rx<TutorModel?> tutorProfile = Rx<TutorModel?>(null);
+
   final RxList<BookingModel> bookings = <BookingModel>[].obs;
   final RxList<BookingModel> filteredBookings = <BookingModel>[].obs;
+
   final RxBool isLoading = true.obs;
   final RxBool isOnline = true.obs;
+
   final RxString activeFilter = 'all'.obs;
 
-  // Stats
   final RxInt bookingMasuk = 0.obs;
   final RxInt sesiHariIni = 0.obs;
   final RxDouble ratingRataRata = 0.0.obs;
   final RxDouble pendapatanBulanIni = 0.0.obs;
   final RxDouble pendapatanGrowth = 0.0.obs;
+
+  String get tutorName => tutorProfile.value?.fullName ?? 'Tutor';
+
+  String get tutorInitial {
+    final name = tutorName.trim();
+
+    if (name.isEmpty) return 'T';
+
+    return name.substring(0, 1).toUpperCase();
+  }
+
+  String get gmeetLink => tutorProfile.value?.gmeetLink ?? '';
 
   @override
   void onInit() {
@@ -32,8 +46,10 @@ class TutorDashboardController extends GetxController {
 
   Future<void> loadDashboard() async {
     isLoading.value = true;
+
     try {
-      await Future.wait([_fetchTutorProfile(), _fetchBookings()]);
+      await _fetchTutorProfile();
+      await _fetchBookings();
       _calculateStats();
     } finally {
       isLoading.value = false;
@@ -42,12 +58,16 @@ class TutorDashboardController extends GetxController {
 
   Future<void> _fetchTutorProfile() async {
     final userId = _auth.currentUser.value?.id;
+
     if (userId == null) return;
 
     if (kUseMock) {
       final tutors = await MockService.fetchTutors();
+
       tutorProfile.value = tutors.isNotEmpty ? tutors.first : null;
+
       isOnline.value = tutorProfile.value?.isOnline ?? true;
+
       return;
     }
 
@@ -59,17 +79,21 @@ class TutorDashboardController extends GetxController {
 
     if (data != null) {
       tutorProfile.value = TutorModel.fromMap(data);
+
       isOnline.value = tutorProfile.value?.isOnline ?? true;
     }
   }
 
   Future<void> _fetchBookings() async {
     final tutorId = tutorProfile.value?.id;
+
     if (tutorId == null) return;
 
     if (kUseMock) {
       bookings.value = await MockService.fetchBookingsForTutor(tutorId);
+
       _applyFilter();
+
       return;
     }
 
@@ -83,20 +107,24 @@ class TutorDashboardController extends GetxController {
     bookings.value = (data as List)
         .map((e) => BookingModel.fromMap(e as Map<String, dynamic>))
         .toList();
+
     _applyFilter();
   }
 
   void _calculateStats() {
     final today = DateTime.now();
+
     bookingMasuk.value = bookings.where((b) => b.status == 'pending').length;
+
     sesiHariIni.value = bookings.where((b) {
       return b.status == 'confirmed' &&
           b.sessionDate.year == today.year &&
           b.sessionDate.month == today.month &&
           b.sessionDate.day == today.day;
     }).length;
+
     ratingRataRata.value = tutorProfile.value?.rating ?? 0.0;
-    // Mock pendapatan
+
     pendapatanBulanIni.value = 1250000;
     pendapatanGrowth.value = 18;
   }
@@ -113,20 +141,28 @@ class TutorDashboardController extends GetxController {
             .where((b) => b.status == 'pending')
             .toList();
         break;
+
       case 'confirmed':
         filteredBookings.value = bookings
             .where((b) => b.status == 'confirmed')
             .toList();
         break;
+
       default:
-        filteredBookings.value = bookings;
+        filteredBookings.value = bookings.toList();
     }
   }
 
   Future<void> toggleOnlineStatus(bool value) async {
     isOnline.value = value;
+
     final tutorId = tutorProfile.value?.id;
-    if (tutorId == null || kUseMock) return;
+
+    if (tutorId == null) return;
+
+    tutorProfile.value = tutorProfile.value?.copyWith(isOnline: value);
+
+    if (kUseMock) return;
 
     await SupabaseService.client
         .from(SupabaseConstants.tableTutors)
@@ -137,11 +173,16 @@ class TutorDashboardController extends GetxController {
   Future<void> confirmBooking(String bookingId) async {
     if (kUseMock) {
       final idx = bookings.indexWhere((b) => b.id == bookingId);
+
       if (idx != -1) {
         bookings[idx] = bookings[idx].copyWith(status: 'confirmed');
+
+        bookings.refresh();
+
         _calculateStats();
         _applyFilter();
       }
+
       return;
     }
 
@@ -157,11 +198,16 @@ class TutorDashboardController extends GetxController {
   Future<void> rejectBooking(String bookingId) async {
     if (kUseMock) {
       final idx = bookings.indexWhere((b) => b.id == bookingId);
+
       if (idx != -1) {
         bookings[idx] = bookings[idx].copyWith(status: 'cancelled');
+
+        bookings.refresh();
+
         _calculateStats();
         _applyFilter();
       }
+
       return;
     }
 
@@ -175,6 +221,7 @@ class TutorDashboardController extends GetxController {
   }
 
   int get pendingCount => bookings.where((b) => b.status == 'pending').length;
+
   int get confirmedCount =>
       bookings.where((b) => b.status == 'confirmed').length;
 }

@@ -11,6 +11,7 @@ import '../views/customer/tutor_detail_screen.dart';
 import '../views/customer/booking_screen.dart';
 import '../views/customer/schedule_screen.dart';
 import '../views/customer/profile_screen.dart';
+import '../views/customer/questionnaire_screen.dart';
 import '../views/session/session_screen.dart';
 import '../views/session/review_screen.dart';
 import '../views/management/operational_screen.dart';
@@ -19,21 +20,19 @@ import '../views/management/tutor_approval_screen.dart';
 import '../views/tutor/tutor_schedule_screen.dart';
 import '../views/tutor/tutor_profile_screen.dart';
 import '../views/tutor/tutor_dashboard_screen.dart';
-import '../views/customer/questionnaire_screen.dart';
 
 // ─────IMPORT CONTROLLERS──────────────────────────────────────────────────────────────────────────────
 import '../controllers/auth_controller.dart';
 import '../controllers/manajemen/dashboard_controller.dart';
 import '../controllers/tutor/tutor_controller.dart';
 import '../controllers/customer/booking_controller.dart';
+import '../controllers/customer/questionnaire_controller.dart';
 import '../controllers/customer/session_controller.dart';
 import '../controllers/customer/review_controller.dart';
 import '../controllers/manajemen/operational_controller.dart';
-import '../controllers/manajemen/tutor_approval_controller.dart';
 import '../controllers/tutor/tutor_dashboard_controller.dart';
 import '../controllers/tutor/tutor_schedule_controller.dart';
 import '../controllers/tutor/tutor_profile_controller.dart';
-import '../controllers/customer/questionnaire_controller.dart';
 
 class AppRoutes {
   static const splash = '/';
@@ -108,10 +107,11 @@ class AppRoutes {
     GetPage(
       name: questionnaire,
       page: () => const QuestionnaireScreen(),
-      binding: BindingsBuilder(() {
-        Get.lazyPut(() => QuestionnaireController());
-      }),
+      binding: BindingsBuilder(
+        () => Get.lazyPut(() => QuestionnaireController()),
+      ),
     ),
+
     // ── Tutor routes ──────────────────────────────────────────────────────────
     GetPage(
       name: tutorDashboard,
@@ -119,8 +119,6 @@ class AppRoutes {
       binding: BindingsBuilder(() {
         Get.lazyPut(() => AuthController());
         Get.lazyPut(() => TutorDashboardController());
-        Get.lazyPut(() => TutorScheduleController());
-        Get.lazyPut(() => TutorProfileController());
       }),
     ),
     GetPage(
@@ -137,6 +135,7 @@ class AppRoutes {
         Get.lazyPut(() => TutorProfileController());
       }),
     ),
+
     // ── Shared routes ─────────────────────────────────────────────────────────
     GetPage(
       name: session,
@@ -148,28 +147,26 @@ class AppRoutes {
       page: () => const ReviewScreen(),
       binding: BindingsBuilder(() => Get.lazyPut(() => ReviewController())),
     ),
-    // ── Management routes ─────────────────────────────────────────────────────
-    GetPage(
-      name: managementDashboard,
-      page: () => const ManagementDashboardScreen(),
-      binding: BindingsBuilder(() {
-        Get.lazyPut(() => AuthController());
-        Get.lazyPut(() => OperationalController());
-      }),
-    ),
-    GetPage(
-      name: tutorApproval,
-      page: () => const TutorApprovalScreen(),
-      binding: BindingsBuilder(() {
-        Get.lazyPut(() => TutorApprovalController());
-      }),
-    ),
     GetPage(
       name: operational,
       page: () => const OperationalScreen(),
       binding: BindingsBuilder(
         () => Get.lazyPut(() => OperationalController()),
       ),
+    ),
+    GetPage(
+      name: managementDashboard,
+      page: () => const ManagementDashboardScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => DashboardController());
+      }),
+    ),
+    GetPage(
+      name: tutorApproval,
+      page: () => const TutorApprovalScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => DashboardController());
+      }),
     ),
   ];
 }

@@ -1,4 +1,3 @@
-/// Model data profil tutor beserta statistik
 class TutorModel {
   final String id;
   final String userId;
@@ -71,4 +70,40 @@ class TutorModel {
     'gpa': gpa,
     'last_seen': lastSeen?.toIso8601String(),
   };
+
+  TutorModel copyWith({
+    String? id,
+    String? userId,
+    String? fullName,
+    String? avatarUrl,
+    String? bio,
+    List<String>? subjects,
+    double? rating,
+    int? totalSessions,
+    int? totalReviews,
+    bool? isOnline,
+    double? pricePerHour,
+    String? gmeetLink,
+    String? university,
+    double? gpa,
+    DateTime? lastSeen,
+  }) {
+    return TutorModel(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      fullName: fullName ?? this.fullName,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      bio: bio ?? this.bio,
+      subjects: subjects ?? this.subjects,
+      rating: rating ?? this.rating,
+      totalSessions: totalSessions ?? this.totalSessions,
+      totalReviews: totalReviews ?? this.totalReviews,
+      isOnline: isOnline ?? this.isOnline,
+      pricePerHour: pricePerHour ?? this.pricePerHour,
+      gmeetLink: gmeetLink ?? this.gmeetLink,
+      university: university ?? this.university,
+      gpa: gpa ?? this.gpa,
+      lastSeen: lastSeen ?? this.lastSeen,
+    );
+  }
 }
