@@ -17,7 +17,7 @@ class CustomerProfileScreen extends StatefulWidget {
 }
 
 class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
-  int _navIndex = 3;
+  int _navIndex = 4;
   late TextEditingController _nameCtrl;
   late TextEditingController _phoneCtrl;
   late TextEditingController _bioCtrl;
@@ -29,15 +29,29 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   final _navItems = const [
     BottomNavItem(icon: Icons.home_rounded, label: 'Beranda'),
     BottomNavItem(icon: Icons.search_rounded, label: 'Cari'),
+    BottomNavItem(icon: Icons.chat_bubble_rounded, label: 'Chat'),
     BottomNavItem(icon: Icons.calendar_today_rounded, label: 'Jadwal'),
     BottomNavItem(icon: Icons.person_rounded, label: 'Profil'),
   ];
 
   void _onNavTap(int i) {
-    if (i == 0) Get.offNamed(AppRoutes.customerDashboard);
-    if (i == 1) Get.toNamed(AppRoutes.tutorList);
-    if (i == 2) Get.toNamed(AppRoutes.customerSchedule);
-    setState(() => _navIndex = i);
+    switch (i) {
+      case 0:
+        Get.offAllNamed(AppRoutes.customerDashboard);
+        break;
+      case 1:
+        Get.toNamed(AppRoutes.tutorList);
+        break;
+      case 2:
+        Get.toNamed(AppRoutes.chatList);
+        break;
+      case 3:
+        Get.toNamed(AppRoutes.customerSchedule);
+        break;
+      case 4:
+        break; // already here
+    }
+    if (i != 4) setState(() => _navIndex = i);
   }
 
   @override
@@ -153,6 +167,29 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
 
                       // Menu section
                       _buildMenuSection(),
+                      const SizedBox(height: 24),
+
+                      // Logout button
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () =>
+                              Get.find<AuthController>().logout(),
+                          icon: const Icon(Icons.logout_rounded,
+                              color: AppColors.primaryRed),
+                          label: const Text('Keluar',
+                              style:
+                                  TextStyle(color: AppColors.primaryRed)),
+                          style: OutlinedButton.styleFrom(
+                            side:
+                                const BorderSide(color: AppColors.primaryRed),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14)),
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: 24),
 
                       // Save button

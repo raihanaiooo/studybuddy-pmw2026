@@ -6,6 +6,7 @@ import '../../shared/constants/app_text_styles.dart';
 import '../../core/utils/date_utils.dart';
 import '../../app/routes.dart';
 import '../../shared/widgets/status_badge.dart';
+import '../../shared/widgets/app_bottom_nav.dart';
 
 /// Screen jadwal booking customer
 class CustomerScheduleScreen extends StatelessWidget {
@@ -143,6 +144,34 @@ class CustomerScheduleScreen extends StatelessWidget {
           },
         );
       }),
+      bottomNavigationBar: AppBottomNav(
+        currentIndex: 3,
+        onTap: (i) {
+          switch (i) {
+            case 0:
+              Get.offAllNamed(AppRoutes.customerDashboard);
+              break;
+            case 1:
+              Get.toNamed(AppRoutes.tutorList);
+              break;
+            case 2:
+              Get.toNamed(AppRoutes.chatList);
+              break;
+            case 3:
+              break; // already here
+            case 4:
+              Get.toNamed(AppRoutes.customerProfile);
+              break;
+          }
+        },
+        items: const [
+          BottomNavItem(icon: Icons.home_rounded, label: 'Beranda'),
+          BottomNavItem(icon: Icons.search_rounded, label: 'Cari'),
+          BottomNavItem(icon: Icons.chat_bubble_rounded, label: 'Chat'),
+          BottomNavItem(icon: Icons.calendar_today_rounded, label: 'Jadwal'),
+          BottomNavItem(icon: Icons.person_rounded, label: 'Profil'),
+        ],
+      ),
     );
   }
 }

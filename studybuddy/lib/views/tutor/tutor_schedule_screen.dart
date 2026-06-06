@@ -667,7 +667,7 @@ class TutorScheduleScreen extends StatelessWidget {
     return AppBottomNav(
       currentIndex: 1,
       items: const [
-        BottomNavItem(icon: Icons.home_rounded, label: 'Home'),
+        BottomNavItem(icon: Icons.grid_view_rounded, label: 'Dashboard'),
         BottomNavItem(icon: Icons.calendar_month_rounded, label: 'Jadwal'),
         BottomNavItem(icon: Icons.chat_bubble_outline_rounded, label: 'Chat'),
         BottomNavItem(icon: Icons.person_outline_rounded, label: 'Profil'),
@@ -675,10 +675,16 @@ class TutorScheduleScreen extends StatelessWidget {
       onTap: (i) {
         switch (i) {
           case 0:
-            Get.offNamed(AppRoutes.tutorDashboard);
+            Get.offAllNamed(AppRoutes.tutorDashboard);
+            break;
+          case 1:
+            break; // already here
+          case 2:
+            Get.snackbar('Info', 'Fitur chat untuk tutor segera hadir',
+                snackPosition: SnackPosition.BOTTOM);
             break;
           case 3:
-            Get.offNamed(AppRoutes.tutorProfile);
+            Get.toNamed(AppRoutes.tutorProfile);
             break;
         }
       },

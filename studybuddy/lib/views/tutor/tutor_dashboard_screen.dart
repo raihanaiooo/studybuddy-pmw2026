@@ -14,6 +14,7 @@ import '../../shared/widgets/app_bottom_nav.dart';
 import '../../shared/widgets/loading_overlay.dart';
 // import '../../shared/widgets/status_badge.dart';
 import '../tutor/booking_tabs.dart';
+import '../../app/routes.dart';
 
 class TutorDashboardScreen extends StatelessWidget {
   const TutorDashboardScreen({super.key});
@@ -53,12 +54,19 @@ class TutorDashboardScreen extends StatelessWidget {
                 AppBottomNav(
                   currentIndex: 0,
                   onTap: (i) {
-                    if (i == 1) {
-                      Get.toNamed('/tutor/schedule');
-                    }
-
-                    if (i == 3) {
-                      Get.toNamed('/tutor/profile');
+                    switch (i) {
+                      case 0:
+                        break; // already here
+                      case 1:
+                        Get.toNamed(AppRoutes.tutorSchedule);
+                        break;
+                      case 2:
+                        Get.snackbar('Info', 'Fitur chat untuk tutor segera hadir',
+                            snackPosition: SnackPosition.BOTTOM);
+                        break;
+                      case 3:
+                        Get.toNamed(AppRoutes.tutorProfile);
+                        break;
                     }
                   },
                   items: const [

@@ -20,6 +20,8 @@ import '../views/tutor/tutor_schedule_screen.dart';
 import '../views/tutor/tutor_profile_screen.dart';
 import '../views/tutor/tutor_dashboard_screen.dart';
 import '../views/customer/questionnaire_screen.dart';
+import '../views/chat/chat_list_screen.dart';
+import '../views/chat/chat_room_screen.dart';
 
 // ─────IMPORT CONTROLLERS──────────────────────────────────────────────────────────────────────────────
 import '../controllers/auth_controller.dart';
@@ -34,6 +36,7 @@ import '../controllers/tutor/tutor_dashboard_controller.dart';
 import '../controllers/tutor/tutor_schedule_controller.dart';
 import '../controllers/tutor/tutor_profile_controller.dart';
 import '../controllers/customer/questionnaire_controller.dart';
+import '../controllers/chat/chat_controller.dart';
 
 class AppRoutes {
   static const splash = '/';
@@ -54,6 +57,8 @@ class AppRoutes {
   static const operational = '/operational';
   static const managementDashboard = '/management/dashboard';
   static const tutorApproval = '/management/tutor-approval';
+  static const chatList = '/chat';
+  static const chatRoom = '/chat/room';
 
   static final pages = [
     GetPage(name: splash, page: () => const SplashScreen()),
@@ -173,6 +178,23 @@ class AppRoutes {
       binding: BindingsBuilder(
         () => Get.lazyPut(() => OperationalController()),
       ),
+    ),
+    // ── Chat routes ─────────────────────────────────────────────────────────
+    GetPage(
+      name: chatList,
+      page: () => const ChatListScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => AuthController());
+        Get.lazyPut(() => ChatController());
+      }),
+    ),
+    GetPage(
+      name: chatRoom,
+      page: () => const ChatRoomScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => AuthController());
+        Get.lazyPut(() => ChatController());
+      }),
     ),
   ];
 }

@@ -9,6 +9,7 @@ import '../../shared/constants/app_colors.dart';
 import '../../shared/constants/app_text_styles.dart';
 
 import '../../controllers/tutor/tutor_profile_controller.dart';
+import '../../controllers/auth_controller.dart';
 
 import '../../shared/widgets/app_bottom_nav.dart';
 
@@ -53,6 +54,32 @@ class TutorProfileScreen extends StatelessWidget {
 
                         _SaveButton(c: c),
 
+                        const SizedBox(height: 12),
+
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () =>
+                                  Get.find<AuthController>().logout(),
+                              icon: const Icon(Icons.logout_rounded,
+                                  color: AppColors.primaryRed),
+                              label: const Text('Keluar',
+                                  style:
+                                      TextStyle(color: AppColors.primaryRed)),
+                              style: OutlinedButton.styleFrom(
+                                side:
+                                    const BorderSide(color: AppColors.primaryRed),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14)),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
+                              ),
+                            ),
+                          ),
+                        ),
+
                         const SizedBox(height: 20),
                       ],
                     ),
@@ -63,9 +90,20 @@ class TutorProfileScreen extends StatelessWidget {
                   currentIndex: 3,
 
                   onTap: (i) {
-                    if (i == 0) Get.offNamed(AppRoutes.tutorDashboard);
-
-                    if (i == 1) Get.offNamed(AppRoutes.tutorSchedule);
+                    switch (i) {
+                      case 0:
+                        Get.offAllNamed(AppRoutes.tutorDashboard);
+                        break;
+                      case 1:
+                        Get.toNamed(AppRoutes.tutorSchedule);
+                        break;
+                      case 2:
+                        Get.snackbar('Info', 'Fitur chat untuk tutor segera hadir',
+                            snackPosition: SnackPosition.BOTTOM);
+                        break;
+                      case 3:
+                        break; // already here
+                    }
                   },
 
                   items: const [

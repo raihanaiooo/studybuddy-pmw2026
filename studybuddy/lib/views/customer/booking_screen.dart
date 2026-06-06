@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import '../../models/tutor_model.dart';
 import '../../shared/constants/app_colors.dart';
 import '../../shared/constants/app_text_styles.dart';
+import '../../shared/widgets/app_bottom_nav.dart';
+import '../../app/routes.dart';
 
 class BookingScreen extends StatefulWidget {
   const BookingScreen({super.key});
@@ -133,6 +135,35 @@ class _BookingScreenState extends State<BookingScreen> {
 
           // Book Button
           _buildBookButton(tutor),
+        ],
+      ),
+      bottomNavigationBar: AppBottomNav(
+        currentIndex: -1,
+        onTap: (i) {
+          switch (i) {
+            case 0:
+              Get.offAllNamed(AppRoutes.customerDashboard);
+              break;
+            case 1:
+              Get.toNamed(AppRoutes.tutorList);
+              break;
+            case 2:
+              Get.toNamed(AppRoutes.chatList);
+              break;
+            case 3:
+              Get.toNamed(AppRoutes.customerSchedule);
+              break;
+            case 4:
+              Get.toNamed(AppRoutes.customerProfile);
+              break;
+          }
+        },
+        items: const [
+          BottomNavItem(icon: Icons.home_rounded, label: 'Beranda'),
+          BottomNavItem(icon: Icons.search_rounded, label: 'Cari'),
+          BottomNavItem(icon: Icons.chat_bubble_rounded, label: 'Chat'),
+          BottomNavItem(icon: Icons.calendar_today_rounded, label: 'Jadwal'),
+          BottomNavItem(icon: Icons.person_rounded, label: 'Profil'),
         ],
       ),
     );
@@ -659,7 +690,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => Navigator.of(ctx).pop(),
+                      onPressed: () => Get.back(),
                       style: OutlinedButton.styleFrom(
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
@@ -672,10 +703,10 @@ class _BookingScreenState extends State<BookingScreen> {
                     flex: 2,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.of(ctx).pop();
+                        Get.back();
                         Get.snackbar('Berhasil',
                             'Booking berhasil dibuat (prototype)');
-                        Get.toNamed('/customer/schedule');
+                        Get.offNamed(AppRoutes.customerSchedule);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryBlue,
