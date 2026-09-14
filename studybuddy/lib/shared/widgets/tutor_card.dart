@@ -44,6 +44,7 @@ class TutorCard extends StatelessWidget {
 
   /// Tampilan compact untuk horizontal scroll (dashboard)
   Widget _buildCompact() => Column(
+    mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Row(
@@ -96,13 +97,21 @@ class TutorCard extends StatelessWidget {
       const SizedBox(width: 14),
       Expanded(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Text(tutor.fullName, style: AppTextStyles.heading3),
-                const SizedBox(width: 6),
-                if (tutor.isOnline)
+                Expanded(
+                  child: Text(
+                    tutor.fullName,
+                    style: AppTextStyles.heading3,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (tutor.isOnline) ...[
+                  const SizedBox(width: 6),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
@@ -121,6 +130,7 @@ class TutorCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                ],
               ],
             ),
             const SizedBox(height: 2),

@@ -22,17 +22,31 @@ class CustomerDashboardScreen extends StatefulWidget {
 }
 
 class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
-  int _navIndex = 0;
-
   final _navItems = const [
     BottomNavItem(icon: Icons.home_rounded, label: 'Beranda'),
     BottomNavItem(icon: Icons.search_rounded, label: 'Cari'),
+    BottomNavItem(icon: Icons.chat_bubble_rounded, label: 'Chat'),
     BottomNavItem(icon: Icons.calendar_today_rounded, label: 'Jadwal'),
     BottomNavItem(icon: Icons.person_rounded, label: 'Profil'),
   ];
 
   void _onNavTap(int i) {
-    setState(() => _navIndex = i);
+    switch (i) {
+      case 0:
+        break; // already here
+      case 1:
+        Get.toNamed(AppRoutes.tutorList);
+        break;
+      case 2:
+        Get.toNamed(AppRoutes.chatList);
+        break;
+      case 3:
+        Get.toNamed(AppRoutes.customerSchedule);
+        break;
+      case 4:
+        Get.toNamed(AppRoutes.customerProfile);
+        break;
+    }
   }
 
   @override
@@ -47,38 +61,18 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          if (_navIndex == 0) _buildHeader(auth),
+          _buildHeader(auth),
           Expanded(
-            child: _buildContent(dashboard, tutorCtrl, auth, isWide),
+            child: _buildHomeContent(dashboard, tutorCtrl, isWide),
           ),
         ],
       ),
       bottomNavigationBar: AppBottomNav(
-        currentIndex: _navIndex,
+        currentIndex: 0,
         onTap: _onNavTap,
         items: _navItems,
       ),
     );
-  }
-
-  Widget _buildContent(
-    DashboardController dashboard,
-    TutorController tutorCtrl,
-    AuthController auth,
-    bool isWide,
-  ) {
-    switch (_navIndex) {
-      case 0:
-        return _buildHomeContent(dashboard, tutorCtrl, isWide);
-      case 1:
-        return _buildSearchContent(tutorCtrl);
-      case 2:
-        return _buildScheduleContent();
-      case 3:
-        return _buildProfileContent(auth);
-      default:
-        return _buildHomeContent(dashboard, tutorCtrl, isWide);
-    }
   }
 
   // ── Tab 0: Beranda ─────────────────────────────────────────────────────
@@ -104,7 +98,7 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
           // Online Tutors
           _buildSectionHeader(
             '🟢 Tutor Online Sekarang',
-            onSeeAll: () => setState(() => _navIndex = 1),
+            onSeeAll: () => Get.toNamed(AppRoutes.tutorList),
           ),
           const SizedBox(height: 12),
           Obx(() {
@@ -161,7 +155,7 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
           // Subject Filter + Rekomendasi
           _buildSectionHeader(
             '⭐ Tutor Untukmu',
-            onSeeAll: () => setState(() => _navIndex = 1),
+            onSeeAll: () => Get.toNamed(AppRoutes.tutorList),
           ),
           const SizedBox(height: 12),
           _buildSubjectFilter(tutorCtrl),
@@ -170,7 +164,7 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
           // Tutor Tersedia
           _buildSectionHeader(
             '👨‍🏫 Tutor Tersedia',
-            onSeeAll: () => setState(() => _navIndex = 1),
+            onSeeAll: () => Get.toNamed(AppRoutes.tutorList),
           ),
           const SizedBox(height: 12),
           Obx(() {

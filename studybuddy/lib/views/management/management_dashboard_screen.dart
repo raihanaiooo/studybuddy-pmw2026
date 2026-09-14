@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/auth_controller.dart';
-import '../../controllers/manajemen/operational_controller.dart';
 import '../../mock/mock_data.dart';
 import '../../shared/constants/app_colors.dart';
 import '../../shared/constants/app_text_styles.dart';
 import '../../shared/utils/responsive_helper.dart';
 import '../../shared/widgets/app_bottom_nav.dart';
-import '../../shared/widgets/status_badge.dart';
 import '../../app/routes.dart';
 
 class ManagementDashboardScreen extends StatefulWidget {
@@ -39,7 +37,10 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          if (_navIndex == 0) _buildHeader(auth),
+          if (_navIndex == 0)
+            _buildHeader(auth)
+          else
+            SizedBox(height: MediaQuery.of(context).padding.top),
           Expanded(child: _buildContent(auth, stats)),
         ],
       ),
@@ -56,11 +57,11 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
       case 0:
         return _buildDashboardTab(stats);
       case 1:
-        return _buildBookingTab();
+        return _buildTutorListTab();
       case 2:
-        return _buildTutorTab();
+        return _buildCustomerListTab();
       case 3:
-        return _buildProfileTab(auth);
+        return _buildLaporanTab(stats);
       default:
         return _buildDashboardTab(stats);
     }
@@ -886,230 +887,243 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
     );
   }
 
-  // ── BOOKING TAB ────────────────────────────────────────────────────────
+  // ── CUSTOMER LIST TAB ─────────────────────────────────────────────────
 
-  Widget _buildBookingTab() {
-    final ctrl = Get.put(OperationalController());
-    return Padding(
-      padding: ResponsiveHelper.contentPadding(context),
-      child: Column(
-        children: [
-          const SizedBox(height: 16),
-          Obx(() {
-            final total = ctrl.bookings.length;
-            final pending = ctrl.bookings
-                .where((b) => b.status == 'pending')
-                .length;
-            final done = ctrl.bookings.where((b) => b.status == 'done').length;
-            return Row(
-              children: [
-                _miniStat('Total', total, AppColors.primaryBlue),
-                const SizedBox(width: 8),
-                _miniStat('Pending', pending, AppColors.primaryYellow),
-                const SizedBox(width: 8),
-                _miniStat('Done', done, AppColors.onlineGreen),
-              ],
-            );
-          }),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 36,
-            child: Obx(
-              () => ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  _filterChip('Semua', '', ctrl),
-                  const SizedBox(width: 8),
-                  _filterChip('Pending', 'pending', ctrl),
-                  const SizedBox(width: 8),
-                  _filterChip('Confirmed', 'confirmed', ctrl),
-                  const SizedBox(width: 8),
-                  _filterChip('Done', 'done', ctrl),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: Obx(() {
-              final items = ctrl.filtered;
-              if (items.isEmpty) {
-                return Center(
-                  child: Text(
-                    'Tidak ada booking',
-                    style: AppTextStyles.caption,
+  Widget _buildCustomerListTab() {
+    final customers = [
+      {'name': 'Rania Putri', 'email': 'rania@demo.com', 'bookings': 12, 'initial': 'R'},
+      {'name': 'Farhan Malik', 'email': 'farhan@demo.com', 'bookings': 8, 'initial': 'F'},
+      {'name': 'Rani Putri', 'email': 'rani@demo.com', 'bookings': 5, 'initial': 'R'},
+      {'name': 'Fikri Akbar', 'email': 'fikri@demo.com', 'bookings': 3, 'initial': 'F'},
+      {'name': 'Maya Sari', 'email': 'maya@demo.com', 'bookings': 7, 'initial': 'M'},
+      {'name': 'Andi Wijaya', 'email': 'andi@demo.com', 'bookings': 4, 'initial': 'A'},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+          child: Row(
+            children: [
+              Text('Daftar Customer', style: AppTextStyles.heading3),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${customers.length} customer',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.primaryBlue,
+                    fontWeight: FontWeight.w600,
                   ),
-                );
-              }
-              return ListView.separated(
-                itemCount: items.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
-                itemBuilder: (_, i) {
-                  final b = items[i];
-                  final tutor = mockTutors.firstWhere(
-                    (t) => t.id == b.tutorId,
-                    orElse: () => mockTutors.first,
-                  );
-                  return Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border(
-                        left: BorderSide(
-                          color: _statusColor(b.status),
-                          width: 4,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Expanded(
+          child: ListView.builder(
+            padding: ResponsiveHelper.contentPadding(context),
+            itemCount: customers.length,
+            itemBuilder: (_, i) {
+              final c = customers[i];
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFE5E7F0)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.accentPurple,
+                            AppColors.accentPurple.withOpacity(0.6),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(13),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        c['initial'] as String,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
                         ),
                       ),
                     ),
-                    child: Row(
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(c['name'] as String,
+                              style: AppTextStyles.bodySemiBold),
+                          Text(c['email'] as String,
+                              style: AppTextStyles.caption.copyWith(fontSize: 11)),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        CircleAvatar(
-                          radius: 16,
-                          backgroundColor: AppColors.primaryBlue.withOpacity(
-                            0.1,
-                          ),
-                          child: Text(
-                            tutor.fullName[0],
-                            style: TextStyle(
-                              color: AppColors.primaryBlue,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 12,
-                            ),
+                        Text(
+                          '${c['bookings']} booking',
+                          style: AppTextStyles.bodySemiBold.copyWith(
+                            fontSize: 12,
+                            color: AppColors.primaryBlue,
                           ),
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                tutor.fullName,
-                                style: AppTextStyles.bodySemiBold,
-                              ),
-                              Text(
-                                '${b.customerName ?? "Customer"} • ${b.subject}',
-                                style: AppTextStyles.caption.copyWith(
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ],
-                          ),
+                        Text(
+                          'Total sesi',
+                          style: AppTextStyles.caption.copyWith(fontSize: 10),
                         ),
-                        if (b.status == 'pending')
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.check_circle_rounded,
-                                  color: AppColors.onlineGreen,
-                                  size: 20,
-                                ),
-                                onPressed: () {
-                                  ctrl.approveBooking(b.id);
-                                  Get.snackbar(
-                                    'Approved',
-                                    'Booking ${b.id} disetujui',
-                                  );
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.cancel_rounded,
-                                  color: AppColors.primaryRed,
-                                  size: 20,
-                                ),
-                                onPressed: () {
-                                  ctrl.cancelBooking(b.id);
-                                  Get.snackbar(
-                                    'Cancelled',
-                                    'Booking ${b.id} dibatalkan',
-                                  );
-                                },
-                              ),
-                            ],
-                          )
-                        else
-                          StatusBadge(status: b.status),
                       ],
                     ),
-                  );
-                },
+                  ],
+                ),
               );
-            }),
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── LAPORAN TAB ───────────────────────────────────────────────────────
+
+  Widget _buildLaporanTab(Map<String, dynamic> stats) {
+    return SingleChildScrollView(
+      padding: ResponsiveHelper.contentPadding(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 16),
+          Text('Laporan & Statistik', style: AppTextStyles.heading3),
+          const SizedBox(height: 16),
+          _buildStatCard('Total Pengguna', '${stats['totalUsers']}', Icons.people_rounded, AppColors.primaryBlue),
+          const SizedBox(height: 10),
+          _buildStatCard('Total Tutor', '${stats['totalTutors']}', Icons.school_rounded, AppColors.onlineGreen),
+          const SizedBox(height: 10),
+          _buildStatCard('Total Booking', '${stats['totalBookings']}', Icons.receipt_long_rounded, AppColors.primaryYellow),
+          const SizedBox(height: 10),
+          _buildStatCard('Sesi Selesai', '${stats['totalSessions']}', Icons.check_circle_rounded, AppColors.accentTeal),
+          const SizedBox(height: 10),
+          _buildStatCard('Revenue', 'Rp${(stats['revenue'] as int).toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}', Icons.account_balance_wallet_rounded, AppColors.primaryRed),
+          const SizedBox(height: 20),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFE5E7F0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Aktivitas Terakhir', style: AppTextStyles.bodySemiBold),
+                const SizedBox(height: 12),
+                _activityItem('Booking baru dari Rania Putri', '2 menit lalu'),
+                _activityItem('Tutor Arif Rahmat menyelesaikan sesi', '15 menit lalu'),
+                _activityItem('Customer baru: Farhan Malik', '1 jam lalu'),
+                _activityItem('Tutor Dimas Pratama online', '2 jam lalu'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => Get.find<AuthController>().logout(),
+              icon: const Icon(Icons.logout_rounded, color: AppColors.primaryRed),
+              label: const Text('Keluar', style: TextStyle(color: AppColors.primaryRed)),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.primaryRed),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE5E7F0)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: AppTextStyles.caption),
+                Text(value, style: AppTextStyles.heading3),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _miniStat(String label, int value, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            Text(
-              '$value',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: color,
-              ),
+  Widget _activityItem(String text, String time) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: AppColors.primaryBlue,
+              shape: BoxShape.circle,
             ),
-            const SizedBox(height: 2),
-            Text(label, style: AppTextStyles.caption.copyWith(fontSize: 10)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _filterChip(String label, String value, OperationalController ctrl) {
-    final selected = ctrl.filterStatus.value == value;
-    return GestureDetector(
-      onTap: () => ctrl.filterStatus.value = value,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: selected ? AppColors.primaryBlue : Colors.white,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          label,
-          style: AppTextStyles.bodySemiBold.copyWith(
-            fontSize: 12,
-            color: selected ? Colors.white : AppTextStyles.caption.color,
           ),
-        ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(text, style: AppTextStyles.caption.copyWith(fontSize: 12)),
+          ),
+          Text(time, style: AppTextStyles.caption.copyWith(fontSize: 10, color: AppColors.textLight)),
+        ],
       ),
     );
   }
 
-  Color _statusColor(String status) {
-    switch (status) {
-      case 'pending':
-        return AppColors.primaryYellow;
-      case 'confirmed':
-        return AppColors.primaryBlue;
-      case 'done':
-        return AppColors.onlineGreen;
-      case 'cancelled':
-        return AppColors.primaryRed;
-      default:
-        return AppColors.textLight;
-    }
-  }
+  // ── TUTOR LIST TAB ─────────────────────────────────────────────────────
 
-  // ── TUTOR TAB ──────────────────────────────────────────────────────────
-
-  Widget _buildTutorTab() {
+  Widget _buildTutorListTab() {
     return ListView.builder(
       padding: ResponsiveHelper.contentPadding(context),
       itemCount: mockTutors.length,
@@ -1189,149 +1203,4 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
     );
   }
 
-  // ── PROFILE TAB ────────────────────────────────────────────────────────
-
-  Widget _buildProfileTab(AuthController auth) {
-    return SingleChildScrollView(
-      padding: ResponsiveHelper.contentPadding(context),
-      child: Column(
-        children: [
-          const SizedBox(height: 20),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.primaryBlue,
-                  AppColors.primaryBlue.withOpacity(0.8),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryYellow,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  alignment: Alignment.center,
-                  child: Obx(
-                    () => Text(
-                      (auth.currentUser.value?.fullName ?? 'A')[0]
-                          .toUpperCase(),
-                      style: AppTextStyles.heading1.copyWith(
-                        color: Colors.white,
-                        fontSize: 28,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Obx(
-                  () => Text(
-                    auth.currentUser.value?.fullName ?? 'Admin',
-                    style: AppTextStyles.heading3.copyWith(color: Colors.white),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'admin@demo.com',
-                  style: AppTextStyles.caption.copyWith(color: Colors.white70),
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'Manajemen',
-                    style: AppTextStyles.caption.copyWith(color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          _profileMenu(
-            Icons.dashboard_rounded,
-            'Dashboard',
-            'Statistik platform',
-          ),
-          _profileMenu(
-            Icons.receipt_long_rounded,
-            'Kelola Booking',
-            'Approve & batalkan',
-          ),
-          _profileMenu(
-            Icons.school_rounded,
-            'Kelola Tutor',
-            'Data tutor aktif',
-          ),
-          _profileMenu(Icons.assessment_rounded, 'Laporan', 'Detail statistik'),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => Get.find<AuthController>().logout(),
-              icon: const Icon(
-                Icons.logout_rounded,
-                color: AppColors.primaryRed,
-              ),
-              label: Text(
-                'Keluar',
-                style: TextStyle(color: AppColors.primaryRed),
-              ),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: AppColors.primaryRed),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _profileMenu(IconData icon, String title, String subtitle) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: AppColors.primaryBlue, size: 22),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: AppTextStyles.bodySemiBold),
-                Text(subtitle, style: AppTextStyles.caption),
-              ],
-            ),
-          ),
-          Icon(
-            Icons.arrow_forward_ios_rounded,
-            size: 14,
-            color: AppColors.textLight,
-          ),
-        ],
-      ),
-    );
-  }
 }

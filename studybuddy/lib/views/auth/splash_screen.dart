@@ -29,6 +29,8 @@ class _SplashScreenState extends State<SplashScreen> {
       final role = session.user.userMetadata?['role']?.toString();
       if (role == 'tutor') {
         Get.offAllNamed(AppRoutes.tutorDashboard);
+      } else if (role == 'management' || role == 'admin') {
+        Get.offAllNamed(AppRoutes.managementDashboard);
       } else {
         Get.offAllNamed(AppRoutes.customerDashboard);
       }

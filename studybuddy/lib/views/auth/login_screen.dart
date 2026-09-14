@@ -336,7 +336,11 @@ class _LoginScreenState extends State<LoginScreen> {
         Align(
           alignment: Alignment.centerRight,
           child: GestureDetector(
-            onTap: () => Get.toNamed('/forgot-password'),
+            onTap: () => Get.snackbar(
+              'Info',
+              'Fitur reset password belum tersedia di prototype',
+              snackPosition: SnackPosition.BOTTOM,
+            ),
             child: Text(
               'Lupa password?',
               style: AppTextStyles.caption.copyWith(
