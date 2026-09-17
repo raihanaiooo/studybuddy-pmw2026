@@ -89,7 +89,7 @@ class MyTokensScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Berlaku s.d. ${DateFormat('dd MMM yyyy', 'id').format(token.expiryDate)}',
+            'Berlaku s.d. ${DateFormat('dd MMM yyyy').format(token.expiryDate)}',
             style: AppTextStyles.caption,
           ),
           if (token.status == 'active') ...[
