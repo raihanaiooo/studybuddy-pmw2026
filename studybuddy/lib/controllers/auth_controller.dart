@@ -19,8 +19,12 @@ class AuthController extends GetxController {
 
   /// Load user dari Supabase saat controller init
   Future<void> _loadCurrentUser() async {
-    final user = await _authService.getCurrentUser();
-    currentUser.value = user;
+    try {
+      final user = await _authService.getCurrentUser();
+      currentUser.value = user;
+    } catch (_) {
+      currentUser.value = null;
+    }
   }
 
   /// Login dan redirect ke dashboard sesuai role

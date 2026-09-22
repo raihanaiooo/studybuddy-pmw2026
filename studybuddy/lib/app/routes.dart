@@ -19,6 +19,8 @@ import '../controllers/tutor_controller.dart';
 import '../controllers/booking_controller.dart';
 import '../controllers/session_controller.dart';
 import '../controllers/review_controller.dart';
+import '../controllers/tutor_dashboard_controller.dart';
+import '../controllers/tutor_schedule_controller.dart';
 
 class AppRoutes {
   static const splash = '/';
@@ -82,24 +84,28 @@ class AppRoutes {
     //   page: () => const CustomerProfileScreen(),
     //   binding: BindingsBuilder(() => Get.lazyPut(() => AuthController())),
     // ),
-    // GetPage(
-    //   name: tutorDashboard,
-    //   page: () => const TutorDashboardScreen(),
-    //   binding: BindingsBuilder(() {
-    //     Get.lazyPut(() => DashboardController());
-    //     Get.lazyPut(() => BookingController());
-    //   }),
-    // ),
-    // GetPage(
-    //   name: tutorSchedule,
-    //   page: () => const TutorScheduleScreen(),
-    //   binding: BindingsBuilder(() => Get.lazyPut(() => BookingController())),
-    // ),
+    GetPage(
+      name: tutorDashboard,
+      page: () => const TutorDashboardScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => AuthController());
+        Get.lazyPut(() => TutorDashboardController());
+        Get.lazyPut(() => BookingController());
+      }),
+    ),
+    GetPage(
+      name: tutorSchedule,
+      page: () => const TutorScheduleScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => BookingController());
+        Get.lazyPut(() => TutorScheduleController());
+      }),
+    ),
     // GetPage(
     //   name: tutorProfile,
     //   page: () => const TutorProfileScreen(),
     //   binding: BindingsBuilder(() => Get.lazyPut(() => AuthController())),
-    // ),
+    // ), // menyusul dari branch ui/profil (tutor_profile_screen.dart masih kosong di sini)
     GetPage(
       name: session,
       page: () => const SessionScreen(),

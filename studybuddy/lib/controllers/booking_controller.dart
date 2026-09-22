@@ -45,6 +45,8 @@ class BookingController extends GetxController {
       } else {
         myBookings.value = bookings;
       }
+    } catch (_) {
+      // Tangani error tanpa crash (mis. belum ada sesi login aktif)
     } finally {
       isLoading.value = false;
     }
@@ -100,9 +102,15 @@ class BookingController extends GetxController {
 
   /// Batalkan booking
   Future<void> cancelBooking(String bookingId) async {
+    await updateBookingStatus(bookingId, 'cancelled');
+  }
+
+  /// Ubah status booking, mis. Tutor konfirmasi ('confirmed') atau tolak
+  /// booking masuk ('cancelled') (FR-BOOK-03/09)
+  Future<void> updateBookingStatus(String bookingId, String status) async {
     await SupabaseService.client
         .from(SupabaseConstants.tableBookings)
-        .update({'status': 'cancelled'})
+        .update({'status': status})
         .eq('id', bookingId);
     await fetchMyBookings();
   }
