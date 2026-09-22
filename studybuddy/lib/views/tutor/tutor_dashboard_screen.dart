@@ -29,8 +29,19 @@ class _TutorDashboardScreenState extends State<TutorDashboardScreen> {
   ];
 
   void _onNavTap(int i) {
-    if (i == 1) Get.toNamed(AppRoutes.tutorSchedule);
-    if (i == 2) Get.toNamed(AppRoutes.tutorProfile);
+    // Jadwal & Profil adalah screen terpisah (push), bukan tab di dalam
+    // Dashboard — indeks nav lokal jangan ikut berubah, supaya begitu
+    // pengguna kembali (pop), Dashboard tetap menampilkan "Dashboard"
+    // sebagai tab aktif, bukan ikut-ikutan menyorot tab yang baru saja
+    // dituju.
+    if (i == 1) {
+      Get.toNamed(AppRoutes.tutorSchedule);
+      return;
+    }
+    if (i == 2) {
+      Get.toNamed(AppRoutes.tutorProfile);
+      return;
+    }
     setState(() => _navIndex = i);
   }
 

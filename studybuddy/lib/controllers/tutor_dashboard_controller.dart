@@ -36,6 +36,8 @@ class TutorDashboardController extends GetxController {
     try {
       await _authService.updateOnlineStatus(tutorId: userId, isOnline: value);
       isOnline.value = value;
+    } catch (_) {
+      Get.snackbar('Gagal', 'Tidak bisa mengubah status online, coba lagi');
     } finally {
       isUpdatingStatus.value = false;
     }
