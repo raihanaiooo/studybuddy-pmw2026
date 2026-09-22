@@ -23,6 +23,20 @@ class _BookingScreenState extends State<BookingScreen> {
   TutorModel? _tutor;
 
   @override
+  void initState() {
+    super.initState();
+    // Dipanggil di initState (bukan ditunda ke postFrameCallback dalam
+    // build()) supaya frame pertama tidak sempat menampilkan state
+    // "belum ada slot" yang keliru sebelum data sungguhan masuk.
+    final tutor = Get.arguments as TutorModel?;
+    if (tutor != null) {
+      _tutor = tutor;
+      _subject = tutor.subjects.isNotEmpty ? tutor.subjects.first : null;
+      Get.find<BookingController>().fetchAvailableSlots(tutor.id);
+    }
+  }
+
+  @override
   void dispose() {
     _notesCtrl.dispose();
     super.dispose();
@@ -31,15 +45,7 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   Widget build(BuildContext context) {
     final ctrl = Get.find<BookingController>();
-    final tutor = Get.arguments as TutorModel?;
-
-    if (tutor != null && _tutor?.id != tutor.id) {
-      _tutor = tutor;
-      _subject = tutor.subjects.isNotEmpty ? tutor.subjects.first : null;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ctrl.fetchAvailableSlots(tutor.id);
-      });
-    }
+    final tutor = _tutor;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -111,7 +117,10 @@ class _BookingScreenState extends State<BookingScreen> {
                   ),
                 );
               }
-              if (ctrl.availableSlots.isEmpty) {
+              final hasAvailableSlot = ctrl.availableSlots.any(
+                (s) => s.status == 'available',
+              );
+              if (!hasAvailableSlot) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 24),
                   child: Text(
@@ -249,7 +258,9 @@ class _BookingScreenState extends State<BookingScreen> {
   /// bisa langsung dipilih-tap (FR-BOOK-02).
   Widget _buildSlotPicker(BookingController ctrl) {
     final byDate = <String, List<AvailabilitySlotModel>>{};
-    for (final slot in ctrl.availableSlots) {
+    // Slot yang sudah 'booked' tidak boleh muncul sebagai pilihan
+    // (FR-BOOK-04) — nggak cukup diandalkan dari data belum terpakai.
+    for (final slot in ctrl.availableSlots.where((s) => s.status == 'available')) {
       final key = AppDateUtils.formatDate(slot.startTime);
       byDate.putIfAbsent(key, () => []).add(slot);
     }

@@ -35,6 +35,9 @@ class BookingController extends GetxController {
   Future<void> fetchAvailableSlots(String tutorId) async {
     isLoadingSlots.value = true;
     selectedSlot.value = null;
+    // Delay simulasi network — tanpa ini fungsinya sepenuhnya sinkron
+    // sehingga state loading tidak pernah benar-benar teramati/teruji.
+    await Future.delayed(const Duration(milliseconds: 300));
     final now = DateTime.now();
     availableSlots.value = List.generate(6, (i) {
       final day = i ~/ 2; // 2 slot per hari, 3 hari ke depan

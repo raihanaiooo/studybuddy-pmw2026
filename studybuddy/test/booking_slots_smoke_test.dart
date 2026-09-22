@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:studybuddy/controllers/booking_controller.dart';
+import 'package:studybuddy/models/availability_slot_model.dart';
 import 'package:studybuddy/models/tutor_model.dart';
 import 'package:studybuddy/views/customer/booking_screen.dart';
 
@@ -78,5 +79,24 @@ void main() {
       find.widgetWithText(ElevatedButton, 'Konfirmasi Booking'),
     );
     expect(button.onPressed, isNotNull);
+  });
+
+  testWidgets('Slot berstatus booked tidak muncul sebagai pilihan', (
+    tester,
+  ) async {
+    await _pumpBookingScreen(tester);
+
+    final ctrl = Get.find<BookingController>();
+    final bookedSlot = AvailabilitySlotModel(
+      id: 'slot-already-booked',
+      tutorId: _dummyTutor.id,
+      startTime: DateTime.now().add(const Duration(days: 5)),
+      endTime: DateTime.now().add(const Duration(days: 5, hours: 1)),
+      status: 'booked',
+    );
+    ctrl.availableSlots.add(bookedSlot);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('slot-slot-already-booked')), findsNothing);
   });
 }
