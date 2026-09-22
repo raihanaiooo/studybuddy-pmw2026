@@ -29,15 +29,7 @@ class RescheduleController extends GetxController {
 
   /// Kondisi FR-RESCH-06: kuota habis, pengajuan <6 jam sebelum sesi, atau
   /// pengalihan ke Tutor lain — butuh approval manual Admin. Di luar itu,
-  /// diproses otomatis.
-  bool needsAdminApproval({
-    required DateTime originalSessionTime,
-    bool switchTutor = false,
-  }) {
-    final hoursUntilSession = originalSessionTime.difference(DateTime.now()).inHours;
-    return switchTutor || hoursUntilSession < thresholdHours || quotaLeft.value <= 0;
-  }
-
+  /// diproses otomatis. Mengembalikan null kalau tidak perlu approval.
   String? _adminApprovalReason({
     required DateTime originalSessionTime,
     required bool switchTutor,

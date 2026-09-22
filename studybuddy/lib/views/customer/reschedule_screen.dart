@@ -41,7 +41,24 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
   @override
   Widget build(BuildContext context) {
     final ctrl = Get.find<RescheduleController>();
-    final booking = Get.arguments as BookingModel;
+    final booking = Get.arguments as BookingModel?;
+
+    if (booking == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: AppColors.blueDark,
+          foregroundColor: Colors.white,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+            onPressed: Get.back,
+          ),
+        ),
+        body: Center(
+          child: Text('Booking tidak ditemukan', style: AppTextStyles.caption),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -200,13 +217,23 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
 
   Future<void> _pickDate(DateTime originalSessionTime) async {
     final now = DateTime.now();
+    // Kalau sesi aslinya sudah lewat (booking lama yang statusnya masih
+    // 'confirmed'), jadwal semula + maxPostponeDays bisa jatuh SEBELUM
+    // `now` — showDatePicker mewajibkan lastDate >= firstDate, jadi
+    // di-clamp minimal `now` supaya tidak assertion-crash.
+    final maxAllowed = originalSessionTime.add(
+      const Duration(days: RescheduleController.maxPostponeDays),
+    );
+    final lastDate = maxAllowed.isAfter(now) ? maxAllowed : now;
+    final preferredInitial = now.add(const Duration(days: 1));
+    final initialDate = preferredInitial.isAfter(lastDate)
+        ? lastDate
+        : preferredInitial;
     final picked = await showDatePicker(
       context: context,
-      initialDate: now.add(const Duration(days: 1)),
+      initialDate: initialDate,
       firstDate: now,
-      lastDate: originalSessionTime.add(
-        const Duration(days: RescheduleController.maxPostponeDays),
-      ),
+      lastDate: lastDate,
     );
     if (picked != null) setState(() => _newDate = picked);
   }

@@ -74,6 +74,37 @@ void main() {
       // Get.snackbar() bikin Timer auto-dismiss — biarkan settle penuh.
       await tester.pumpAndSettle(const Duration(seconds: 5));
     });
+
+    testWidgets(
+      'Buka date picker untuk booking yang jadwalnya sudah lewat tidak crash',
+      (tester) async {
+        // Booking lama yang statusnya masih 'confirmed' (belum pernah
+        // ditransisikan ke 'completed') — jadwal semula + 2 hari bisa
+        // jatuh sebelum hari ini, dulu bikin showDatePicker() assertion
+        // crash karena lastDate < firstDate.
+        final overdueBooking = BookingModel(
+          id: 'booking-overdue',
+          customerId: 'customer-1',
+          tutorId: 'tutor-1',
+          sessionTime: DateTime.now().subtract(const Duration(days: 10)),
+          durationMinutes: 60,
+          subject: 'Fisika Dasar',
+          sessionType: 'video',
+          status: 'confirmed',
+          createdAt: DateTime.now().subtract(const Duration(days: 11)),
+        );
+
+        await tester.pumpWidget(GetMaterialApp(home: Container()));
+        Get.to(() => const RescheduleScreen(), arguments: overdueBooking);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Pilih tanggal'));
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.byType(DatePickerDialog), findsOneWidget);
+      },
+    );
   });
 
   // Logic murni FR-RESCH-02..06 — pakai instance controller langsung
