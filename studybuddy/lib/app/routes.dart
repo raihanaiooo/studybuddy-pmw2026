@@ -24,6 +24,7 @@ import '../controllers/review_controller.dart';
 import '../controllers/tutor_dashboard_controller.dart';
 import '../controllers/tutor_schedule_controller.dart';
 import '../controllers/package_controller.dart';
+import '../controllers/profile_controller.dart';
 
 class AppRoutes {
   static const splash = '/';
@@ -94,11 +95,14 @@ class AppRoutes {
       page: () => const MyTokensScreen(),
       binding: BindingsBuilder(() => Get.lazyPut(() => PackageController())),
     ),
-    // GetPage(
-    //   name: customerProfile,
-    //   page: () => const CustomerProfileScreen(),
-    //   binding: BindingsBuilder(() => Get.lazyPut(() => AuthController())),
-    // ),
+    GetPage(
+      name: customerProfile,
+      page: () => const CustomerProfileScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => AuthController());
+        Get.lazyPut(() => ProfileController());
+      }),
+    ),
     GetPage(
       name: tutorDashboard,
       page: () => const TutorDashboardScreen(),
@@ -116,11 +120,14 @@ class AppRoutes {
         Get.lazyPut(() => TutorScheduleController());
       }),
     ),
-    // GetPage(
-    //   name: tutorProfile,
-    //   page: () => const TutorProfileScreen(),
-    //   binding: BindingsBuilder(() => Get.lazyPut(() => AuthController())),
-    // ), // menyusul dari branch ui/profil (tutor_profile_screen.dart masih kosong di sini)
+    GetPage(
+      name: tutorProfile,
+      page: () => const TutorProfileScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => AuthController());
+        Get.lazyPut(() => ProfileController());
+      }),
+    ),
     GetPage(
       name: session,
       page: () => const SessionScreen(),
