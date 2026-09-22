@@ -56,6 +56,10 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
                 children: [
                   // Butuh tutor sekarang? (on-demand)
                   _buildOnDemandBanner(),
+                  const SizedBox(height: 16),
+
+                  // Paket & Token
+                  _buildPackageBanner(),
                   const SizedBox(height: 24),
 
                   // Tutor online sekarang
@@ -225,6 +229,51 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
           ),
           const Spacer(),
           const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+        ],
+      ),
+    ),
+  );
+
+  /// Banner akses cepat ke katalog Paket & Token (FR-PKG-01)
+  Widget _buildPackageBanner() => GestureDetector(
+    onTap: () => Get.toNamed(AppRoutes.packageCatalog),
+    child: Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.primaryYellow.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            alignment: Alignment.center,
+            child: const Text('🎟️', style: TextStyle(fontSize: 20)),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Paket & Token', style: AppTextStyles.bodySemiBold),
+              const SizedBox(height: 2),
+              Text(
+                'Lihat katalog bundling & token belajarmu',
+                style: AppTextStyles.caption,
+              ),
+            ],
+          ),
+          const Spacer(),
+          const Icon(
+            Icons.arrow_forward_ios,
+            color: AppColors.textLight,
+            size: 14,
+          ),
         ],
       ),
     ),
