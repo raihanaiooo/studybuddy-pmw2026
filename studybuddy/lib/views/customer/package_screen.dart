@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/package_controller.dart';
+import '../../controllers/payment_controller.dart';
+import '../../controllers/auth_controller.dart';
+import '../../models/package_model.dart';
+import '../../models/invoice_model.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../app/routes.dart';
@@ -54,7 +58,7 @@ class PackageScreen extends StatelessWidget {
             final pkg = ctrl.packages[i];
             return PackageCard(
               package: pkg,
-              onBuy: () => _confirmPurchase(context, pkg.name),
+              onBuy: () => _confirmPurchase(context, pkg),
             );
           },
         );
@@ -62,14 +66,14 @@ class PackageScreen extends StatelessWidget {
     );
   }
 
-  void _confirmPurchase(BuildContext context, String packageName) {
+  void _confirmPurchase(BuildContext context, PackageModel package) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Konfirmasi Pembelian'),
         content: Text(
-          'Lanjutkan pembelian "$packageName"? Kamu akan diarahkan ke halaman pembayaran QRIS.',
+          'Lanjutkan pembelian "${package.name}"? Kamu akan diarahkan ke halaman pembayaran QRIS.',
         ),
         actions: [
           TextButton(onPressed: Get.back, child: const Text('Batal')),
@@ -80,15 +84,39 @@ class PackageScreen extends StatelessWidget {
             ),
             onPressed: () {
               Get.back();
-              Get.snackbar(
-                'Segera Hadir',
-                'Halaman pembayaran (Sprint 3) belum tersedia.',
-              );
+              _goToInvoice(package);
             },
             child: const Text('Lanjutkan'),
           ),
         ],
       ),
     );
+  }
+
+  void _goToInvoice(PackageModel package) {
+    final auth = Get.find<AuthController>();
+    final packageCtrl = Get.find<PackageController>();
+    final paymentCtrl = Get.find<PaymentController>();
+    final user = auth.currentUser.value;
+    final now = DateTime.now();
+
+    paymentCtrl.generateInvoice(
+      tutorName: '-', // pembelian paket, belum terikat ke Tutor tertentu
+      studentName: user?.fullName ?? 'Buddy',
+      studentGrade: user?.gradeLevel ?? '-',
+      studentSchool: user?.school ?? '-',
+      sessions: [
+        InvoiceSessionItem(
+          subject: package.name,
+          sessionDate: now,
+          startTime: '-',
+          endTime: '-',
+          price: package.price,
+        ),
+      ],
+      onPaid: () => packageCtrl.grantToken(package),
+    );
+
+    Get.toNamed(AppRoutes.invoice);
   }
 }

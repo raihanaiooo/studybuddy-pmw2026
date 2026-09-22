@@ -5,6 +5,7 @@ import '../../controllers/profile_controller.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../core/utils/validator_utils.dart';
+import '../../app/routes.dart';
 
 /// Profil Buddy: data diri, mata pelajaran diminati, riwayat & aktivitas
 /// (FR-PROF-01, FR-PROF-03, FR-PROF-04)
@@ -65,6 +66,14 @@ class CustomerProfileScreen extends StatelessWidget {
                     : user.interestedSubjects.join(', '),
               ),
               const SizedBox(height: 20),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.receipt_long_outlined, color: AppColors.primaryBlue),
+                title: Text('Riwayat Transaksi', style: AppTextStyles.bodySemiBold),
+                trailing: const Icon(Icons.chevron_right, color: AppColors.textLight),
+                onTap: () => Get.toNamed(AppRoutes.transactionHistory),
+              ),
+              const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 height: 50,

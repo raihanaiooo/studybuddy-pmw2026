@@ -17,6 +17,13 @@ class PaymentController extends GetxController {
 
   final RxList<InvoiceModel> history = <InvoiceModel>[].obs;
 
+  /// Dipanggil sekali begitu invoice berhasil Lunas — dipakai pemanggil
+  /// (mis. BookingController.createBooking, atau grant token paket) buat
+  /// menuntaskan aksi bisnis yang menunggu pembayaran. Tetap independen
+  /// dari controller lain supaya PaymentController tidak perlu tahu soal
+  /// Booking/Paket & Token secara langsung.
+  void Function()? _onPaid;
+
   @override
   void onInit() {
     super.onInit();
@@ -38,7 +45,9 @@ class PaymentController extends GetxController {
     required String studentSchool,
     required List<InvoiceSessionItem> sessions,
     double discount = 0,
+    void Function()? onPaid,
   }) {
+    _onPaid = onPaid;
     final now = DateTime.now();
     final id =
         'INV/SB/${_formatYmd(now)}/${now.millisecondsSinceEpoch.toString().substring(7)}';
@@ -115,6 +124,9 @@ class PaymentController extends GetxController {
     isCheckingStatus.value = false;
 
     Get.snackbar('Lunas', 'Pembayaran berhasil, link Google Meet sudah terpasang');
+
+    _onPaid?.call();
+    _onPaid = null;
   }
 
   /// Batalkan pesanan sebelum bayar — otomatis membuka kembali slot

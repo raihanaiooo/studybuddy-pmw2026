@@ -91,7 +91,10 @@ class AppRoutes {
     GetPage(
       name: booking,
       page: () => const BookingScreen(),
-      binding: BindingsBuilder(() => Get.lazyPut(() => BookingController())),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => AuthController());
+        Get.lazyPut(() => BookingController());
+      }),
     ),
     GetPage(
       name: customerSchedule,
@@ -101,7 +104,10 @@ class AppRoutes {
     GetPage(
       name: packageCatalog,
       page: () => const PackageScreen(),
-      binding: BindingsBuilder(() => Get.lazyPut(() => PackageController())),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => AuthController());
+        Get.lazyPut(() => PackageController());
+      }),
     ),
     GetPage(
       name: myTokens,

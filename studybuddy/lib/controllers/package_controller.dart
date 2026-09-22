@@ -32,6 +32,22 @@ class PackageController extends GetxController {
   PackageModel? packageById(String id) =>
       packages.firstWhereOrNull((p) => p.id == id);
 
+  /// Terbitkan token baru begitu pembayaran paket Lunas (FR-PKG-02) —
+  /// dipanggil sebagai callback `onPaid` dari PaymentController.
+  void grantToken(PackageModel package) {
+    final now = DateTime.now();
+    myTokens.add(
+      TokenModel(
+        id: 'tok-${now.millisecondsSinceEpoch}',
+        buddyId: 'me',
+        packageId: package.id,
+        status: 'active',
+        activeDate: now,
+        expiryDate: now.add(Duration(days: package.validityDays)),
+      ),
+    );
+  }
+
   static final List<PackageModel> _dummyPackages = [
     const PackageModel(
       id: 'pkg-terset',

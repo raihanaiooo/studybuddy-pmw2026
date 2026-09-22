@@ -170,30 +170,34 @@ class _TutorDashboardScreenState extends State<TutorDashboardScreen> {
           child: _statCard(
             'Rp${(dashboard.monthlyEarnings.value / 1000).toStringAsFixed(0)}rb',
             'Pendapatan Bulan Ini',
+            onTap: () => Get.toNamed(AppRoutes.payroll),
           ),
         ),
       ],
     ),
   );
 
-  Widget _statCard(String value, String label) => Container(
-    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      boxShadow: [
-        BoxShadow(color: AppColors.primaryBlue.withOpacity(0.06), blurRadius: 6),
-      ],
-    ),
-    child: Column(
-      children: [
-        Text(
-          value,
-          style: AppTextStyles.heading3.copyWith(color: AppColors.primaryBlue),
-        ),
-        const SizedBox(height: 2),
-        Text(label, style: AppTextStyles.caption, textAlign: TextAlign.center),
-      ],
+  Widget _statCard(String value, String label, {VoidCallback? onTap}) => GestureDetector(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(color: AppColors.primaryBlue.withOpacity(0.06), blurRadius: 6),
+        ],
+      ),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: AppTextStyles.heading3.copyWith(color: AppColors.primaryBlue),
+          ),
+          const SizedBox(height: 2),
+          Text(label, style: AppTextStyles.caption, textAlign: TextAlign.center),
+        ],
+      ),
     ),
   );
 

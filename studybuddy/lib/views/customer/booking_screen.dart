@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/booking_controller.dart';
+import '../../controllers/payment_controller.dart';
+import '../../controllers/auth_controller.dart';
 import '../../models/tutor_model.dart';
 import '../../models/availability_slot_model.dart';
+import '../../models/invoice_model.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../core/utils/date_utils.dart';
+import '../../app/routes.dart';
 
 /// Screen booking: pilih mata kuliah, tipe sesi, dan slot waktu tersedia
 /// milik Tutor (FR-BOOK-01..04 — model pilih-langsung ala tiket bioskop)
@@ -169,18 +173,7 @@ class _BookingScreenState extends State<BookingScreen> {
                           ctrl.selectedSlot.value == null ||
                           _subject == null
                       ? null
-                      : () => ctrl.createBooking(
-                          tutorId: tutor.id,
-                          sessionTime: ctrl.selectedSlot.value!.startTime,
-                          durationMinutes: ctrl.selectedSlot.value!.endTime
-                              .difference(ctrl.selectedSlot.value!.startTime)
-                              .inMinutes,
-                          subject: _subject!,
-                          sessionType: _sessionType,
-                          notes: _notesCtrl.text.isNotEmpty
-                              ? _notesCtrl.text
-                              : null,
-                        ),
+                      : () => _goToInvoice(tutor, ctrl),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryBlue,
                     foregroundColor: Colors.white,
@@ -209,6 +202,45 @@ class _BookingScreenState extends State<BookingScreen> {
         ),
       ),
     );
+  }
+
+  /// Buat invoice untuk sesi yang dipilih, lalu arahkan ke pembayaran.
+  /// Booking baru benar-benar dibuat (createBooking) begitu invoice
+  /// Lunas — lihat onPaid di bawah (FR-PAY-08).
+  void _goToInvoice(TutorModel tutor, BookingController ctrl) {
+    final slot = ctrl.selectedSlot.value!;
+    final durationMinutes = slot.endTime.difference(slot.startTime).inMinutes;
+    final auth = Get.find<AuthController>();
+    final paymentCtrl = Get.find<PaymentController>();
+    final user = auth.currentUser.value;
+    final price = tutor.pricePerHour * durationMinutes / 60;
+
+    paymentCtrl.generateInvoice(
+      tutorName: tutor.fullName,
+      studentName: user?.fullName ?? 'Buddy',
+      studentGrade: user?.gradeLevel ?? '-',
+      studentSchool: user?.school ?? '-',
+      sessions: [
+        InvoiceSessionItem(
+          subject: _subject!,
+          sessionDate: slot.startTime,
+          startTime: AppDateUtils.formatTime(slot.startTime),
+          endTime: AppDateUtils.formatTime(slot.endTime),
+          timezone: slot.timezone,
+          price: price,
+        ),
+      ],
+      onPaid: () => ctrl.createBooking(
+        tutorId: tutor.id,
+        sessionTime: slot.startTime,
+        durationMinutes: durationMinutes,
+        subject: _subject!,
+        sessionType: _sessionType,
+        notes: _notesCtrl.text.isNotEmpty ? _notesCtrl.text : null,
+      ),
+    );
+
+    Get.toNamed(AppRoutes.invoice);
   }
 
   Widget _tutorCard(TutorModel tutor) => Container(
