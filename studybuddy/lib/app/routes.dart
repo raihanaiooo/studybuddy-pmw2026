@@ -10,6 +10,8 @@ import '../views/customer/schedule_screen.dart';
 import '../views/customer/profile_screen.dart';
 import '../views/customer/package_screen.dart';
 import '../views/customer/my_tokens_screen.dart';
+import '../views/customer/invoice_screen.dart';
+import '../views/customer/transaction_history_screen.dart';
 import '../views/tutor/tutor_dashboard_screen.dart';
 import '../views/tutor/tutor_schedule_screen.dart';
 import '../views/tutor/tutor_profile_screen.dart';
@@ -25,6 +27,7 @@ import '../controllers/tutor_dashboard_controller.dart';
 import '../controllers/tutor_schedule_controller.dart';
 import '../controllers/package_controller.dart';
 import '../controllers/profile_controller.dart';
+import '../controllers/payment_controller.dart';
 
 class AppRoutes {
   static const splash = '/';
@@ -38,6 +41,8 @@ class AppRoutes {
   static const customerProfile = '/customer/profile';
   static const packageCatalog = '/customer/packages';
   static const myTokens = '/customer/my-tokens';
+  static const invoice = '/customer/invoice';
+  static const transactionHistory = '/customer/transactions';
   static const tutorDashboard = '/tutor/dashboard';
   static const tutorSchedule = '/tutor/schedule';
   static const tutorProfile = '/tutor/profile';
@@ -127,6 +132,16 @@ class AppRoutes {
         Get.lazyPut(() => AuthController());
         Get.lazyPut(() => ProfileController());
       }),
+    ),
+    GetPage(
+      name: invoice,
+      page: () => const InvoiceScreen(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => PaymentController())),
+    ),
+    GetPage(
+      name: transactionHistory,
+      page: () => const TransactionHistoryScreen(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => PaymentController())),
     ),
     GetPage(
       name: session,
