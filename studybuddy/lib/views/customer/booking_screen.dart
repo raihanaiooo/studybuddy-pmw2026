@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import '../../controllers/booking_controller.dart';
 import '../../models/tutor_model.dart';
+import '../../models/availability_slot_model.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
+import '../../core/utils/date_utils.dart';
 
-/// Screen booking: pilih tanggal, waktu, durasi, dan tipe sesi
+/// Screen booking: pilih mata kuliah, tipe sesi, dan slot waktu tersedia
+/// milik Tutor (FR-BOOK-01..04 — model pilih-langsung ala tiket bioskop)
 class BookingScreen extends StatefulWidget {
   const BookingScreen({super.key});
 
@@ -15,60 +17,35 @@ class BookingScreen extends StatefulWidget {
 }
 
 class _BookingScreenState extends State<BookingScreen> {
-  final _subjectCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
-  DateTime? _selectedDate;
-  TimeOfDay? _selectedTime;
-  int _duration = 60;
+  String? _subject;
   String _sessionType = 'video';
+  TutorModel? _tutor;
+
+  @override
+  void initState() {
+    super.initState();
+    // Dipanggil di initState (bukan ditunda ke postFrameCallback dalam
+    // build()) supaya frame pertama tidak sempat menampilkan state
+    // "belum ada slot" yang keliru sebelum data sungguhan masuk.
+    final tutor = Get.arguments as TutorModel?;
+    if (tutor != null) {
+      _tutor = tutor;
+      _subject = tutor.subjects.isNotEmpty ? tutor.subjects.first : null;
+      Get.find<BookingController>().fetchAvailableSlots(tutor.id);
+    }
+  }
 
   @override
   void dispose() {
-    _subjectCtrl.dispose();
     _notesCtrl.dispose();
     super.dispose();
-  }
-
-  Future<void> _pickDate() async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: now.add(const Duration(days: 1)),
-      firstDate: now,
-      lastDate: now.add(const Duration(days: 30)),
-      builder: (ctx, child) => Theme(
-        data: Theme.of(ctx).copyWith(
-          colorScheme: const ColorScheme.light(primary: AppColors.primaryBlue),
-        ),
-        child: child!,
-      ),
-    );
-    if (picked != null) setState(() => _selectedDate = picked);
-  }
-
-  Future<void> _pickTime() async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: const TimeOfDay(hour: 9, minute: 0),
-    );
-    if (picked != null) setState(() => _selectedTime = picked);
-  }
-
-  DateTime? get _sessionDateTime {
-    if (_selectedDate == null || _selectedTime == null) return null;
-    return DateTime(
-      _selectedDate!.year,
-      _selectedDate!.month,
-      _selectedDate!.day,
-      _selectedTime!.hour,
-      _selectedTime!.minute,
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     final ctrl = Get.find<BookingController>();
-    final tutor = Get.arguments as TutorModel?;
+    final tutor = _tutor;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -93,91 +70,27 @@ class _BookingScreenState extends State<BookingScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Tutor info card
-            if (tutor != null)
-              Container(
-                padding: const EdgeInsets.all(16),
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primaryBlue.withOpacity(0.08),
-                      blurRadius: 8,
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [AppColors.primaryBlue, AppColors.blueLight],
-                        ),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        tutor.fullName[0].toUpperCase(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 20,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(tutor.fullName, style: AppTextStyles.heading3),
-                        Text(
-                          tutor.subjects.take(2).join(' · '),
-                          style: AppTextStyles.caption,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+            if (tutor != null) _tutorCard(tutor),
 
-            // Info H-5 jam
-            Container(
-              padding: const EdgeInsets.all(12),
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                color: AppColors.primaryBlue.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.info_outline,
-                    color: AppColors.primaryBlue,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Booking minimal 5 jam sebelum sesi dimulai',
-                      style: AppTextStyles.caption.copyWith(
-                        color: AppColors.primaryBlue,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Mata kuliah
+            // Mata Kuliah
             _sectionTitle('Mata Kuliah'),
-            TextField(
-              controller: _subjectCtrl,
-              decoration: _inputDeco('Contoh: Kalkulus II, Fisika Dasar'),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: (tutor?.subjects ?? const [])
+                  .map(
+                    (s) => ChoiceChip(
+                      label: Text(s),
+                      selected: _subject == s,
+                      selectedColor: AppColors.primaryBlue,
+                      labelStyle: TextStyle(
+                        color: _subject == s ? Colors.white : AppColors.textSecondary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      onSelected: (_) => setState(() => _subject = s),
+                    ),
+                  )
+                  .toList(),
             ),
             const SizedBox(height: 16),
 
@@ -190,70 +103,42 @@ class _BookingScreenState extends State<BookingScreen> {
                 _sessionTypeChip('chat', '💬 Via Chat'),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
-            // Tanggal
-            _sectionTitle('Tanggal'),
-            GestureDetector(
-              onTap: _pickDate,
-              child: _dateTimeDisplay(
-                _selectedDate != null
-                    ? DateFormat(
-                        'EEEE, dd MMM yyyy',
-                        'id',
-                      ).format(_selectedDate!)
-                    : 'Pilih tanggal',
-                Icons.calendar_today_outlined,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Jam
-            _sectionTitle('Jam Mulai'),
-            GestureDetector(
-              onTap: _pickTime,
-              child: _dateTimeDisplay(
-                _selectedTime != null
-                    ? _selectedTime!.format(context)
-                    : 'Pilih jam',
-                Icons.access_time_outlined,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Durasi
-            _sectionTitle('Durasi'),
-            Wrap(
-              spacing: 8,
-              children: [60, 90, 120]
-                  .map(
-                    (d) => ChoiceChip(
-                      label: Text(
-                        '${d ~/ 60} jam${d % 60 != 0 ? ' ${d % 60}m' : ''}',
-                      ),
-                      selected: _duration == d,
-                      selectedColor: AppColors.primaryBlue,
-                      labelStyle: TextStyle(
-                        color: _duration == d
-                            ? Colors.white
-                            : AppColors.textSecondary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      onSelected: (_) => setState(() => _duration = d),
-                    ),
-                  )
-                  .toList(),
-            ),
-            const SizedBox(height: 16),
+            // Pilih slot (referensi: tiket bioskop online — FR-BOOK-02)
+            _sectionTitle('Pilih Jadwal'),
+            const SizedBox(height: 4),
+            Obx(() {
+              if (ctrl.isLoadingSlots.value) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Center(
+                    child: CircularProgressIndicator(color: AppColors.primaryBlue),
+                  ),
+                );
+              }
+              final hasAvailableSlot = ctrl.availableSlots.any(
+                (s) => s.status == 'available',
+              );
+              if (!hasAvailableSlot) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: Text(
+                    'Tutor belum membuka slot ketersediaan.',
+                    style: AppTextStyles.caption,
+                  ),
+                );
+              }
+              return _buildSlotPicker(ctrl);
+            }),
+            const SizedBox(height: 20),
 
             // Catatan opsional
             _sectionTitle('Catatan (Opsional)'),
             TextField(
               controller: _notesCtrl,
               maxLines: 3,
-              decoration: _inputDeco(
-                'Ceritakan topik yang ingin dipelajari...',
-              ),
+              decoration: _inputDeco('Ceritakan topik yang ingin dipelajari...'),
             ),
             const SizedBox(height: 28),
 
@@ -278,31 +163,28 @@ class _BookingScreenState extends State<BookingScreen> {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: ctrl.isLoading.value || tutor == null
+                  onPressed:
+                      ctrl.isLoading.value ||
+                          tutor == null ||
+                          ctrl.selectedSlot.value == null ||
+                          _subject == null
                       ? null
-                      : () {
-                          if (_sessionDateTime == null ||
-                              _subjectCtrl.text.isEmpty) {
-                            Get.snackbar(
-                              'Perhatian',
-                              'Lengkapi tanggal, jam, dan mata kuliah',
-                            );
-                            return;
-                          }
-                          ctrl.createBooking(
-                            tutorId: tutor.id,
-                            sessionTime: _sessionDateTime!,
-                            durationMinutes: _duration,
-                            subject: _subjectCtrl.text,
-                            sessionType: _sessionType,
-                            notes: _notesCtrl.text.isNotEmpty
-                                ? _notesCtrl.text
-                                : null,
-                          );
-                        },
+                      : () => ctrl.createBooking(
+                          tutorId: tutor.id,
+                          sessionTime: ctrl.selectedSlot.value!.startTime,
+                          durationMinutes: ctrl.selectedSlot.value!.endTime
+                              .difference(ctrl.selectedSlot.value!.startTime)
+                              .inMinutes,
+                          subject: _subject!,
+                          sessionType: _sessionType,
+                          notes: _notesCtrl.text.isNotEmpty
+                              ? _notesCtrl.text
+                              : null,
+                        ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryBlue,
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: AppColors.textLight,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -329,12 +211,112 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
+  Widget _tutorCard(TutorModel tutor) => Container(
+    padding: const EdgeInsets.all(16),
+    margin: const EdgeInsets.only(bottom: 20),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      boxShadow: [
+        BoxShadow(color: AppColors.primaryBlue.withOpacity(0.08), blurRadius: 8),
+      ],
+    ),
+    child: Row(
+      children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [AppColors.primaryBlue, AppColors.blueLight],
+            ),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            tutor.fullName[0].toUpperCase(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+              fontSize: 20,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(tutor.fullName, style: AppTextStyles.heading3),
+            Text(tutor.subjects.take(2).join(' · '), style: AppTextStyles.caption),
+          ],
+        ),
+      ],
+    ),
+  );
+
+  /// Slot dikelompokkan per tanggal, ditampilkan sebagai kartu jam yang
+  /// bisa langsung dipilih-tap (FR-BOOK-02).
+  Widget _buildSlotPicker(BookingController ctrl) {
+    final byDate = <String, List<AvailabilitySlotModel>>{};
+    // Slot yang sudah 'booked' tidak boleh muncul sebagai pilihan
+    // (FR-BOOK-04) — nggak cukup diandalkan dari data belum terpakai.
+    for (final slot in ctrl.availableSlots.where((s) => s.status == 'available')) {
+      final key = AppDateUtils.formatDate(slot.startTime);
+      byDate.putIfAbsent(key, () => []).add(slot);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: byDate.entries.map((entry) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(entry.key, style: AppTextStyles.bodySemiBold),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: entry.value.map((slot) {
+                  final selected = ctrl.selectedSlot.value?.id == slot.id;
+                  return GestureDetector(
+                    key: ValueKey('slot-${slot.id}'),
+                    onTap: () => ctrl.selectSlot(slot),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: selected ? AppColors.primaryBlue : Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: selected
+                              ? AppColors.primaryBlue
+                              : AppColors.border,
+                        ),
+                      ),
+                      child: Text(
+                        AppDateUtils.formatTime(slot.startTime),
+                        style: AppTextStyles.bodySemiBold.copyWith(
+                          color: selected ? Colors.white : AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
   Widget _sectionTitle(String t) => Padding(
     padding: const EdgeInsets.only(bottom: 8),
-    child: Text(
-      t,
-      style: AppTextStyles.bodySemiBold.copyWith(fontWeight: FontWeight.w700),
-    ),
+    child: Text(t, style: AppTextStyles.bodySemiBold.copyWith(fontWeight: FontWeight.w700)),
   );
 
   Widget _sessionTypeChip(String type, String label) => Expanded(
@@ -346,45 +328,18 @@ class _BookingScreenState extends State<BookingScreen> {
           color: _sessionType == type ? AppColors.primaryBlue : Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: _sessionType == type
-                ? AppColors.primaryBlue
-                : AppColors.border,
+            color: _sessionType == type ? AppColors.primaryBlue : AppColors.border,
           ),
         ),
         alignment: Alignment.center,
         child: Text(
           label,
           style: AppTextStyles.caption.copyWith(
-            color: _sessionType == type
-                ? Colors.white
-                : AppColors.textSecondary,
+            color: _sessionType == type ? Colors.white : AppColors.textSecondary,
             fontWeight: FontWeight.w700,
           ),
         ),
       ),
-    ),
-  );
-
-  Widget _dateTimeDisplay(String text, IconData icon) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: AppColors.border),
-    ),
-    child: Row(
-      children: [
-        Icon(icon, color: AppColors.textLight, size: 20),
-        const SizedBox(width: 12),
-        Text(
-          text,
-          style: AppTextStyles.body.copyWith(
-            color: text.startsWith('Pilih')
-                ? AppColors.textLight
-                : AppColors.textPrimary,
-          ),
-        ),
-      ],
     ),
   );
 
