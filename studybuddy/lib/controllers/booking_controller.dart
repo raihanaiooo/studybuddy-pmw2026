@@ -4,6 +4,7 @@ import '../core/services/auth_service.dart';
 import '../core/constants/supabase_constants.dart';
 import '../core/utils/date_utils.dart';
 import '../models/booking_model.dart';
+import '../models/availability_slot_model.dart';
 import '../app/routes.dart';
 
 /// Controller untuk pembuatan dan manajemen booking
@@ -15,10 +16,49 @@ class BookingController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
 
+  // Pilih-slot ala tiket bioskop (FR-BOOK-02/03/04)
+  final RxList<AvailabilitySlotModel> availableSlots =
+      <AvailabilitySlotModel>[].obs;
+  final Rx<AvailabilitySlotModel?> selectedSlot =
+      Rx<AvailabilitySlotModel?>(null);
+  final RxBool isLoadingSlots = false.obs;
+
   @override
   void onInit() {
     super.onInit();
     fetchMyBookings();
+  }
+
+  /// Ambil slot ketersediaan milik Tutor tertentu (dummy, contract-first —
+  /// tinggal ganti dengan query tabel AvailabilitySlot begitu kontrak BE
+  /// modul Booking tersedia).
+  Future<void> fetchAvailableSlots(String tutorId) async {
+    isLoadingSlots.value = true;
+    selectedSlot.value = null;
+    final now = DateTime.now();
+    availableSlots.value = List.generate(6, (i) {
+      final day = i ~/ 2; // 2 slot per hari, 3 hari ke depan
+      final hour = 9 + (i % 2) * 3;
+      final start = DateTime(
+        now.year,
+        now.month,
+        now.day + day + 1,
+        hour,
+      );
+      return AvailabilitySlotModel(
+        id: 'slot-$tutorId-$i',
+        tutorId: tutorId,
+        startTime: start,
+        endTime: start.add(const Duration(hours: 1)),
+      );
+    }).where((s) => AppDateUtils.isBookingTimeValid(s.startTime)).toList();
+    isLoadingSlots.value = false;
+  }
+
+  /// Kunci slot yang sedang dipilih Buddy agar tidak bisa dipilih Buddy
+  /// lain secara bersamaan (FR-BOOK-04 — simulasi lokal untuk MVP UI).
+  void selectSlot(AvailabilitySlotModel slot) {
+    selectedSlot.value = slot;
   }
 
   /// Fetch booking milik customer/tutor yang sedang login
@@ -45,6 +85,8 @@ class BookingController extends GetxController {
       } else {
         myBookings.value = bookings;
       }
+    } catch (_) {
+      // Tangani error tanpa crash (mis. belum ada sesi login aktif)
     } finally {
       isLoading.value = false;
     }
@@ -87,6 +129,13 @@ class BookingController extends GetxController {
       await SupabaseService.client
           .from(SupabaseConstants.tableBookings)
           .insert(booking);
+
+      // FR-BOOK-05: slot dihapus dari daftar tersedia begitu terkonfirmasi
+      final slot = selectedSlot.value;
+      if (slot != null) {
+        availableSlots.removeWhere((s) => s.id == slot.id);
+        selectedSlot.value = null;
+      }
 
       Get.back();
       Get.snackbar('Berhasil', 'Booking berhasil dibuat!');
