@@ -118,4 +118,46 @@ void main() {
     expect(find.text('Alasan Pembatalan'), findsOneWidget);
     expect(find.text('Jadwal bentrok'), findsOneWidget);
   });
+
+  testWidgets(
+    'cancelOrder() saat checkPaymentStatus() masih menunggu tidak '
+    'ke-overwrite balik jadi Lunas',
+    (tester) async {
+      // cancelOrder() memanggil Get.snackbar(), yang butuh overlay dari
+      // widget tree GetMaterialApp sungguhan (tidak jalan di test() polos).
+      await tester.pumpWidget(const GetMaterialApp(home: SizedBox()));
+      final ctrl = Get.put(PaymentController());
+      ctrl.generateInvoice(
+        tutorName: 'Arif Rahmat',
+        studentName: 'Sari Amalia',
+        studentGrade: 'Mahasiswa (S1)',
+        studentSchool: 'Politeknik Negeri Bandung',
+        sessions: [
+          InvoiceSessionItem(
+            subject: 'Kalkulus II',
+            sessionDate: DateTime.now().add(const Duration(days: 1)),
+            startTime: '09:00',
+            endTime: '10:00',
+            price: 50000,
+          ),
+        ],
+      );
+
+      // Mulai cek status (delay 600ms, jalan di fake clock testWidgets),
+      // tapi batalkan pesanan SEBELUM delay itu selesai — meniru user
+      // yang keburu tap Batalkan sebelum "Cek Status" kelar diproses.
+      ctrl.checkPaymentStatus();
+      await tester.pump(const Duration(milliseconds: 50));
+      ctrl.cancelOrder();
+      // Majukan waktu sampai delay 600ms di checkPaymentStatus() kelar.
+      await tester.pump(const Duration(milliseconds: 700));
+
+      expect(ctrl.invoice.value?.status, InvoiceStatus.cancelled);
+      ctrl.onClose();
+
+      // cancelOrder() & checkPaymentStatus() sama-sama memicu
+      // Get.snackbar() — biarkan Timer auto-dismiss-nya selesai penuh.
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    },
+  );
 }

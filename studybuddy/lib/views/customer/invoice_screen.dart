@@ -5,6 +5,8 @@ import '../../models/invoice_model.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../core/utils/date_utils.dart';
+import '../../core/utils/currency_utils.dart';
+import '../shared/widgets/invoice_status_badge.dart';
 
 /// Invoice pembayaran QRIS Dynamic (FR-PAY-01..08)
 class InvoiceScreen extends StatelessWidget {
@@ -131,7 +133,7 @@ class InvoiceScreen extends StatelessWidget {
                 style: AppTextStyles.bodySemiBold.copyWith(fontFamily: 'monospace'),
               ),
             ),
-            _InvoiceStatusBadge(status: inv.status),
+            InvoiceStatusBadge(status: inv.status),
           ],
         ),
         const SizedBox(height: 10),
@@ -212,7 +214,7 @@ class InvoiceScreen extends StatelessWidget {
           ),
         ),
         Text(
-          'Rp${_formatPrice(value.abs())}',
+          'Rp${CurrencyUtils.formatPrice(value.abs())}',
           style: emphasize
               ? AppTextStyles.heading3.copyWith(color: AppColors.primaryBlue)
               : AppTextStyles.body,
@@ -427,47 +429,6 @@ class InvoiceScreen extends StatelessWidget {
     );
   }
 
-  String _formatPrice(double price) => price.toStringAsFixed(0).replaceAllMapped(
-    RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-    (m) => '${m[1]}.',
-  );
-}
-
-class _InvoiceStatusBadge extends StatelessWidget {
-  final InvoiceStatus status;
-  const _InvoiceStatusBadge({required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    late Color color;
-    late String label;
-    switch (status) {
-      case InvoiceStatus.waiting:
-        color = AppColors.primaryYellow;
-        label = 'Menunggu Pembayaran';
-        break;
-      case InvoiceStatus.paid:
-        color = AppColors.onlineGreen;
-        label = 'Lunas';
-        break;
-      case InvoiceStatus.expired:
-        color = AppColors.textLight;
-        label = 'Kedaluwarsa';
-        break;
-      case InvoiceStatus.cancelled:
-        color = AppColors.primaryRed;
-        label = 'Dibatalkan';
-        break;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(label, style: AppTextStyles.label.copyWith(color: color)),
-    );
-  }
 }
 
 /// Placeholder visual QR — tanpa dependency generator QR sungguhan,

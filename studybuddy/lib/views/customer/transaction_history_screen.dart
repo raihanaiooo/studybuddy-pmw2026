@@ -5,6 +5,8 @@ import '../../models/invoice_model.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../core/utils/date_utils.dart';
+import '../../core/utils/currency_utils.dart';
+import '../shared/widgets/invoice_status_badge.dart';
 
 /// Riwayat transaksi pembayaran Buddy (FR-PAY-14) + ajukan refund untuk
 /// transaksi Lunas (FR-PAY-09/10)
@@ -53,7 +55,6 @@ class TransactionHistoryScreen extends StatelessWidget {
     PaymentController ctrl,
     InvoiceModel inv,
   ) {
-    final config = _statusConfig(inv.status);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -75,17 +76,7 @@ class TransactionHistoryScreen extends StatelessWidget {
                   style: AppTextStyles.bodySemiBold,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: config.color.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  config.label,
-                  style: AppTextStyles.label.copyWith(color: config.color),
-                ),
-              ),
+              InvoiceStatusBadge(status: inv.status),
             ],
           ),
           const SizedBox(height: 6),
@@ -96,7 +87,7 @@ class TransactionHistoryScreen extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Rp${_formatPrice(inv.total)}',
+                'Rp${CurrencyUtils.formatPrice(inv.total)}',
                 style: AppTextStyles.bodySemiBold.copyWith(color: AppColors.primaryBlue),
               ),
               const Spacer(),
@@ -182,27 +173,4 @@ class TransactionHistoryScreen extends StatelessWidget {
     );
   }
 
-  _StatusConfig _statusConfig(InvoiceStatus status) {
-    switch (status) {
-      case InvoiceStatus.paid:
-        return _StatusConfig(AppColors.onlineGreen, 'Lunas');
-      case InvoiceStatus.waiting:
-        return _StatusConfig(AppColors.primaryYellow, 'Menunggu');
-      case InvoiceStatus.expired:
-        return _StatusConfig(AppColors.textLight, 'Kedaluwarsa');
-      case InvoiceStatus.cancelled:
-        return _StatusConfig(AppColors.primaryRed, 'Dibatalkan');
-    }
-  }
-
-  String _formatPrice(double price) => price.toStringAsFixed(0).replaceAllMapped(
-    RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-    (m) => '${m[1]}.',
-  );
-}
-
-class _StatusConfig {
-  final Color color;
-  final String label;
-  const _StatusConfig(this.color, this.label);
 }

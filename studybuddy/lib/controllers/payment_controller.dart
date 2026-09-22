@@ -96,7 +96,20 @@ class PaymentController extends GetxController {
     isCheckingStatus.value = true;
     await Future.delayed(const Duration(milliseconds: 600));
 
-    invoice.value = inv.copyWith(status: InvoiceStatus.paid, paidAt: DateTime.now());
+    // Invoice bisa saja dibatalkan atau kedaluwarsa selagi menunggu di
+    // atas (mis. pengguna sempat tap Batalkan Pesanan) — cek ulang status
+    // TERKINI, jangan pakai snapshot `inv` yang sudah basi, supaya order
+    // yang sudah dibatalkan tidak diam-diam ke-overwrite jadi Lunas.
+    final current = invoice.value;
+    if (current == null || current.status != InvoiceStatus.waiting) {
+      isCheckingStatus.value = false;
+      return;
+    }
+
+    invoice.value = current.copyWith(
+      status: InvoiceStatus.paid,
+      paidAt: DateTime.now(),
+    );
     _countdownTimer?.cancel();
     history.insert(0, invoice.value!);
     isCheckingStatus.value = false;
