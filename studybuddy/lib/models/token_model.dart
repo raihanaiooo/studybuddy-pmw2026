@@ -21,8 +21,12 @@ class TokenModel {
     buddyId: map['buddy_id'] as String,
     packageId: map['package_id'] as String,
     status: map['status'] as String? ?? 'active',
-    activeDate: DateTime.parse(map['tanggal_aktif'] as String),
-    expiryDate: DateTime.parse(map['tanggal_hangus'] as String),
+    activeDate: map['tanggal_aktif'] != null
+        ? DateTime.parse(map['tanggal_aktif'] as String)
+        : DateTime.now(),
+    expiryDate: map['tanggal_hangus'] != null
+        ? DateTime.parse(map['tanggal_hangus'] as String)
+        : DateTime.now(),
   );
 
   Map<String, dynamic> toMap() => {

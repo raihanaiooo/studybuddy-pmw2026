@@ -23,8 +23,8 @@ class PackageModel {
   factory PackageModel.fromMap(Map<String, dynamic> map) => PackageModel(
     id: map['id'] as String,
     name: map['nama_paket'] as String,
-    sessionCount: map['jumlah_sesi'] as int,
-    validityDays: map['masa_berlaku_hari'] as int,
+    sessionCount: map['jumlah_sesi'] as int? ?? 0,
+    validityDays: map['masa_berlaku_hari'] as int? ?? 0,
     rescheduleQuota: map['kuota_reschedule'] as int? ?? 0,
     isRefundable: map['is_refundable'] as bool? ?? true,
     price: (map['price'] as num?)?.toDouble() ?? 0.0,
