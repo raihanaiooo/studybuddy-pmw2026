@@ -5,7 +5,7 @@ import '../../models/user_model.dart';
 
 /// Service layer untuk semua operasi autentikasi via Supabase Auth
 class AuthService {
-  final _client = SupabaseService.client;
+  SupabaseClient get _client => SupabaseService.client;
 
   /// Login dengan email dan password
   Future<AuthResponse> signIn({
