@@ -47,18 +47,15 @@ class VerificationBadge extends StatelessWidget {
           'Ditolak',
           Icons.cancel_outlined,
         );
-      case 'menunggu':
-        return _VerificationConfig(
-          AppColors.primaryYellow,
-          'Menunggu Verifikasi',
-          Icons.hourglass_empty,
-        );
       case 'belum_upload':
         return _VerificationConfig(
           AppColors.textLight,
           'Belum Upload',
           Icons.upload_file_outlined,
         );
+      // 'menunggu' dan status tak dikenal lainnya sama-sama ditampilkan
+      // sebagai "Menunggu Verifikasi".
+      case 'menunggu':
       default:
         return _VerificationConfig(
           AppColors.primaryYellow,

@@ -63,12 +63,16 @@ class UserModel {
     'mata_pelajaran_diminati': interestedSubjects,
   };
 
+  /// [phone]/[age]/[gradeLevel]/[school] default ke sentinel [_unset], bukan
+  /// null, supaya null yang sengaja dikirim (mis. mengosongkan field di
+  /// form edit) benar-benar tersimpan sebagai null alih-alih dianggap
+  /// "tidak diubah" dan diam-diam jatuh balik ke nilai lama.
   UserModel copyWith({
     String? fullName,
-    String? phone,
-    int? age,
-    String? gradeLevel,
-    String? school,
+    Object? phone = _unset,
+    Object? age = _unset,
+    Object? gradeLevel = _unset,
+    Object? school = _unset,
     List<String>? interestedSubjects,
   }) => UserModel(
     id: id,
@@ -78,10 +82,16 @@ class UserModel {
     avatarUrl: avatarUrl,
     fcmToken: fcmToken,
     createdAt: createdAt,
-    phone: phone ?? this.phone,
-    age: age ?? this.age,
-    gradeLevel: gradeLevel ?? this.gradeLevel,
-    school: school ?? this.school,
+    phone: identical(phone, _unset) ? this.phone : phone as String?,
+    age: identical(age, _unset) ? this.age : age as int?,
+    gradeLevel: identical(gradeLevel, _unset)
+        ? this.gradeLevel
+        : gradeLevel as String?,
+    school: identical(school, _unset) ? this.school : school as String?,
     interestedSubjects: interestedSubjects ?? this.interestedSubjects,
   );
 }
+
+/// Sentinel pembeda "parameter tidak dikirim" dari "dikirim null secara
+/// sengaja" pada [UserModel.copyWith].
+const Object _unset = Object();

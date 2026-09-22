@@ -326,8 +326,8 @@ class TutorProfileScreen extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: profile.isLoading.value
                           ? null
-                          : () {
-                              profile.saveTutorProfile(
+                          : () async {
+                              await profile.saveTutorProfile(
                                 bio: bioCtrl.text,
                                 subjects: subjectsCtrl.text
                                     .split(',')

@@ -293,9 +293,9 @@ class CustomerProfileScreen extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: profile.isLoading.value
                             ? null
-                            : () {
+                            : () async {
                                 if (!formKey.currentState!.validate()) return;
-                                profile.saveBuddyProfile(
+                                await profile.saveBuddyProfile(
                                   auth: auth,
                                   fullName: nameCtrl.text,
                                   phone: phoneCtrl.text.isEmpty

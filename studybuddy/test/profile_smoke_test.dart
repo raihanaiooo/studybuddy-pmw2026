@@ -24,6 +24,7 @@ final _dummyBuddy = UserModel(
   fullName: 'Sari Amalia',
   role: 'customer',
   createdAt: DateTime(2026, 1, 1),
+  phone: '081234567890',
   age: 19,
   gradeLevel: 'Mahasiswa (S1)',
   school: 'Politeknik Negeri Bandung',
@@ -91,4 +92,17 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('CV / Portfolio'), findsOneWidget);
   });
+
+  test(
+    'UserModel.copyWith(phone: null) benar-benar mengosongkan field, bukan '
+    'jatuh balik ke nilai lama',
+    () {
+      final updated = _dummyBuddy.copyWith(phone: null);
+      expect(updated.phone, isNull);
+
+      // Parameter yang tidak dikirim sama sekali tetap tidak berubah.
+      final unchanged = _dummyBuddy.copyWith(fullName: 'Nama Baru');
+      expect(unchanged.school, _dummyBuddy.school);
+    },
+  );
 }
