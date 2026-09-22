@@ -45,6 +45,8 @@ class BookingController extends GetxController {
       } else {
         myBookings.value = bookings;
       }
+    } catch (_) {
+      // Tangani error tanpa crash (mis. belum ada sesi login aktif)
     } finally {
       isLoading.value = false;
     }
