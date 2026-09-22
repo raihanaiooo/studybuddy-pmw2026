@@ -19,8 +19,17 @@ class AuthController extends GetxController {
 
   /// Load user dari Supabase saat controller init
   Future<void> _loadCurrentUser() async {
-    final user = await _authService.getCurrentUser();
-    currentUser.value = user;
+    try {
+      final user = await _authService.getCurrentUser();
+      currentUser.value = user;
+    } catch (e) {
+      // Anggap belum login (mis. session kosong), tapi tetap catat jejak
+      // supaya error jaringan/Supabase asli tidak tersamar diam-diam
+      // sebagai "belum login" biasa.
+      // ignore: avoid_print
+      print('AuthController._loadCurrentUser gagal: $e');
+      currentUser.value = null;
+    }
   }
 
   /// Login dan redirect ke dashboard sesuai role
