@@ -16,6 +16,8 @@ import '../views/customer/reschedule_screen.dart';
 import '../views/tutor/tutor_dashboard_screen.dart';
 import '../views/tutor/tutor_schedule_screen.dart';
 import '../views/tutor/tutor_profile_screen.dart';
+import '../views/tutor/payroll_screen.dart';
+import '../views/tutor/slip_gaji_screen.dart';
 import '../views/session/session_screen.dart';
 import '../views/session/review_screen.dart';
 import '../controllers/auth_controller.dart';
@@ -30,6 +32,7 @@ import '../controllers/package_controller.dart';
 import '../controllers/profile_controller.dart';
 import '../controllers/payment_controller.dart';
 import '../controllers/reschedule_controller.dart';
+import '../controllers/payroll_controller.dart';
 
 class AppRoutes {
   static const splash = '/';
@@ -49,6 +52,8 @@ class AppRoutes {
   static const tutorDashboard = '/tutor/dashboard';
   static const tutorSchedule = '/tutor/schedule';
   static const tutorProfile = '/tutor/profile';
+  static const payroll = '/tutor/payroll';
+  static const slipGaji = '/tutor/slip-gaji';
   static const session = '/session';
   static const review = '/review';
 
@@ -150,6 +155,16 @@ class AppRoutes {
       name: reschedule,
       page: () => const RescheduleScreen(),
       binding: BindingsBuilder(() => Get.lazyPut(() => RescheduleController())),
+    ),
+    GetPage(
+      name: payroll,
+      page: () => const PayrollScreen(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => PayrollController())),
+    ),
+    GetPage(
+      name: slipGaji,
+      page: () => const SlipGajiScreen(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => PayrollController())),
     ),
     GetPage(
       name: session,
