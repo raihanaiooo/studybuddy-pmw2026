@@ -111,7 +111,18 @@ class CustomerScheduleScreen extends StatelessWidget {
                         style: AppTextStyles.caption,
                       ),
                       const Spacer(),
-                      if (b.status == 'confirmed')
+                      if (b.status == 'confirmed') ...[
+                        TextButton(
+                          onPressed: () =>
+                              Get.toNamed(AppRoutes.reschedule, arguments: b),
+                          child: const Text(
+                            'Reschedule',
+                            style: TextStyle(
+                              color: AppColors.accentTeal,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
                         TextButton(
                           onPressed: () =>
                               Get.toNamed(AppRoutes.session, arguments: b),
@@ -123,6 +134,7 @@ class CustomerScheduleScreen extends StatelessWidget {
                             ),
                           ),
                         ),
+                      ],
                     ],
                   ),
                 ],

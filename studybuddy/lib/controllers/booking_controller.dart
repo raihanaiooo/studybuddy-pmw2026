@@ -88,8 +88,12 @@ class BookingController extends GetxController {
       } else {
         myBookings.value = bookings;
       }
-    } catch (_) {
-      // Tangani error tanpa crash (mis. belum ada sesi login aktif)
+    } catch (e) {
+      // Tangani error tanpa crash (mis. belum ada sesi login aktif), tapi
+      // tetap catat jejak supaya error jaringan/Supabase asli tidak
+      // tersamar diam-diam sebagai "belum ada booking".
+      // ignore: avoid_print
+      print('BookingController.fetchMyBookings gagal: $e');
     } finally {
       isLoading.value = false;
     }

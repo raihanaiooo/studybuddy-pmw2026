@@ -12,6 +12,7 @@ import '../views/customer/package_screen.dart';
 import '../views/customer/my_tokens_screen.dart';
 import '../views/customer/invoice_screen.dart';
 import '../views/customer/transaction_history_screen.dart';
+import '../views/customer/reschedule_screen.dart';
 import '../views/tutor/tutor_dashboard_screen.dart';
 import '../views/tutor/tutor_schedule_screen.dart';
 import '../views/tutor/tutor_profile_screen.dart';
@@ -28,6 +29,7 @@ import '../controllers/tutor_schedule_controller.dart';
 import '../controllers/package_controller.dart';
 import '../controllers/profile_controller.dart';
 import '../controllers/payment_controller.dart';
+import '../controllers/reschedule_controller.dart';
 
 class AppRoutes {
   static const splash = '/';
@@ -43,6 +45,7 @@ class AppRoutes {
   static const myTokens = '/customer/my-tokens';
   static const invoice = '/customer/invoice';
   static const transactionHistory = '/customer/transactions';
+  static const reschedule = '/customer/reschedule';
   static const tutorDashboard = '/tutor/dashboard';
   static const tutorSchedule = '/tutor/schedule';
   static const tutorProfile = '/tutor/profile';
@@ -142,6 +145,11 @@ class AppRoutes {
       name: transactionHistory,
       page: () => const TransactionHistoryScreen(),
       binding: BindingsBuilder(() => Get.lazyPut(() => PaymentController())),
+    ),
+    GetPage(
+      name: reschedule,
+      page: () => const RescheduleScreen(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => RescheduleController())),
     ),
     GetPage(
       name: session,
