@@ -4,6 +4,7 @@ import '../../models/payroll_model.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../core/utils/date_utils.dart';
+import '../../core/utils/currency_utils.dart';
 
 /// Slip Gaji Tutor per periode (FR-PAYR-06)
 class SlipGajiScreen extends StatelessWidget {
@@ -11,7 +12,24 @@ class SlipGajiScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final record = Get.arguments as PayrollRecordModel;
+    final record = Get.arguments as PayrollRecordModel?;
+
+    if (record == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: AppColors.blueDark,
+          foregroundColor: Colors.white,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+            onPressed: Get.back,
+          ),
+        ),
+        body: Center(
+          child: Text('Slip gaji tidak ditemukan', style: AppTextStyles.caption),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -31,6 +49,9 @@ class SlipGajiScreen extends StatelessWidget {
           ),
         ),
         actions: [
+          // TODO: integrasikan penyimpanan file/PDF sungguhan begitu
+          // kontrak BE untuk export slip gaji tersedia. Placeholder ini
+          // konsisten dengan pola "Simpan/Unduh QR" di invoice_screen.dart.
           IconButton(
             icon: const Icon(Icons.download_outlined),
             tooltip: 'Unduh Slip',
@@ -98,7 +119,7 @@ class SlipGajiScreen extends StatelessWidget {
                       child: Text(s.material, style: AppTextStyles.bodySemiBold),
                     ),
                     Text(
-                      'Rp${_formatPrice(s.hakTutor)}',
+                      'Rp${CurrencyUtils.formatPrice(s.hakTutor)}',
                       style: AppTextStyles.bodySemiBold.copyWith(
                         color: AppColors.primaryBlue,
                       ),
@@ -108,14 +129,14 @@ class SlipGajiScreen extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   '${AppDateUtils.formatDate(s.classDate)} · ${s.buddyName} · '
-                  '${s.sessionCount}x Rp${_formatPrice(s.ratePerSession)}',
+                  '${s.sessionCount}x Rp${CurrencyUtils.formatPrice(s.ratePerSession)}',
                   style: AppTextStyles.caption,
                 ),
                 if (s.deduction > 0)
                   Padding(
                     padding: const EdgeInsets.only(top: 2),
                     child: Text(
-                      'Potongan Rp${_formatPrice(s.deduction)}'
+                      'Potongan Rp${CurrencyUtils.formatPrice(s.deduction)}'
                       '${s.deductionNote != null ? ' — ${s.deductionNote}' : ''}',
                       style: AppTextStyles.caption.copyWith(color: AppColors.primaryRed),
                     ),
@@ -172,7 +193,7 @@ class SlipGajiScreen extends StatelessWidget {
           ),
         ),
         Text(
-          'Rp${_formatPrice(value.abs())}',
+          'Rp${CurrencyUtils.formatPrice(value.abs())}',
           style: emphasize
               ? AppTextStyles.heading3.copyWith(color: AppColors.primaryBlue)
               : AppTextStyles.body,
@@ -181,8 +202,4 @@ class SlipGajiScreen extends StatelessWidget {
     ),
   );
 
-  String _formatPrice(double price) => price.toStringAsFixed(0).replaceAllMapped(
-    RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-    (m) => '${m[1]}.',
-  );
 }

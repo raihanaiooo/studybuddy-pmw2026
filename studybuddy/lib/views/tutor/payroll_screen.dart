@@ -4,6 +4,7 @@ import '../../controllers/payroll_controller.dart';
 import '../../models/payroll_model.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
+import '../../core/utils/currency_utils.dart';
 import '../../app/routes.dart';
 
 /// Ringkasan honor Tutor: saldo belum dibayar & riwayat pembayaran
@@ -67,7 +68,7 @@ class PayrollScreen extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Rp${_formatPrice(ctrl.pendingBalance)}',
+          'Rp${CurrencyUtils.formatPrice(ctrl.pendingBalance.abs())}',
           style: AppTextStyles.heading1.copyWith(color: Colors.white),
         ),
         const SizedBox(height: 8),
@@ -98,7 +99,7 @@ class PayrollScreen extends StatelessWidget {
               Text(record.period, style: AppTextStyles.bodySemiBold),
               const SizedBox(height: 4),
               Text(
-                '${record.sessions.length} sesi · Rp${_formatPrice(record.totalHakTutor)}',
+                '${record.sessions.length} sesi · Rp${CurrencyUtils.formatPrice(record.totalHakTutor)}',
                 style: AppTextStyles.caption,
               ),
               const SizedBox(height: 6),
@@ -117,10 +118,6 @@ class PayrollScreen extends StatelessWidget {
     ),
   );
 
-  String _formatPrice(double price) => price.toStringAsFixed(0).replaceAllMapped(
-    RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-    (m) => '${m[1]}.',
-  );
 }
 
 class _PayrollStatusBadge extends StatelessWidget {

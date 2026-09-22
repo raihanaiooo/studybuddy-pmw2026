@@ -80,4 +80,44 @@ void main() {
     expect(record.totalHakTutor, 55000); // (2*30000) - 5000
     expect(record.remainingBalance, 5000); // 55000 - 50000
   });
+
+  testWidgets(
+    'Saldo belum dibayar yang secara data negatif tetap tampil positif',
+    (tester) async {
+      // Simulasi data tidak konsisten (mis. totalTransferred > totalHakTutor
+      // dari sumber asli) — kartu saldo tidak boleh menampilkan minus.
+      final ctrl = Get.find<PayrollController>();
+      ctrl.records.add(
+        PayrollRecordModel(
+          id: 'p-negative',
+          tutorId: 'tutor-me',
+          tutorName: 'Arif Rahmat',
+          period: 'Negative Test',
+          status: PayrollStatus.belumDibayar,
+          totalTransferred: 999999,
+          sessions: [
+            SessionEarningItem(
+              classDate: DateTime(2026, 1, 1),
+              buddyName: 'Buddy Z',
+              material: 'Materi Z',
+              ratePerSession: 10000,
+            ),
+          ],
+        ),
+      );
+
+      await tester.pumpWidget(const GetMaterialApp(home: PayrollScreen()));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('-'), findsNothing);
+    },
+  );
+
+  testWidgets('SlipGajiScreen tanpa argumen tidak crash', (tester) async {
+    await tester.pumpWidget(const GetMaterialApp(home: SlipGajiScreen()));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Slip gaji tidak ditemukan'), findsOneWidget);
+  });
 }
