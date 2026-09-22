@@ -22,7 +22,12 @@ class AuthController extends GetxController {
     try {
       final user = await _authService.getCurrentUser();
       currentUser.value = user;
-    } catch (_) {
+    } catch (e) {
+      // Anggap belum login (mis. session kosong), tapi tetap catat jejak
+      // supaya error jaringan/Supabase asli tidak tersamar diam-diam
+      // sebagai "belum login" biasa.
+      // ignore: avoid_print
+      print('AuthController._loadCurrentUser gagal: $e');
       currentUser.value = null;
     }
   }
