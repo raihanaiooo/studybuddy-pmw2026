@@ -1,12 +1,17 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
 import '../core/services/supabase_service.dart';
 import '../core/services/auth_service.dart';
+import '../core/services/realtime_service.dart';
 import '../core/constants/supabase_constants.dart';
 import '../data/availability_slot_repository_supabase.dart';
 import '../domain/availability_slot_repository.dart';
+import '../domain/booking_refresh_coalescer.dart';
 import '../domain/slot_booking_policy.dart';
 import '../models/booking_model.dart';
 import '../models/availability_slot_model.dart';
+import '../models/user_model.dart';
 import '../app/routes.dart';
 
 /// Controller untuk pembuatan dan manajemen booking
@@ -16,6 +21,32 @@ class BookingController extends GetxController {
 
   final AvailabilitySlotRepository _slots;
   final _authService = AuthService();
+
+  /// Realtime booking (Wave 2.2). Kontrak isi event (C-BOOK-06 / D-52)
+  /// belum disepakati BE, jadi event hanya dipakai sebagai sinyal
+  /// "ada perubahan" — tidak ada field payload yang dibaca.
+  final RealtimeService _realtime = RealtimeService();
+  final BookingRefreshCoalescer _bookingRefresh = BookingRefreshCoalescer();
+
+  /// Penjaga agar percobaan langganan tidak berlipat (identity tidak
+  /// berubah selama sesi — langganan cukup dipasang sekali).
+  bool _subscriptionAttempted = false;
+
+  /// True HANYA bila langganan benar-benar terpasang. Di test tanpa
+  /// Supabase (atau saat user belum ada) ini tetap false — tidak ada
+  /// sukses palsu.
+  bool _realtimeStarted = false;
+  bool _disposed = false;
+
+  /// True setelah langganan realtime booking terpasang.
+  bool get realtimeSubscribed => _realtimeStarted;
+
+  /// Reset penanda langganan (khusus test — menghindari error
+  /// "subscribed twice" saat test yang sama menghidupkan controller ulang).
+  void debugResetRealtimeForTest() {
+    _subscriptionAttempted = false;
+    _realtimeStarted = false;
+  }
 
   final RxList<BookingModel> myBookings = <BookingModel>[].obs;
   final RxList<BookingModel> tutorBookings = <BookingModel>[].obs;
@@ -41,6 +72,71 @@ class BookingController extends GetxController {
   void onInit() {
     super.onInit();
     fetchMyBookings();
+    _startBookingRealtime();
+  }
+
+  @override
+  void onClose() {
+    _disposed = true;
+    unawaited(_realtime.unsubscribeBookings());
+    super.onClose();
+  }
+
+  /// Pasang langganan realtime booking milik user yang login (NFR-BOOK-02:
+  /// perubahan status terlihat di kedua sisi tanpa refresh manual).
+  ///
+  /// Langganan adalah peningkatan di atas fetch-on-init yang sudah
+  /// terverifikasi: bila identitas belum ada, Supabase belum siap, atau
+  /// publikasi realtime belum diaktifkan di backend, aplikasi tetap
+  /// berjalan dengan perilaku baca manual — TIDAK ada sukses palsu.
+  void _startBookingRealtime() {
+    if (_subscriptionAttempted) return;
+    _subscriptionAttempted = true;
+    () async {
+      try {
+        final user = await _authService.getCurrentUser();
+        if (_disposed || user == null) return;
+        // Id user sama untuk kedua sisi relasi terverifikasi pada baris
+        // bookings: kolom customer_id (Buddy) dan tutor_id (Tutor).
+        _realtime.subscribeBookings(
+          customerId: user.id,
+          tutorId: user.id,
+          onChanged: _onBookingChangeEvent,
+        );
+        _realtimeStarted = true;
+      } catch (_) {
+        // Tanpa Supabase (mis. widget test) langganan gagal — dibiarkan
+        // senyap karena fetch-on-init tetap berjalan.
+      }
+    }();
+  }
+
+  /// Reaksi terhadap event perubahan booking. Isi event TIDAK diparse
+  /// (C-BOOK-06 / D-52 belum dijawab BE): state disegarkan lewat jalur
+  /// baca yang sudah terverifikasi, dikoaleskan agar event beruntun
+  /// tidak menembak Supabase berulang-ulang.
+  void _onBookingChangeEvent() {
+    _bookingRefresh.request(_silentRefreshBookings);
+  }
+
+  /// Segarkan daftar booking TANPA menyalakan spinner [isLoading] —
+  /// status yang sudah terlihat pengguna tidak boleh berkedip tiap
+  /// event realtime; kegagalan refresh latar mempertahankan state lama.
+  Future<void> _silentRefreshBookings() async {
+    try {
+      final user = await _authService.getCurrentUser();
+      if (user == null || _disposed) return;
+      final bookings = await _readRoleScopedBookings(user);
+      if (_disposed) return;
+      if (user.role == 'tutor') {
+        tutorBookings.value = bookings;
+      } else {
+        myBookings.value = bookings;
+      }
+    } catch (_) {
+      // Refresh latar gagal (jaringan/Supabase) — state sebelumnya
+      // dipertahankan; event berikutnya akan mencoba ulang.
+    }
   }
 
   /// Ambil slot ketersediaan nyata milik Tutor (FR-BOOK-02) dari
@@ -99,17 +195,7 @@ class BookingController extends GetxController {
       final user = await _authService.getCurrentUser();
       if (user == null) return;
 
-      final column = user.role == 'tutor' ? 'tutor_id' : 'customer_id';
-
-      final data = await SupabaseService.client
-          .from(SupabaseConstants.tableBookings)
-          .select('*, tutors(*)')
-          .eq(column, user.id)
-          .order('session_time', ascending: true);
-
-      final bookings = (data as List)
-          .map((e) => BookingModel.fromMap(e as Map<String, dynamic>))
-          .toList();
+      final bookings = await _readRoleScopedBookings(user);
 
       if (user.role == 'tutor') {
         tutorBookings.value = bookings;
@@ -125,6 +211,25 @@ class BookingController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /// Baca booking milik [user] sesuai perannya dari tabel bookings.
+  /// Kolom filter TERVERIFIKASI oleh kode baca yang sudah berjalan:
+  /// `customer_id` untuk Buddy dan `tutor_id` untuk Tutor; bentuk baris
+  /// ('*, tutors(*)') tidak diubah. Melempar bila baca gagal — pemanggil
+  /// yang memutuskan perlakuan errornya.
+  Future<List<BookingModel>> _readRoleScopedBookings(UserModel user) async {
+    final column = user.role == 'tutor' ? 'tutor_id' : 'customer_id';
+
+    final data = await SupabaseService.client
+        .from(SupabaseConstants.tableBookings)
+        .select('*, tutors(*)')
+        .eq(column, user.id)
+        .order('session_time', ascending: true);
+
+    return (data as List)
+        .map((e) => BookingModel.fromMap(e as Map<String, dynamic>))
+        .toList();
   }
 
   /// Buat booking baru dengan validasi H-5 jam dan check-and-book slot

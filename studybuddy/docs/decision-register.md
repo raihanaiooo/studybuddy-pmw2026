@@ -599,7 +599,7 @@ RTM coverage check: all **57** requirement rows that the RTM (rev 2) flags in it
 
 ### D-52 — Canonical booking statuses and realtime event contract
 **Reqs:** FR-SESI-06, NFR-BOOK-02, FR-BOOK-07, FR-ADM-01 · **Class:** Backend contract · **Owner:** BE
-**Current implementation:** Stored booking status values are `pending | confirmed | ongoing | done | cancelled` (per `booking_controller` writes and `booking_model` defaults); `core/services/realtime_service.dart › subscribeBookings` exists but is **never called**; no booking screen subscribes, so the other party sees stale state.
+**Current implementation:** Stored booking status values are `pending | confirmed | ongoing | done | cancelled` (per `booking_controller` writes and `booking_model` defaults). Since Wave 2.2, `subscribeBookings` IS called (by `BookingController`) but treats the event payload as **opaque** — an event only triggers a coalesced re-fetch through the verified read path; no payload field is interpreted and no status vocabulary is assumed, so this decision remains fully OPEN/BLOCKED.
 **Why it matters:** NFR-BOOK-02 requires status changes to be reflected in real time on both sides without manual refresh, so the client needs to know which values to expect and what a change event carries.
 **Options explicitly supported by the SRS:** The four display states of FR-SESI-06. The **stored** values, the event payload shape and the subscription/filter keys are **not specified by the SRS**.
 **Consequences:** Without an agreed value set, every screen will need its own mapping and realtime listeners cannot be wired confidently; the mapping decision itself is D-28.

@@ -109,7 +109,7 @@ Resolved defects are retained here (marked **RESOLVED**, with the wave that fixe
 |---|---|
 | `views/shared/screens/error_screen.dart` | **0-byte file**, unused |
 | `views/shared/widgets/loading_overlay.dart` | Defined, never referenced |
-| `core/services/realtime_service.dart › subscribeBookings` | Defined, never called |
+| `core/services/realtime_service.dart › subscribeBookings` | Called by `BookingController` since Wave 2.2 (payload-opaque: events trigger verified re-fetch; event-shape contract C-BOOK-06/D-52 still unanswered) |
 | `core/services/notification_service.dart` | Defined; `initialize()` is commented out in `main.dart`, so FCM is inert |
 | `controllers/tutor_controller.dart › getRecommendations` | Defined, never called |
 | `controllers/profile_controller.dart › toggleEditing` | Defined, never called |
