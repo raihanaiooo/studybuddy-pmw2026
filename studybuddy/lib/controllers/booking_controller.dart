@@ -249,6 +249,19 @@ class BookingController extends GetxController {
     errorMessage.value = '';
     slotContractMissing.value = false;
 
+    // Cek consent orang tua untuk Buddy SMP (NFR-AUTH-03)
+    final user = await _authService.getCurrentUser();
+    if (user != null && user.needsParentConsent) {
+      errorMessage.value =
+          'Persetujuan orang tua diperlukan. Hubungi admin untuk melengkapi data orang tua/wali.';
+      Get.snackbar(
+        'Persetujuan Diperlukan',
+        errorMessage.value,
+        duration: const Duration(seconds: 4),
+      );
+      return;
+    }
+
     if (!SlotBookingPolicy.isBookingTimeValid(sessionTime)) {
       errorMessage.value = 'Booking minimal 5 jam sebelum sesi dimulai';
       return;
@@ -262,7 +275,6 @@ class BookingController extends GetxController {
 
     isLoading.value = true;
     try {
-      final user = await _authService.getCurrentUser();
       if (user == null) return;
 
       final bookingValues = {
@@ -292,12 +304,9 @@ class BookingController extends GetxController {
         return;
       }
 
-      // FR-SESI-02 Varian A: pasang link Meet otomatis dari link Tutor
       try {
         await _attachMeetLinkToLatestBooking(tutorId);
-      } catch (_) {
-        // Booking tetap sukses walau link gagal — Tutor bisa attach nanti
-      }
+      } catch (_) {}
 
       availableSlots.removeWhere((s) => s.id == slot.id);
       selectedSlot.value = null;

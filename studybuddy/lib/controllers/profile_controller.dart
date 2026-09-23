@@ -107,6 +107,15 @@ class ProfileController extends GetxController {
         errorMessage.value = 'Sesi berakhir. Login ulang untuk menyimpan.';
         return false;
       }
+
+      // Block Buddy SMP tanpa consent (NFR-AUTH-03)
+      if (current.needsParentConsent) {
+        errorMessage.value =
+            'Persetujuan orang tua diperlukan. Hubungi admin untuk melengkapi data orang tua/wali.';
+        Get.snackbar('Persetujuan Diperlukan', errorMessage.value);
+        return false;
+      }
+
       await _profiles.updateBuddyProfile(
         current.id,
         BuddyProfilePatch(

@@ -186,6 +186,53 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
             size: 22,
           ),
         ),
+        // Banner consent orang tua
+        Obx(() {
+          final user = auth.currentUser.value;
+          if (user != null && user.needsParentConsent) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.primaryYellow.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.primaryYellow.withOpacity(0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.info_outline,
+                    color: AppColors.primaryYellow,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Persetujuan Orang Tua Diperlukan',
+                          style: AppTextStyles.bodySemiBold.copyWith(
+                            color: AppColors.primaryYellow,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Kamu belum bisa booking sampai data orang tua/wali dilengkapi. Hubungi admin.',
+                          style: AppTextStyles.caption,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+          return const SizedBox();
+        }),
       ],
     ),
   );
