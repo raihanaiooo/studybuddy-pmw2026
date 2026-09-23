@@ -31,8 +31,8 @@ class ProfileController extends GetxController {
   // contract-first: kontrak pembacaan statistiknya belum dijawab BE dan
   // bukan bagian slice persistensi profil ini. TIDAK dijadikan sukses palsu
   // untuk klaim lain.
-  final RxInt completedSessions = 12.obs;
-  final RxDouble avgRatingGiven = 4.6.obs;
+  final RxInt completedSessions = 0.obs;
+  final RxDouble avgRatingGiven = 0.0.obs;
 
   /// Profil publik Tutor milik user yang login — dari backend. Null berarti
   /// belum termuat atau backend tidak mengenal barisnya (C-TUT-01/D-46).
@@ -41,8 +41,7 @@ class ProfileController extends GetxController {
   /// Dokumen verifikasi milik Tutor yang login — dari backend. Kosong bila
   /// kontrak tabel dokumen (C-DOC-01..09/D-47) belum dijawab — KOSONG
   /// DENGAN PENANDA, bukan kosong yang berpura-pura "belum ada dokumen".
-  final RxList<TutorDocumentModel> tutorDocuments =
-      <TutorDocumentModel>[].obs;
+  final RxList<TutorDocumentModel> tutorDocuments = <TutorDocumentModel>[].obs;
 
   /// True bila kegagalan terakhir disebabkan kontrak profil/dokumen belum
   /// dijawab BE (C-AUTH-03/D-45, C-TUT-01/D-46, C-DOC-01..09/D-47) — bukan
@@ -139,13 +138,14 @@ class ProfileController extends GetxController {
   /// [ProfileRepository]. Email TIDAK dikirim (SRS: Buddy tidak boleh
   /// mengubah email). Mengembalikan true HANYA bila backend mengonfirmasi;
   /// state UI ikut diperbarui hanya saat itu.
+  // Ganti field statistik dummy jadi 0 (belum ada sumber data riil)
+
+  // Ganti method saveBuddyProfile jadi:
   Future<bool> saveBuddyProfile({
     required AuthController auth,
     required String fullName,
     String? phone,
-    int? age,
-    String? gradeLevel,
-    String? school,
+    String? jenjang,
     required List<String> interestedSubjects,
   }) async {
     isLoading.value = true;
@@ -156,26 +156,19 @@ class ProfileController extends GetxController {
         errorMessage.value = 'Sesi berakhir. Login ulang untuk menyimpan.';
         return false;
       }
-      // full_name TERVERIFIKASI (ditulis signUp yang berjalan); kolom
-      // Buddy lainnya kontrak D-45 yang belum dijawab — kegagalan
-      // kenal-skema dilaporkan jujur oleh repository.
       await _profiles.updateBuddyProfile(
         current.id,
         BuddyProfilePatch(
           fullName: fullName,
           phone: phone,
-          age: age,
-          gradeLevel: gradeLevel,
-          school: school,
+          jenjang: jenjang,
           interestedSubjects: interestedSubjects,
         ),
       );
       auth.currentUser.value = current.copyWith(
         fullName: fullName,
         phone: phone,
-        age: age,
-        gradeLevel: gradeLevel,
-        school: school,
+        jenjang: jenjang,
         interestedSubjects: interestedSubjects,
       );
       Get.snackbar('Berhasil', 'Profil kamu sudah diperbarui');
@@ -183,11 +176,7 @@ class ProfileController extends GetxController {
     } on ProfileBackendMissingException catch (e) {
       profileContractMissing.value = true;
       errorMessage.value = e.message;
-      Get.snackbar(
-        'Gagal menyimpan',
-        'Kontrak kolom profil (C-AUTH-03/D-45) belum dijawab pemilik '
-        'Back-End — perubahan tidak tersimpan.',
-      );
+      Get.snackbar('Gagal menyimpan', e.message);
       return false;
     } catch (e) {
       errorMessage.value = 'Gagal menyimpan profil. Coba lagi.';
@@ -250,7 +239,7 @@ class ProfileController extends GetxController {
       Get.snackbar(
         'Gagal menyimpan',
         'Kontrak profil Tutor (C-TUT-01/D-46) belum dijawab pemilik '
-        'Back-End — perubahan tidak tersimpan.',
+            'Back-End — perubahan tidak tersimpan.',
       );
       return false;
     } catch (e) {

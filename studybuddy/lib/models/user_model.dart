@@ -7,9 +7,7 @@ class UserModel {
   final String? fcmToken;
   final DateTime createdAt;
   final String? phone;
-  final int? age;
-  final String? gradeLevel;
-  final String? school;
+  final String? jenjang;
   final List<String> interestedSubjects;
 
   const UserModel({
@@ -21,9 +19,7 @@ class UserModel {
     this.fcmToken,
     required this.createdAt,
     this.phone,
-    this.age,
-    this.gradeLevel,
-    this.school,
+    this.jenjang,
     this.interestedSubjects = const [],
   });
 
@@ -36,11 +32,9 @@ class UserModel {
     fcmToken: map['fcm_token'] as String?,
     createdAt: _parseDateTime(map['created_at']),
     phone: map['phone'] as String?,
-    age: map['usia'] as int?,
-    gradeLevel: (map['jenjang'] ?? map['kelas']) as String?,
-    school: map['asal_sekolah'] as String?,
+    jenjang: map['jenjang'] as String?,
     interestedSubjects: List<String>.from(
-      map['mata_pelajaran_diminati'] as List? ?? [],
+      map['interested_subjects'] as List? ?? [],
     ),
   );
 
@@ -70,16 +64,15 @@ class UserModel {
     'fcm_token': fcmToken,
     'created_at': createdAt.toIso8601String(),
     'phone': phone,
-    'jenjang': gradeLevel,
+    'jenjang': jenjang,
+    'interested_subjects': interestedSubjects,
   };
 
   UserModel copyWith({
     String? fullName,
     Object? phone = _unset,
-    Object? age = _unset,
-    Object? gradeLevel = _unset,
-    Object? school = _unset,
-    List<String>? interestedSubjects,
+    Object? jenjang = _unset,
+    Object? interestedSubjects = _unset,
   }) => UserModel(
     id: id,
     email: email,
@@ -89,12 +82,10 @@ class UserModel {
     fcmToken: fcmToken,
     createdAt: createdAt,
     phone: identical(phone, _unset) ? this.phone : phone as String?,
-    age: identical(age, _unset) ? this.age : age as int?,
-    gradeLevel: identical(gradeLevel, _unset)
-        ? this.gradeLevel
-        : gradeLevel as String?,
-    school: identical(school, _unset) ? this.school : school as String?,
-    interestedSubjects: interestedSubjects ?? this.interestedSubjects,
+    jenjang: identical(jenjang, _unset) ? this.jenjang : jenjang as String?,
+    interestedSubjects: identical(interestedSubjects, _unset)
+        ? this.interestedSubjects
+        : interestedSubjects as List<String>,
   );
 }
 

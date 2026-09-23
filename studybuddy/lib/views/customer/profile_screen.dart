@@ -7,8 +7,6 @@ import '../../core/constants/app_text_styles.dart';
 import '../../core/utils/validator_utils.dart';
 import '../../app/routes.dart';
 
-/// Profil Buddy: data diri, mata pelajaran diminati, riwayat & aktivitas
-/// (FR-PROF-01, FR-PROF-03, FR-PROF-04)
 class CustomerProfileScreen extends StatelessWidget {
   const CustomerProfileScreen({super.key});
 
@@ -56,9 +54,7 @@ class CustomerProfileScreen extends StatelessWidget {
               const SizedBox(height: 20),
               _sectionTitle('Data Diri'),
               _infoTile('Nomor HP', user.phone ?? '-'),
-              _infoTile('Usia', user.age?.toString() ?? '-'),
-              _infoTile('Jenjang', user.gradeLevel ?? '-'),
-              _infoTile('Asal Sekolah/Kampus', user.school ?? '-'),
+              _infoTile('Jenjang', user.jenjang ?? '-'),
               _infoTile(
                 'Mata Pelajaran Diminati',
                 user.interestedSubjects.isEmpty
@@ -68,9 +64,18 @@ class CustomerProfileScreen extends StatelessWidget {
               const SizedBox(height: 20),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.receipt_long_outlined, color: AppColors.primaryBlue),
-                title: Text('Riwayat Transaksi', style: AppTextStyles.bodySemiBold),
-                trailing: const Icon(Icons.chevron_right, color: AppColors.textLight),
+                leading: const Icon(
+                  Icons.receipt_long_outlined,
+                  color: AppColors.primaryBlue,
+                ),
+                title: Text(
+                  'Riwayat Transaksi',
+                  style: AppTextStyles.bodySemiBold,
+                ),
+                trailing: const Icon(
+                  Icons.chevron_right,
+                  color: AppColors.textLight,
+                ),
                 onTap: () => Get.toNamed(AppRoutes.transactionHistory),
               ),
               const SizedBox(height: 12),
@@ -188,11 +193,7 @@ class CustomerProfileScreen extends StatelessWidget {
           style: AppTextStyles.heading2.copyWith(color: AppColors.primaryBlue),
         ),
         const SizedBox(height: 4),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: AppTextStyles.caption,
-        ),
+        Text(label, textAlign: TextAlign.center, style: AppTextStyles.caption),
       ],
     ),
   );
@@ -212,10 +213,7 @@ class CustomerProfileScreen extends StatelessWidget {
     ),
     child: Row(
       children: [
-        Expanded(
-          flex: 2,
-          child: Text(label, style: AppTextStyles.caption),
-        ),
+        Expanded(flex: 2, child: Text(label, style: AppTextStyles.caption)),
         Expanded(
           flex: 3,
           child: Text(
@@ -236,22 +234,20 @@ class CustomerProfileScreen extends StatelessWidget {
     final user = auth.currentUser.value!;
     final nameCtrl = TextEditingController(text: user.fullName);
     final phoneCtrl = TextEditingController(text: user.phone ?? '');
-    final ageCtrl = TextEditingController(text: user.age?.toString() ?? '');
-    final schoolCtrl = TextEditingController(text: user.school ?? '');
     final subjectsCtrl = TextEditingController(
       text: user.interestedSubjects.join(', '),
     );
-    String gradeLevel = user.gradeLevel ?? 'Mahasiswa (S1)';
+    String? selectedJenjang = user.jenjang;
     final formKey = GlobalKey<FormState>();
+
+    const jenjangOptions = ['SMP', 'SMA', 'Mahasiswa', 'Lulusan'];
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(ctx).viewInsets.bottom,
-        ),
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: const BoxDecoration(
@@ -269,26 +265,20 @@ class CustomerProfileScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   _formField('Nama Lengkap', nameCtrl),
                   const SizedBox(height: 12),
-                  _formField('Nomor HP', phoneCtrl, keyboard: TextInputType.phone),
-                  const SizedBox(height: 12),
-                  _formField('Usia', ageCtrl, keyboard: TextInputType.number),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    initialValue: gradeLevel,
-                    decoration: _inputDeco('Jenjang'),
-                    items: const [
-                      'SMP',
-                      'SMA/sederajat',
-                      'Mahasiswa (S1)',
-                      'Lulusan',
-                      'Umum',
-                    ]
-                        .map((g) => DropdownMenuItem(value: g, child: Text(g)))
-                        .toList(),
-                    onChanged: (v) => gradeLevel = v ?? gradeLevel,
+                  _formField(
+                    'Nomor HP',
+                    phoneCtrl,
+                    keyboard: TextInputType.phone,
                   ),
                   const SizedBox(height: 12),
-                  _formField('Asal Sekolah/Kampus', schoolCtrl),
+                  DropdownButtonFormField<String>(
+                    value: selectedJenjang,
+                    decoration: _inputDeco('Jenjang'),
+                    items: jenjangOptions
+                        .map((g) => DropdownMenuItem(value: g, child: Text(g)))
+                        .toList(),
+                    onChanged: (v) => selectedJenjang = v,
+                  ),
                   const SizedBox(height: 12),
                   _formField(
                     'Mata Pelajaran Diminati (pisahkan koma)',
@@ -310,20 +300,13 @@ class CustomerProfileScreen extends StatelessWidget {
                                   phone: phoneCtrl.text.isEmpty
                                       ? null
                                       : phoneCtrl.text,
-                                  age: int.tryParse(ageCtrl.text),
-                                  gradeLevel: gradeLevel,
-                                  school: schoolCtrl.text.isEmpty
-                                      ? null
-                                      : schoolCtrl.text,
+                                  jenjang: selectedJenjang,
                                   interestedSubjects: subjectsCtrl.text
                                       .split(',')
                                       .map((s) => s.trim())
                                       .where((s) => s.isNotEmpty)
                                       .toList(),
                                 );
-                                // Tutup sheet HANYA saat backend
-                                // mengonfirmasi — saat gagal biarkan
-                                // pengguna mencoba ulang.
                                 if (ok) Get.back();
                               },
                         style: ElevatedButton.styleFrom(
@@ -361,9 +344,8 @@ class CustomerProfileScreen extends StatelessWidget {
   }) => TextFormField(
     controller: ctrl,
     keyboardType: keyboard,
-    validator: (v) => label == 'Nama Lengkap'
-        ? ValidatorUtils.required(v, label)
-        : null,
+    validator: (v) =>
+        label == 'Nama Lengkap' ? ValidatorUtils.required(v, label) : null,
     decoration: _inputDeco(label),
   );
 
