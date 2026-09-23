@@ -244,7 +244,6 @@ class _BookingScreenState extends State<BookingScreen> {
           sessionDate: slot.startTime,
           startTime: AppDateUtils.formatTime(slot.startTime),
           endTime: AppDateUtils.formatTime(slot.endTime),
-          timezone: slot.timezone,
           price: price,
         ),
       ],

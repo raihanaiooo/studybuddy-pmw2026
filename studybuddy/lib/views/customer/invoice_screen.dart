@@ -105,7 +105,10 @@ class InvoiceScreen extends StatelessWidget {
             ),
             child: const Text(
               'Batalkan Pesanan',
-              style: TextStyle(color: AppColors.primaryRed, fontWeight: FontWeight.w700),
+              style: TextStyle(
+                color: AppColors.primaryRed,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ),
@@ -119,7 +122,10 @@ class InvoiceScreen extends StatelessWidget {
       color: Colors.white,
       borderRadius: BorderRadius.circular(18),
       boxShadow: [
-        BoxShadow(color: AppColors.primaryBlue.withOpacity(0.08), blurRadius: 8),
+        BoxShadow(
+          color: AppColors.primaryBlue.withOpacity(0.08),
+          blurRadius: 8,
+        ),
       ],
     ),
     child: Column(
@@ -130,7 +136,9 @@ class InvoiceScreen extends StatelessWidget {
             Expanded(
               child: Text(
                 inv.id,
-                style: AppTextStyles.bodySemiBold.copyWith(fontFamily: 'monospace'),
+                style: AppTextStyles.bodySemiBold.copyWith(
+                  fontFamily: 'monospace',
+                ),
               ),
             ),
             InvoiceStatusBadge(status: inv.status),
@@ -140,7 +148,10 @@ class InvoiceScreen extends StatelessWidget {
         Text('Nama Murid', style: AppTextStyles.caption),
         Text(inv.studentName, style: AppTextStyles.bodySemiBold),
         const SizedBox(height: 6),
-        Text('${inv.studentGrade} · ${inv.studentSchool}', style: AppTextStyles.caption),
+        Text(
+          '${inv.studentGrade} · ${inv.studentSchool}',
+          style: AppTextStyles.caption,
+        ),
       ],
     ),
   );
@@ -151,7 +162,10 @@ class InvoiceScreen extends StatelessWidget {
       color: Colors.white,
       borderRadius: BorderRadius.circular(18),
       boxShadow: [
-        BoxShadow(color: AppColors.primaryBlue.withOpacity(0.06), blurRadius: 6),
+        BoxShadow(
+          color: AppColors.primaryBlue.withOpacity(0.06),
+          blurRadius: 6,
+        ),
       ],
     ),
     child: Column(
@@ -170,7 +184,7 @@ class InvoiceScreen extends StatelessWidget {
                   child: Text(s.subject, style: AppTextStyles.bodySemiBold),
                 ),
                 Text(
-                  '${AppDateUtils.formatDate(s.sessionDate)} · ${s.startTime}-${s.endTime} ${s.timezone}',
+                  '${AppDateUtils.formatDate(s.sessionDate)} · ${s.startTime}-${s.endTime}',
                   style: AppTextStyles.caption,
                 ),
               ],
@@ -187,7 +201,10 @@ class InvoiceScreen extends StatelessWidget {
       color: Colors.white,
       borderRadius: BorderRadius.circular(18),
       boxShadow: [
-        BoxShadow(color: AppColors.primaryBlue.withOpacity(0.06), blurRadius: 6),
+        BoxShadow(
+          color: AppColors.primaryBlue.withOpacity(0.06),
+          blurRadius: 6,
+        ),
       ],
     ),
     child: Column(
@@ -203,7 +220,11 @@ class InvoiceScreen extends StatelessWidget {
     ),
   );
 
-  Widget _costRow(String label, double value, {bool emphasize = false}) => Padding(
+  Widget _costRow(
+    String label,
+    double value, {
+    bool emphasize = false,
+  }) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
     child: Row(
       children: [
@@ -229,7 +250,10 @@ class InvoiceScreen extends StatelessWidget {
       color: Colors.white,
       borderRadius: BorderRadius.circular(18),
       boxShadow: [
-        BoxShadow(color: AppColors.primaryBlue.withOpacity(0.08), blurRadius: 8),
+        BoxShadow(
+          color: AppColors.primaryBlue.withOpacity(0.08),
+          blurRadius: 8,
+        ),
       ],
     ),
     child: Column(
@@ -251,7 +275,11 @@ class InvoiceScreen extends StatelessWidget {
           () => Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.timer_outlined, size: 16, color: AppColors.primaryRed),
+              const Icon(
+                Icons.timer_outlined,
+                size: 16,
+                color: AppColors.primaryRed,
+              ),
               const SizedBox(width: 6),
               Text(
                 'Selesaikan sebelum ${ctrl.remainingLabel}',
@@ -265,7 +293,8 @@ class InvoiceScreen extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         TextButton.icon(
-          onPressed: () => Get.snackbar('Tersimpan', 'QR berhasil disimpan ke galeri'),
+          onPressed: () =>
+              Get.snackbar('Tersimpan', 'QR berhasil disimpan ke galeri'),
           icon: const Icon(Icons.download_outlined, size: 18),
           label: const Text('Simpan / Unduh QR'),
         ),
@@ -333,7 +362,11 @@ class InvoiceScreen extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: const Icon(Icons.check_circle, color: AppColors.onlineGreen, size: 48),
+            child: const Icon(
+              Icons.check_circle,
+              color: AppColors.onlineGreen,
+              size: 48,
+            ),
           ),
           const SizedBox(height: 20),
           Text('Pembayaran Berhasil!', style: AppTextStyles.heading2),
@@ -344,7 +377,10 @@ class InvoiceScreen extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
-          Text(inv.id, style: AppTextStyles.caption.copyWith(fontFamily: 'monospace')),
+          Text(
+            inv.id,
+            style: AppTextStyles.caption.copyWith(fontFamily: 'monospace'),
+          ),
           const SizedBox(height: 28),
           SizedBox(
             width: double.infinity,
@@ -354,9 +390,14 @@ class InvoiceScreen extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryBlue,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
-              child: const Text('Lihat Booking Saya', style: TextStyle(fontWeight: FontWeight.w700)),
+              child: const Text(
+                'Lihat Booking Saya',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
             ),
           ),
         ],
@@ -364,7 +405,11 @@ class InvoiceScreen extends StatelessWidget {
     ),
   );
 
-  Widget _expiredState(BuildContext context, PaymentController ctrl, InvoiceModel inv) => Center(
+  Widget _expiredState(
+    BuildContext context,
+    PaymentController ctrl,
+    InvoiceModel inv,
+  ) => Center(
     child: Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -378,7 +423,11 @@ class InvoiceScreen extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: const Icon(Icons.timer_off_outlined, color: AppColors.primaryRed, size: 44),
+            child: const Icon(
+              Icons.timer_off_outlined,
+              color: AppColors.primaryRed,
+              size: 44,
+            ),
           ),
           const SizedBox(height: 20),
           Text('Invoice Kedaluwarsa', style: AppTextStyles.heading2),
@@ -397,9 +446,14 @@ class InvoiceScreen extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryBlue,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
-              child: const Text('Kembali', style: TextStyle(fontWeight: FontWeight.w700)),
+              child: const Text(
+                'Kembali',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
             ),
           ),
         ],
@@ -413,7 +467,9 @@ class InvoiceScreen extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Batalkan Pesanan?'),
-        content: const Text('Slot jadwal akan dibuka kembali untuk Buddy lain.'),
+        content: const Text(
+          'Slot jadwal akan dibuka kembali untuk Buddy lain.',
+        ),
         actions: [
           TextButton(onPressed: Get.back, child: const Text('Tidak')),
           ElevatedButton(
@@ -428,7 +484,6 @@ class InvoiceScreen extends StatelessWidget {
       ),
     );
   }
-
 }
 
 /// Placeholder visual QR — tanpa dependency generator QR sungguhan,
@@ -444,7 +499,11 @@ class _QrPlaceholder extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       alignment: Alignment.center,
-      child: const Icon(Icons.qr_code_2, size: 140, color: AppColors.textPrimary),
+      child: const Icon(
+        Icons.qr_code_2,
+        size: 140,
+        color: AppColors.textPrimary,
+      ),
     );
   }
 }
