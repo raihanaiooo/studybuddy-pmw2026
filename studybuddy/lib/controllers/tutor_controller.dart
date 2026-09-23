@@ -38,6 +38,10 @@ class TutorController extends GetxController {
           .map((e) => TutorModel.fromMap(e as Map<String, dynamic>))
           .toList();
       filtered.value = tutors;
+    } catch (e) {
+      print('TutorController.fetchAllTutors error: $e');
+      tutors.value = [];
+      filtered.value = [];
     } finally {
       isLoading.value = false;
     }

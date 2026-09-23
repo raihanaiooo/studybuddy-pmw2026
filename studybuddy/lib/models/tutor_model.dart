@@ -1,4 +1,3 @@
-/// Model data profil tutor beserta statistik
 class TutorModel {
   final String id;
   final String userId;
@@ -6,6 +5,7 @@ class TutorModel {
   final String? avatarUrl;
   final String bio;
   final List<String> subjects;
+  final List<String> jenjangDiajar;
   final double rating;
   final int totalSessions;
   final int totalReviews;
@@ -15,12 +15,8 @@ class TutorModel {
   final String university;
   final double gpa;
   final DateTime? lastSeen;
-
-  // Field verifikasi & profil tambahan (FR-PROF-05/09/12)
-  final List<String> extraSkills; // kemampuan di luar mapel utama
-  final String verificationStatus; // 'pending' | 'verified' | 'rejected'
-  final String? rejectionReason;
-  final bool isTutorOfTheMonth;
+  final String verificationStatus;
+  final String? verificationNote;
 
   const TutorModel({
     required this.id,
@@ -29,6 +25,7 @@ class TutorModel {
     this.avatarUrl,
     required this.bio,
     required this.subjects,
+    this.jenjangDiajar = const [],
     required this.rating,
     required this.totalSessions,
     required this.totalReviews,
@@ -38,10 +35,8 @@ class TutorModel {
     required this.university,
     required this.gpa,
     this.lastSeen,
-    this.extraSkills = const [],
     this.verificationStatus = 'pending',
-    this.rejectionReason,
-    this.isTutorOfTheMonth = false,
+    this.verificationNote,
   });
 
   factory TutorModel.fromMap(Map<String, dynamic> map) => TutorModel(
@@ -51,6 +46,7 @@ class TutorModel {
     avatarUrl: map['avatar_url'] as String?,
     bio: map['bio'] as String? ?? '',
     subjects: List<String>.from(map['subjects'] as List? ?? []),
+    jenjangDiajar: List<String>.from(map['jenjang_diajar'] as List? ?? []),
     rating: (map['rating'] as num?)?.toDouble() ?? 0.0,
     totalSessions: map['total_sessions'] as int? ?? 0,
     totalReviews: map['total_reviews'] as int? ?? 0,
@@ -60,13 +56,27 @@ class TutorModel {
     university: map['university'] as String? ?? '',
     gpa: (map['gpa'] as num?)?.toDouble() ?? 0.0,
     lastSeen: map['last_seen'] != null
-        ? DateTime.parse(map['last_seen'] as String)
+        ? _parseDateTime(map['last_seen'])
         : null,
-    extraSkills: List<String>.from(map['kemampuan_lain'] as List? ?? []),
-    verificationStatus: map['status_verifikasi'] as String? ?? 'pending',
-    rejectionReason: map['rejection_reason'] as String?,
-    isTutorOfTheMonth: map['is_tutor_of_the_month'] as bool? ?? false,
+    verificationStatus: map['verification_status'] as String? ?? 'pending',
+    verificationNote: map['verification_note'] as String?,
   );
+
+  static DateTime _parseDateTime(dynamic value) {
+    if (value is DateTime) return value;
+    if (value is String) {
+      try {
+        return DateTime.parse(value);
+      } catch (_) {
+        var normalized = value.replaceFirst(' ', 'T');
+        if (RegExp(r'[+-]\d{2}$').hasMatch(normalized)) {
+          normalized = '${normalized}:00';
+        }
+        return DateTime.parse(normalized);
+      }
+    }
+    return DateTime.now();
+  }
 
   Map<String, dynamic> toMap() => {
     'id': id,
@@ -75,6 +85,7 @@ class TutorModel {
     'avatar_url': avatarUrl,
     'bio': bio,
     'subjects': subjects,
+    'jenjang_diajar': jenjangDiajar,
     'rating': rating,
     'total_sessions': totalSessions,
     'total_reviews': totalReviews,
@@ -84,9 +95,7 @@ class TutorModel {
     'university': university,
     'gpa': gpa,
     'last_seen': lastSeen?.toIso8601String(),
-    'kemampuan_lain': extraSkills,
-    'status_verifikasi': verificationStatus,
-    'rejection_reason': rejectionReason,
-    'is_tutor_of_the_month': isTutorOfTheMonth,
+    'verification_status': verificationStatus,
+    'verification_note': verificationNote,
   };
 }
