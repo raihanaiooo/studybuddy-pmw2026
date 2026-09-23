@@ -55,14 +55,32 @@ class TutorDetailScreen extends StatelessWidget {
                           border: Border.all(color: Colors.white, width: 3),
                         ),
                         alignment: Alignment.center,
-                        child: Text(
-                          tutor.fullName[0].toUpperCase(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 32,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
+                        child: tutor.avatarUrl != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(24),
+                                child: Image.network(
+                                  tutor.avatarUrl!,
+                                  width: 80,
+                                  height: 80,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Text(
+                                    tutor.fullName[0].toUpperCase(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : Text(
+                                tutor.fullName[0].toUpperCase(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
                       ),
                       const SizedBox(height: 8),
                       Text(

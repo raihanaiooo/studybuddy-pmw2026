@@ -64,16 +64,21 @@ class TutorController extends GetxController {
 
   /// Fetch ulasan untuk tutor tertentu
   Future<void> _fetchReviews(String tutorId) async {
-    final data = await SupabaseService.client
-        .from(SupabaseConstants.tableReviews)
-        .select()
-        .eq('tutor_id', tutorId)
-        .order('created_at', ascending: false)
-        .limit(10);
+    try {
+      final data = await SupabaseService.client
+          .from(SupabaseConstants.tableReviews)
+          .select()
+          .eq('tutor_id', tutorId)
+          .order('created_at', ascending: false)
+          .limit(10);
 
-    tutorReviews.value = (data as List)
-        .map((e) => ReviewModel.fromMap(e as Map<String, dynamic>))
-        .toList();
+      tutorReviews.value = (data as List)
+          .map((e) => ReviewModel.fromMap(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      print('TutorController._fetchReviews error: $e');
+      tutorReviews.value = [];
+    }
   }
 
   /// Rekomendasi tutor berdasarkan kuesioner (subject match)

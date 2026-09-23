@@ -80,15 +80,19 @@ class TutorListScreen extends StatelessWidget {
                   ),
                 );
               }
-              return ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: list.length,
-                itemBuilder: (_, i) => TutorCard(
-                  tutor: list[i],
-                  onTap: () {
-                    ctrl.selectTutor(list[i]);
-                    Get.toNamed(AppRoutes.tutorDetail);
-                  },
+              return RefreshIndicator(
+                onRefresh: () => ctrl.fetchAllTutors(),
+                color: AppColors.primaryBlue,
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: list.length,
+                  itemBuilder: (_, i) => TutorCard(
+                    tutor: list[i],
+                    onTap: () {
+                      ctrl.selectTutor(list[i]);
+                      Get.toNamed(AppRoutes.tutorDetail);
+                    },
+                  ),
                 ),
               );
             }),

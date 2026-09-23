@@ -138,7 +138,10 @@ class TutorCard extends StatelessWidget {
                     color: AppColors.textPrimary,
                   ),
                 ),
-                Text(' (${tutor.totalReviews})', style: AppTextStyles.caption),
+                Text(
+                  ' (${tutor.totalSessions} sesi)',
+                  style: AppTextStyles.caption,
+                ),
                 const Spacer(),
                 Text(
                   'Rp${(tutor.pricePerHour / 1000).toStringAsFixed(0)}rb/jam',
@@ -172,6 +175,18 @@ class TutorCard extends StatelessWidget {
               width: size,
               height: size,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                color: AppColors.primaryBlue,
+                alignment: Alignment.center,
+                child: Text(
+                  tutor.fullName[0].toUpperCase(),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: size * 0.4,
+                  ),
+                ),
+              ),
             ),
           )
         : Text(
