@@ -310,7 +310,7 @@ class BookingController extends GetxController {
   }
 
   /// Batalkan booking
-  Future<void> cancelBookingAsBuddy(String bookingId) async {
+  Future<void> cancelBooking(String bookingId) async {
     isLoading.value = true;
     try {
       await updateBookingStatus(bookingId, 'cancelled');
