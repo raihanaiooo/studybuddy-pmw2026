@@ -176,15 +176,18 @@ class _AvailabilityTab extends StatelessWidget {
                     width: 38,
                     height: 38,
                     decoration: BoxDecoration(
-                      color: (booked ? AppColors.textLight : AppColors.onlineGreen)
-                          .withOpacity(0.1),
+                      color:
+                          (booked ? AppColors.textLight : AppColors.onlineGreen)
+                              .withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     alignment: Alignment.center,
                     child: Icon(
                       Icons.access_time,
                       size: 18,
-                      color: booked ? AppColors.textLight : AppColors.onlineGreen,
+                      color: booked
+                          ? AppColors.textLight
+                          : AppColors.onlineGreen,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -199,7 +202,7 @@ class _AvailabilityTab extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           '${AppDateUtils.formatTime(slot.startTime)} - '
-                          '${AppDateUtils.formatTime(slot.endTime)} ${slot.timezone}',
+                          '${AppDateUtils.formatTime(slot.endTime)}',
                           style: AppTextStyles.caption,
                         ),
                       ],
@@ -250,7 +253,9 @@ class _AvailabilityTab extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheetState) => Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          ),
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: const BoxDecoration(
@@ -311,8 +316,13 @@ class _AvailabilityTab extends StatelessWidget {
                   height: 50,
                   child: ElevatedButton(
                     onPressed: () {
-                      if (date == null || startTime == null || endTime == null) {
-                        Get.snackbar('Perhatian', 'Lengkapi tanggal & jam dulu');
+                      if (date == null ||
+                          startTime == null ||
+                          endTime == null) {
+                        Get.snackbar(
+                          'Perhatian',
+                          'Lengkapi tanggal & jam dulu',
+                        );
                         return;
                       }
                       final start = DateTime(
