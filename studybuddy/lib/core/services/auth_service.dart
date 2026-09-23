@@ -23,6 +23,8 @@ class AuthService {
     required String role,
     required String phone,
     String? jenjang,
+    String? parentName,
+    String? parentPhone,
   }) async {
     final response = await _client.auth.signUp(
       email: email,
@@ -32,6 +34,9 @@ class AuthService {
 
     if (response.user == null) throw Exception('Registrasi gagal: user null');
 
+    final now = DateTime.now().toIso8601String();
+    final isMinorWithConsent = jenjang == 'SMP' && parentName != null;
+
     final userData = {
       'id': response.user!.id,
       'email': email,
@@ -39,7 +44,10 @@ class AuthService {
       'role': role,
       'phone': phone,
       'jenjang': jenjang,
-      'created_at': DateTime.now().toIso8601String(),
+      'parent_name': parentName,
+      'parent_phone': parentPhone,
+      'parent_consent_at': isMinorWithConsent ? now : null,
+      'created_at': now,
     };
 
     await _client.from(SupabaseConstants.tableUsers).insert(userData);

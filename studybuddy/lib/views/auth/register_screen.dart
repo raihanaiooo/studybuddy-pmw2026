@@ -4,6 +4,7 @@ import '../../controllers/auth_controller.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../core/utils/validator_utils.dart';
+import '../../app/routes.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -18,11 +19,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
+  final _parentNameCtrl = TextEditingController();
+  final _parentPhoneCtrl = TextEditingController();
   String _selectedRole = 'buddy';
   String? _selectedJenjang;
   bool _obscure = true;
+  bool _parentConsentChecked = false;
 
   static const _jenjangOptions = ['SMP', 'SMA', 'Mahasiswa', 'Lulusan'];
+
+  bool get _isMinor => _selectedRole == 'buddy' && _selectedJenjang == 'SMP';
 
   @override
   void dispose() {
@@ -30,6 +36,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _emailCtrl.dispose();
     _passCtrl.dispose();
     _phoneCtrl.dispose();
+    _parentNameCtrl.dispose();
+    _parentPhoneCtrl.dispose();
     super.dispose();
   }
 
@@ -154,9 +162,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   items: _jenjangOptions
                       .map((j) => DropdownMenuItem(value: j, child: Text(j)))
                       .toList(),
-                  onChanged: (v) => setState(() => _selectedJenjang = v),
+                  onChanged: (v) => setState(() {
+                    _selectedJenjang = v;
+                    if (v != 'SMP') _parentConsentChecked = false;
+                  }),
                   validator: (v) => v == null ? 'Jenjang wajib dipilih' : null,
                 ),
+                const SizedBox(height: 16),
+              ],
+
+              if (_isMinor) ...[
+                _buildParentConsentSection(),
                 const SizedBox(height: 16),
               ],
 
@@ -205,18 +221,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     onPressed: controller.isLoading.value
                         ? null
                         : () {
-                            if (_formKey.currentState!.validate()) {
-                              controller.register(
-                                email: _emailCtrl.text,
-                                password: _passCtrl.text,
-                                fullName: _nameCtrl.text,
-                                role: _selectedRole,
-                                phone: _phoneCtrl.text,
-                                jenjang: _selectedRole == 'buddy'
-                                    ? _selectedJenjang
-                                    : null,
+                            if (!_formKey.currentState!.validate()) return;
+                            if (_isMinor && !_parentConsentChecked) {
+                              Get.snackbar(
+                                'Persetujuan Diperlukan',
+                                'Orang tua/wali harus menyetujui pendaftaran untuk Buddy jenjang SMP.',
                               );
+                              return;
                             }
+                            controller.register(
+                              email: _emailCtrl.text,
+                              password: _passCtrl.text,
+                              fullName: _nameCtrl.text,
+                              role: _selectedRole,
+                              phone: _phoneCtrl.text,
+                              jenjang: _selectedRole == 'buddy'
+                                  ? _selectedJenjang
+                                  : null,
+                              parentName: _isMinor
+                                  ? _parentNameCtrl.text
+                                  : null,
+                              parentPhone: _isMinor
+                                  ? _parentPhoneCtrl.text
+                                  : null,
+                            );
                           },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryBlue,
@@ -245,11 +273,102 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  Widget _buildParentConsentSection() => Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: AppColors.primaryYellow.withOpacity(0.08),
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: AppColors.primaryYellow.withOpacity(0.3)),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(
+              Icons.family_restroom,
+              color: AppColors.primaryYellow,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Persetujuan Orang Tua/Wali',
+                style: AppTextStyles.bodySemiBold.copyWith(
+                  color: AppColors.primaryYellow,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Karena kamu masih SMP, pendaftaran ini perlu persetujuan orang tua/wali.',
+          style: AppTextStyles.caption,
+        ),
+        const SizedBox(height: 12),
+        _label('Nama Orang Tua/Wali'),
+        const SizedBox(height: 6),
+        TextFormField(
+          controller: _parentNameCtrl,
+          validator: (v) => _isMinor && (v == null || v.trim().isEmpty)
+              ? 'Nama orang tua wajib diisi'
+              : null,
+          decoration: _inputDeco(
+            'Nama lengkap orang tua/wali',
+            Icons.person_outline,
+          ),
+        ),
+        const SizedBox(height: 12),
+        _label('Nomor HP Orang Tua/Wali'),
+        const SizedBox(height: 6),
+        TextFormField(
+          controller: _parentPhoneCtrl,
+          keyboardType: TextInputType.phone,
+          validator: (v) => _isMinor && (v == null || v.trim().isEmpty)
+              ? 'Nomor HP orang tua wajib diisi'
+              : null,
+          decoration: _inputDeco('08xxxxxxxxxx', Icons.phone_outlined),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Checkbox(
+              value: _parentConsentChecked,
+              onChanged: (v) =>
+                  setState(() => _parentConsentChecked = v ?? false),
+              activeColor: AppColors.primaryBlue,
+            ),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => setState(
+                  () => _parentConsentChecked = !_parentConsentChecked,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Text(
+                    'Saya menyatakan bahwa orang tua/wali saya telah menyetujui pendaftaran dan penggunaan aplikasi Study Buddy.',
+                    style: AppTextStyles.caption,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+
   Widget _roleTab(String role, String label) => Expanded(
     child: GestureDetector(
       onTap: () => setState(() {
         _selectedRole = role;
-        if (role == 'tutor') _selectedJenjang = null;
+        if (role == 'tutor') {
+          _selectedJenjang = null;
+          _parentConsentChecked = false;
+        }
       }),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),

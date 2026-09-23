@@ -64,6 +64,8 @@ class AuthController extends GetxController {
     required String role,
     required String phone,
     String? jenjang,
+    String? parentName,
+    String? parentPhone,
   }) async {
     isLoading.value = true;
     errorMessage.value = '';
@@ -75,6 +77,8 @@ class AuthController extends GetxController {
         role: role,
         phone: phone,
         jenjang: jenjang,
+        parentName: parentName,
+        parentPhone: parentPhone,
       );
       currentUser.value = user;
       _redirectAfterRegister(user.role);

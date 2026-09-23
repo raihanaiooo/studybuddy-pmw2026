@@ -9,6 +9,9 @@ class UserModel {
   final String? phone;
   final String? jenjang;
   final List<String> interestedSubjects;
+  final String? parentName;
+  final String? parentPhone;
+  final DateTime? parentConsentAt;
 
   const UserModel({
     required this.id,
@@ -21,6 +24,9 @@ class UserModel {
     this.phone,
     this.jenjang,
     this.interestedSubjects = const [],
+    this.parentName,
+    this.parentPhone,
+    this.parentConsentAt,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map) => UserModel(
@@ -36,6 +42,11 @@ class UserModel {
     interestedSubjects: List<String>.from(
       map['interested_subjects'] as List? ?? [],
     ),
+    parentName: map['parent_name'] as String?,
+    parentPhone: map['parent_phone'] as String?,
+    parentConsentAt: map['parent_consent_at'] != null
+        ? _parseDateTime(map['parent_consent_at'])
+        : null,
   );
 
   static DateTime _parseDateTime(dynamic value) {
@@ -55,6 +66,10 @@ class UserModel {
     return DateTime.now();
   }
 
+  bool get isMinor => jenjang == 'SMP';
+  bool get hasParentConsent => parentConsentAt != null;
+  bool get needsParentConsent => isMinor && !hasParentConsent;
+
   Map<String, dynamic> toMap() => {
     'id': id,
     'email': email,
@@ -66,6 +81,9 @@ class UserModel {
     'phone': phone,
     'jenjang': jenjang,
     'interested_subjects': interestedSubjects,
+    'parent_name': parentName,
+    'parent_phone': parentPhone,
+    'parent_consent_at': parentConsentAt?.toIso8601String(),
   };
 
   UserModel copyWith({
@@ -73,6 +91,9 @@ class UserModel {
     Object? phone = _unset,
     Object? jenjang = _unset,
     Object? interestedSubjects = _unset,
+    Object? parentName = _unset,
+    Object? parentPhone = _unset,
+    Object? parentConsentAt = _unset,
   }) => UserModel(
     id: id,
     email: email,
@@ -86,6 +107,15 @@ class UserModel {
     interestedSubjects: identical(interestedSubjects, _unset)
         ? this.interestedSubjects
         : interestedSubjects as List<String>,
+    parentName: identical(parentName, _unset)
+        ? this.parentName
+        : parentName as String?,
+    parentPhone: identical(parentPhone, _unset)
+        ? this.parentPhone
+        : parentPhone as String?,
+    parentConsentAt: identical(parentConsentAt, _unset)
+        ? this.parentConsentAt
+        : parentConsentAt as DateTime?,
   );
 }
 
