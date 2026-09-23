@@ -3,11 +3,9 @@ import '../constants/supabase_constants.dart';
 import 'supabase_service.dart';
 import '../../models/user_model.dart';
 
-/// Service layer untuk semua operasi autentikasi via Supabase Auth
 class AuthService {
   SupabaseClient get _client => SupabaseService.client;
 
-  /// Login dengan email dan password
   Future<AuthResponse> signIn({
     required String email,
     required String password,
@@ -18,39 +16,13 @@ class AuthService {
     );
   }
 
-  /// Registrasi user baru, simpan data ke tabel users
-  // Future<UserModel> signUp({
-  //   required String email,
-  //   required String password,
-  //   required String fullName,
-  //   required String role, // 'customer' | 'tutor'
-  // }) async {
-  //   final response = await _client.auth.signUp(
-  //     email: email,
-  //     password: password,
-  //     data: {'full_name': fullName, 'role': role},
-  //   );
-
-  //   if (response.user == null) throw Exception('Registrasi gagal');
-
-  //   final userData = {
-  //     'id': response.user!.id,
-  //     'email': email,
-  //     'full_name': fullName,
-  //     'role': role,
-  //     'created_at': DateTime.now().toIso8601String(),
-  //   };
-
-  //   await _client.from(SupabaseConstants.tableUsers).insert(userData);
-
-  //   return UserModel.fromMap(userData);
-  // }
-
   Future<UserModel> signUp({
     required String email,
     required String password,
     required String fullName,
     required String role,
+    required String phone,
+    String? jenjang,
   }) async {
     final response = await _client.auth.signUp(
       email: email,
@@ -65,6 +37,8 @@ class AuthService {
       'email': email,
       'full_name': fullName,
       'role': role,
+      'phone': phone,
+      'jenjang': jenjang,
       'created_at': DateTime.now().toIso8601String(),
     };
 
@@ -73,18 +47,14 @@ class AuthService {
     return UserModel.fromMap(userData);
   }
 
-  /// Kirim email reset password (FR-AUTH-05) melalui mekanisme Supabase Auth
-  /// yang sama dengan login & registrasi.
   Future<void> resetPassword({required String email}) async {
     await _client.auth.resetPasswordForEmail(email);
   }
 
-  /// Logout user
   Future<void> signOut() async {
     await _client.auth.signOut();
   }
 
-  /// Ambil data user yang sedang login dari tabel users
   Future<UserModel?> getCurrentUser() async {
     final authUser = _client.auth.currentUser;
     if (authUser == null) return null;
@@ -98,7 +68,6 @@ class AuthService {
     return UserModel.fromMap(data);
   }
 
-  /// Update status online tutor
   Future<void> updateOnlineStatus({
     required String tutorId,
     required bool isOnline,

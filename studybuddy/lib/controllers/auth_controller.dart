@@ -1,17 +1,15 @@
 import 'package:get/get.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/services/auth_service.dart';
 import '../models/user_model.dart';
 import '../app/routes.dart';
 
-/// Controller autentikasi: login, register, logout, dan state user
 class AuthController extends GetxController {
   final _authService = AuthService();
 
   final Rx<UserModel?> currentUser = Rx<UserModel?>(null);
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
-
-  /// True setelah email reset password berhasil dikirim (FR-AUTH-05).
   final RxBool resetEmailSent = false.obs;
 
   @override
@@ -20,22 +18,16 @@ class AuthController extends GetxController {
     _loadCurrentUser();
   }
 
-  /// Load user dari Supabase saat controller init
   Future<void> _loadCurrentUser() async {
     try {
       final user = await _authService.getCurrentUser();
       currentUser.value = user;
     } catch (e) {
-      // Anggap belum login (mis. session kosong), tapi tetap catat jejak
-      // supaya error jaringan/Supabase asli tidak tersamar diam-diam
-      // sebagai "belum login" biasa.
-      // ignore: avoid_print
       print('AuthController._loadCurrentUser gagal: $e');
       currentUser.value = null;
     }
   }
 
-  /// Login dan redirect ke dashboard sesuai role
   Future<void> login(String email, String password) async {
     isLoading.value = true;
     errorMessage.value = '';
@@ -43,20 +35,35 @@ class AuthController extends GetxController {
       await _authService.signIn(email: email, password: password);
       final user = await _authService.getCurrentUser();
       currentUser.value = user;
-      _redirectByRole(user?.role);
-    } catch (e) {
+
+      if (user == null) {
+        errorMessage.value = 'Profil tidak ditemukan';
+        return;
+      }
+
+      _redirectByRole(user.role);
+    } on AuthException catch (e) {
+      print('AUTH EXCEPTION: ${e.message}');
       errorMessage.value = 'Email atau password salah';
+    } on PostgrestException catch (e) {
+      print('POSTGREST EXCEPTION: ${e.message}');
+      errorMessage.value = 'Gagal memuat profil: ${e.message}';
+    } catch (e, st) {
+      print('UNKNOWN ERROR: $e');
+      print(st);
+      errorMessage.value = 'Terjadi kesalahan: $e';
     } finally {
       isLoading.value = false;
     }
   }
 
-  /// Register dan redirect ke dashboard
   Future<void> register({
     required String email,
     required String password,
     required String fullName,
     required String role,
+    required String phone,
+    String? jenjang,
   }) async {
     isLoading.value = true;
     errorMessage.value = '';
@@ -66,20 +73,26 @@ class AuthController extends GetxController {
         password: password,
         fullName: fullName,
         role: role,
+        phone: phone,
+        jenjang: jenjang,
       );
       currentUser.value = user;
-      _redirectByRole(user.role);
-    } catch (e) {
+      _redirectAfterRegister(user.role);
+    } on AuthException catch (e) {
+      print('AUTH EXCEPTION: ${e.message}');
+      errorMessage.value = 'Registrasi gagal: ${e.message}';
+    } on PostgrestException catch (e) {
+      print('POSTGREST EXCEPTION: ${e.message}');
+      errorMessage.value = 'Gagal menyimpan profil: ${e.message}';
+    } catch (e, st) {
+      print('UNKNOWN ERROR: $e');
+      print(st);
       errorMessage.value = 'Registrasi gagal. Coba lagi.';
     } finally {
       isLoading.value = false;
     }
   }
 
-  /// Kirim email reset password dan tandai hasilnya.
-  ///
-  /// Mekanismenya memakai Supabase Auth (FR-AUTH-05, sama dengan FR-AUTH-03),
-  /// jadi tidak ada alur autentikasi baru yang diperkenalkan.
   Future<bool> resetPassword(String email) async {
     isLoading.value = true;
     errorMessage.value = '';
@@ -96,19 +109,27 @@ class AuthController extends GetxController {
     }
   }
 
-  /// Logout dan kembali ke login screen
   Future<void> logout() async {
     await _authService.signOut();
     currentUser.value = null;
     Get.offAllNamed(AppRoutes.login);
   }
 
-  /// Navigasi berdasarkan role user
   void _redirectByRole(String? role) {
     if (role == 'tutor') {
       Get.offAllNamed(AppRoutes.tutorDashboard);
+    } else if (role == 'admin') {
+      Get.offAllNamed(AppRoutes.customerDashboard);
     } else {
       Get.offAllNamed(AppRoutes.customerDashboard);
+    }
+  }
+
+  void _redirectAfterRegister(String? role) {
+    if (role == 'tutor') {
+      Get.offAllNamed(AppRoutes.tutorOnboarding);
+    } else {
+      Get.offAllNamed(AppRoutes.buddyOnboarding);
     }
   }
 }

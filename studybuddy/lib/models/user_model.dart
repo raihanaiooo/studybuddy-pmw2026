@@ -1,19 +1,15 @@
-/// Model data user (customer & tutor)
 class UserModel {
   final String id;
   final String email;
   final String fullName;
-  final String role; // 'customer' | 'tutor' | 'management'
+  final String role;
   final String? avatarUrl;
   final String? fcmToken;
   final DateTime createdAt;
-
-  // Field profil Buddy (FR-PROF-01) — opsional, menunggu kontrak BE final
-  // untuk kolom ini di tabel users (lihat SRS 4.1).
   final String? phone;
   final int? age;
-  final String? gradeLevel; // jenjang: SMP/SMA/Mahasiswa/Lulusan/Umum
-  final String? school; // asal sekolah/kampus
+  final String? gradeLevel;
+  final String? school;
   final List<String> interestedSubjects;
 
   const UserModel({
@@ -38,15 +34,32 @@ class UserModel {
     role: map['role'] as String,
     avatarUrl: map['avatar_url'] as String?,
     fcmToken: map['fcm_token'] as String?,
-    createdAt: DateTime.parse(map['created_at'] as String),
+    createdAt: _parseDateTime(map['created_at']),
     phone: map['phone'] as String?,
     age: map['usia'] as int?,
-    gradeLevel: map['kelas'] as String?,
+    gradeLevel: (map['jenjang'] ?? map['kelas']) as String?,
     school: map['asal_sekolah'] as String?,
     interestedSubjects: List<String>.from(
       map['mata_pelajaran_diminati'] as List? ?? [],
     ),
   );
+
+  static DateTime _parseDateTime(dynamic value) {
+    if (value == null) return DateTime.now();
+    if (value is DateTime) return value;
+    if (value is String) {
+      try {
+        return DateTime.parse(value);
+      } catch (_) {
+        var normalized = value.replaceFirst(' ', 'T');
+        if (RegExp(r'[+-]\d{2}$').hasMatch(normalized)) {
+          normalized = '${normalized}:00';
+        }
+        return DateTime.parse(normalized);
+      }
+    }
+    return DateTime.now();
+  }
 
   Map<String, dynamic> toMap() => {
     'id': id,
@@ -57,16 +70,9 @@ class UserModel {
     'fcm_token': fcmToken,
     'created_at': createdAt.toIso8601String(),
     'phone': phone,
-    'usia': age,
-    'kelas': gradeLevel,
-    'asal_sekolah': school,
-    'mata_pelajaran_diminati': interestedSubjects,
+    'jenjang': gradeLevel,
   };
 
-  /// [phone]/[age]/[gradeLevel]/[school] default ke sentinel [_unset], bukan
-  /// null, supaya null yang sengaja dikirim (mis. mengosongkan field di
-  /// form edit) benar-benar tersimpan sebagai null alih-alih dianggap
-  /// "tidak diubah" dan diam-diam jatuh balik ke nilai lama.
   UserModel copyWith({
     String? fullName,
     Object? phone = _unset,
@@ -92,6 +98,4 @@ class UserModel {
   );
 }
 
-/// Sentinel pembeda "parameter tidak dikirim" dari "dikirim null secara
-/// sengaja" pada [UserModel.copyWith].
 const Object _unset = Object();

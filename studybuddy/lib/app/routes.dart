@@ -2,6 +2,9 @@ import 'package:get/get.dart';
 import '../views/auth/splash_screen.dart';
 import '../views/auth/login_screen.dart';
 import '../views/auth/register_screen.dart';
+import '../views/auth/forgot_password_screen.dart';
+import '../views/onboarding/buddy_onboarding_screen.dart';
+import '../views/onboarding/tutor_onboarding_screen.dart';
 import '../views/customer/dashboard_screen.dart';
 import '../views/customer/tutor_list_screen.dart';
 import '../views/customer/tutor_detail_screen.dart';
@@ -38,6 +41,9 @@ class AppRoutes {
   static const splash = '/';
   static const login = '/login';
   static const register = '/register';
+  static const forgotPassword = '/forgot-password';
+  static const buddyOnboarding = '/onboarding/buddy';
+  static const tutorOnboarding = '/onboarding/tutor';
   static const customerDashboard = '/customer/dashboard';
   static const tutorList = '/customer/tutors';
   static const tutorDetail = '/customer/tutor-detail';
@@ -69,6 +75,13 @@ class AppRoutes {
       page: () => const RegisterScreen(),
       binding: BindingsBuilder(() => Get.lazyPut(() => AuthController())),
     ),
+    GetPage(
+      name: forgotPassword,
+      page: () => const ForgotPasswordScreen(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => AuthController())),
+    ),
+    GetPage(name: buddyOnboarding, page: () => const BuddyOnboardingScreen()),
+    GetPage(name: tutorOnboarding, page: () => const TutorOnboardingScreen()),
     GetPage(
       name: customerDashboard,
       page: () => const CustomerDashboardScreen(),

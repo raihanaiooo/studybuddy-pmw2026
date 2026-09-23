@@ -5,7 +5,6 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../core/utils/validator_utils.dart';
 
-/// Screen registrasi dengan pilihan role customer atau tutor
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -18,14 +17,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
-  String _selectedRole = 'customer';
+  final _phoneCtrl = TextEditingController();
+  String _selectedRole = 'buddy';
+  String? _selectedJenjang;
   bool _obscure = true;
+
+  static const _jenjangOptions = ['SMP', 'SMA', 'Mahasiswa', 'Lulusan'];
 
   @override
   void dispose() {
     _nameCtrl.dispose();
     _emailCtrl.dispose();
     _passCtrl.dispose();
+    _phoneCtrl.dispose();
     super.dispose();
   }
 
@@ -60,7 +64,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Role tabs
               Text(
                 'Daftar sebagai',
                 style: AppTextStyles.bodySemiBold.copyWith(
@@ -76,7 +79,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 child: Row(
                   children: [
-                    _roleTab('customer', '🎓 Customer'),
+                    _roleTab('buddy', '🎓 Buddy'),
                     _roleTab('tutor', '👨‍🏫 Tutor'),
                   ],
                 ),
@@ -94,7 +97,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                     child: Text(
-                      '⚠️ Pendaftaran tutor memerlukan approval dari manajemen sesuai jadwal oprec yang tersedia.',
+                      '⚠️ Setelah mendaftar, kamu perlu mengunggah dokumen verifikasi sebelum bisa menerima booking.',
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.primaryYellow,
                         fontWeight: FontWeight.w600,
@@ -128,6 +131,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: 16),
+
+              _label('Nomor HP'),
+              const SizedBox(height: 6),
+              TextFormField(
+                controller: _phoneCtrl,
+                keyboardType: TextInputType.phone,
+                validator: (v) => ValidatorUtils.required(v, 'Nomor HP'),
+                decoration: _inputDeco('08xxxxxxxxxx', Icons.phone_outlined),
+              ),
+              const SizedBox(height: 16),
+
+              if (_selectedRole == 'buddy') ...[
+                _label('Jenjang Pendidikan'),
+                const SizedBox(height: 6),
+                DropdownButtonFormField<String>(
+                  value: _selectedJenjang,
+                  decoration: _inputDeco(
+                    'Pilih jenjang',
+                    Icons.school_outlined,
+                  ),
+                  items: _jenjangOptions
+                      .map((j) => DropdownMenuItem(value: j, child: Text(j)))
+                      .toList(),
+                  onChanged: (v) => setState(() => _selectedJenjang = v),
+                  validator: (v) => v == null ? 'Jenjang wajib dipilih' : null,
+                ),
+                const SizedBox(height: 16),
+              ],
 
               _label('Password'),
               const SizedBox(height: 6),
@@ -180,6 +211,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 password: _passCtrl.text,
                                 fullName: _nameCtrl.text,
                                 role: _selectedRole,
+                                phone: _phoneCtrl.text,
+                                jenjang: _selectedRole == 'buddy'
+                                    ? _selectedJenjang
+                                    : null,
                               );
                             }
                           },
@@ -212,7 +247,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Widget _roleTab(String role, String label) => Expanded(
     child: GestureDetector(
-      onTap: () => setState(() => _selectedRole = role),
+      onTap: () => setState(() {
+        _selectedRole = role;
+        if (role == 'tutor') _selectedJenjang = null;
+      }),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 10),

@@ -6,7 +6,6 @@ import '../../core/constants/app_text_styles.dart';
 import '../../core/utils/validator_utils.dart';
 import '../../app/routes.dart';
 
-/// Screen login dengan pilihan role customer atau tutor
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -34,12 +33,10 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Gradient background
           Container(
             height: MediaQuery.of(context).size.height * 0.5,
             decoration: const BoxDecoration(gradient: AppColors.headerGradient),
           ),
-          // Blob decorations
           Positioned(
             top: -80,
             right: -80,
@@ -50,11 +47,9 @@ class _LoginScreenState extends State<LoginScreen> {
             left: -60,
             child: _blob(180, AppColors.primaryYellow.withOpacity(0.12)),
           ),
-
           SafeArea(
             child: Column(
               children: [
-                // Logo & title
                 Padding(
                   padding: const EdgeInsets.fromLTRB(30, 56, 30, 30),
                   child: Column(
@@ -98,8 +93,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                 ),
-
-                // Bottom sheet
                 Expanded(
                   child: Container(
                     decoration: const BoxDecoration(
@@ -146,7 +139,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             const SizedBox(height: 24),
 
-                            // Email field
                             _buildLabel('Email'),
                             const SizedBox(height: 6),
                             TextFormField(
@@ -160,7 +152,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             const SizedBox(height: 16),
 
-                            // Password field
                             _buildLabel('Password'),
                             const SizedBox(height: 6),
                             TextFormField(
@@ -183,9 +174,25 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 28),
 
-                            // Error message
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: GestureDetector(
+                                onTap: () =>
+                                    Get.toNamed(AppRoutes.forgotPassword),
+                                child: Text(
+                                  'Lupa Password?',
+                                  style: AppTextStyles.caption.copyWith(
+                                    color: AppColors.primaryBlue,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 20),
+
                             Obx(
                               () => controller.errorMessage.value.isNotEmpty
                                   ? Padding(
@@ -202,7 +209,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                   : const SizedBox(),
                             ),
 
-                            // Login button
                             Obx(
                               () => SizedBox(
                                 width: double.infinity,
@@ -249,7 +255,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             const SizedBox(height: 20),
 
-                            // Daftar link
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [

@@ -5,7 +5,6 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../app/routes.dart';
 
-/// Splash screen: cek session aktif lalu redirect
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -20,19 +19,33 @@ class _SplashScreenState extends State<SplashScreen> {
     _checkSession();
   }
 
-  /// Cek apakah user sudah login, redirect ke dashboard atau login
   Future<void> _checkSession() async {
     await Future.delayed(const Duration(seconds: 2));
+
     final session = SupabaseService.auth.currentSession;
-    if (session != null) {
-      // final role = session.user.userMetadata?['role'] as String?;
-      final role = session.user.userMetadata?['role']?.toString();
+    if (session == null) {
+      Get.offAllNamed(AppRoutes.login);
+      return;
+    }
+
+    try {
+      final data = await SupabaseService.client
+          .from('users')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+
+      final role = data['role'] as String?;
+
       if (role == 'tutor') {
         Get.offAllNamed(AppRoutes.tutorDashboard);
+      } else if (role == 'admin') {
+        Get.offAllNamed(AppRoutes.customerDashboard);
       } else {
         Get.offAllNamed(AppRoutes.customerDashboard);
       }
-    } else {
+    } catch (e) {
+      print('SplashScreen._checkSession gagal: $e');
       Get.offAllNamed(AppRoutes.login);
     }
   }
