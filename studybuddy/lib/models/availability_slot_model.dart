@@ -1,18 +1,15 @@
-/// Slot jadwal ketersediaan yang diatur Tutor sendiri (FR-BOOK-01)
 class AvailabilitySlotModel {
   final String id;
   final String tutorId;
   final DateTime startTime;
   final DateTime endTime;
-  final String timezone; // WIB | WITA | WIT
-  final String status; // 'available' | 'booked'
+  final String status;
 
   const AvailabilitySlotModel({
     required this.id,
     required this.tutorId,
     required this.startTime,
     required this.endTime,
-    this.timezone = 'WIB',
     this.status = 'available',
   });
 
@@ -20,18 +17,32 @@ class AvailabilitySlotModel {
       AvailabilitySlotModel(
         id: map['id'] as String,
         tutorId: map['tutor_id'] as String,
-        startTime: DateTime.parse(map['waktu_mulai'] as String),
-        endTime: DateTime.parse(map['waktu_selesai'] as String),
-        timezone: map['zona_waktu'] as String? ?? 'WIB',
+        startTime: _parseDateTime(map['start_time']),
+        endTime: _parseDateTime(map['end_time']),
         status: map['status'] as String? ?? 'available',
       );
 
   Map<String, dynamic> toMap() => {
     'id': id,
     'tutor_id': tutorId,
-    'waktu_mulai': startTime.toIso8601String(),
-    'waktu_selesai': endTime.toIso8601String(),
-    'zona_waktu': timezone,
+    'start_time': startTime.toIso8601String(),
+    'end_time': endTime.toIso8601String(),
     'status': status,
   };
+
+  static DateTime _parseDateTime(dynamic value) {
+    if (value is DateTime) return value;
+    if (value is String) {
+      try {
+        return DateTime.parse(value);
+      } catch (_) {
+        var normalized = value.replaceFirst(' ', 'T');
+        if (RegExp(r'[+-]\d{2}$').hasMatch(normalized)) {
+          normalized = '${normalized}:00';
+        }
+        return DateTime.parse(normalized);
+      }
+    }
+    return DateTime.now();
+  }
 }

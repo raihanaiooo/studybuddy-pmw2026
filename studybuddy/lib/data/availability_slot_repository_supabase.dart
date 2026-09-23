@@ -5,25 +5,7 @@ import '../core/services/supabase_service.dart';
 import '../domain/availability_slot_repository.dart';
 import '../domain/slot_booking_policy.dart';
 
-/// ═══════════════════ PERINGATAN KONTRAK (ISOLASI ASUMSI) ═══════════════════
-///
-/// Ini SATU-SATUNYA tempat di kodebase yang mengetahui nama tabel/kolom slot.
-/// SRS §4.1 memberi nama entitas & atribut kunci secara *indikatif*
-/// (`AvailabilitySlot`: `tutor_id, waktu_mulai, waktu_selesai, status`) dan
-/// kode yang berjalan hari ini tidak pernah menyentuh tabel ini, sehingga
-/// kontrak C-SLOT-01..08 BELUM TERVERIFIKASI. Nilai di bawah adalah asumsi
-/// eksplisit mengikuti penamaan tabel-kolom Bahasa Indonesia yang TERBUKTI
-/// dipakai tabel `bookings`/`reviews`/`sessions` yang sudah terpakai —
-/// BUKAN kontrak yang dikonfirmasi Back-End.
-///
-/// Bila asumsi keliru, PostgrestException "relation/column does not exist"
-/// akan dibungkus menjadi [AvailabilitySlotBackendMissingException] sehingga
-/// pemanggil menandai kontrak hilang alih-alih berpura-pura berhasil.
-/// Jawaban resmi C-SLOT-01..08 cukup untuk mengoreksi berkas ini saja.
-/// ═══════════════════════════════════════════════════════════════════════════
 class AvailabilitySlotRepositorySupabase implements AvailabilitySlotRepository {
-  /// ASUMSI (tidak terverifikasi): nama tabel slot. Belum ada konstantanya
-  /// di `SupabaseConstants` karena kontraknya belum dijawab.
   static const String _tableSlots = 'availability_slots';
 
   SupabaseClient get _client => SupabaseService.client;
@@ -35,7 +17,7 @@ class AvailabilitySlotRepositorySupabase implements AvailabilitySlotRepository {
           .from(_tableSlots)
           .select()
           .eq('tutor_id', tutorId)
-          .order('waktu_mulai', ascending: true);
+          .order('start_time', ascending: true);
       return (data as List)
           .map((e) => _toRef(e as Map<String, dynamic>))
           .toList();
@@ -51,9 +33,8 @@ class AvailabilitySlotRepositorySupabase implements AvailabilitySlotRepository {
           .from(_tableSlots)
           .insert({
             'tutor_id': draft.tutorId,
-            'waktu_mulai': draft.startTime.toIso8601String(),
-            'waktu_selesai': draft.endTime.toIso8601String(),
-            'zona_waktu': draft.timezone,
+            'start_time': draft.startTime.toIso8601String(),
+            'end_time': draft.endTime.toIso8601String(),
             'status': SlotStatus.available,
           })
           .select()
@@ -79,9 +60,6 @@ class AvailabilitySlotRepositorySupabase implements AvailabilitySlotRepository {
     required Map<String, dynamic> bookingValues,
   }) async {
     try {
-      // Langkah 1 — kunci kondisional di server (FR-BOOK-04): baris slot
-      // hanya berpindah available → booked BILA masih available. Dua Buddy
-      // yang bersaing menghasilkan tepat satu pemenang.
       final locked = await _client
           .from(_tableSlots)
           .update({'status': SlotStatus.booked})
@@ -93,14 +71,13 @@ class AvailabilitySlotRepositorySupabase implements AvailabilitySlotRepository {
         return const BookingSlotOutcome.taken();
       }
 
-      // Langkah 2 — tulis booking (bentuk baris bookings TERVERIFIKASI:
-      // dipakai createBooking yang sudah berjalan).
-      await _client.from(SupabaseConstants.tableBookings).insert(bookingValues);
+      final valuesWithSlot = {...bookingValues, 'slot_id': slotId};
+
+      await _client
+          .from(SupabaseConstants.tableBookings)
+          .insert(valuesWithSlot);
       return const BookingSlotOutcome.success();
     } on PostgrestException catch (e) {
-      // Langkah 3 — kompensasi best-effort: booking gagal ⇒ slot jangan
-      // tertinggal terkunci. Transaksi DB penuh bukan bagian kontrak yang
-      // bisa diverifikasi dari klien (C-SLOT-05 tetap terbuka).
       try {
         await _client
             .from(_tableSlots)
@@ -108,8 +85,7 @@ class AvailabilitySlotRepositorySupabase implements AvailabilitySlotRepository {
             .eq('id', slotId)
             .eq('status', SlotStatus.booked);
       } on PostgrestException {
-        // Tidak ada yang lebih bisa dilakukan klien — biarkan error utama
-        // yang naik; slot berpotensi perlu dilepas manual oleh BE.
+        // best-effort compensation
       }
       throw _wrapMissing(e);
     }
@@ -118,16 +94,27 @@ class AvailabilitySlotRepositorySupabase implements AvailabilitySlotRepository {
   AvailabilitySlotRef _toRef(Map<String, dynamic> map) => AvailabilitySlotRef(
     id: map['id'] as String,
     tutorId: map['tutor_id'] as String,
-    startTime: DateTime.parse(map['waktu_mulai'] as String),
-    endTime: DateTime.parse(map['waktu_selesai'] as String),
+    startTime: _parseDateTime(map['start_time']),
+    endTime: _parseDateTime(map['end_time']),
     status: map['status'] as String? ?? SlotStatus.available,
-    timezone: map['zona_waktu'] as String? ?? 'WIB',
   );
 
-  /// Pembungkus tunggal untuk gagal-kenal-skema: semua kegagalan
-  /// PostgrestException dari tabel slot dilaporkan sebagai kontrak hilang
-  /// (relasi/kolom tidak dikenal) ALIH-ALIH error tak berarah — sehingga
-  /// pengujian lapangan langsung menunjuk C-SLOT-01..08 yang harus dijawab.
+  static DateTime _parseDateTime(dynamic value) {
+    if (value is DateTime) return value;
+    if (value is String) {
+      try {
+        return DateTime.parse(value);
+      } catch (_) {
+        var normalized = value.replaceFirst(' ', 'T');
+        if (RegExp(r'[+-]\d{2}$').hasMatch(normalized)) {
+          normalized = '${normalized}:00';
+        }
+        return DateTime.parse(normalized);
+      }
+    }
+    return DateTime.now();
+  }
+
   AvailabilitySlotBackendMissingException _wrapMissing(PostgrestException e) {
     final m = e.message.toLowerCase();
     final missing =
@@ -136,14 +123,12 @@ class AvailabilitySlotRepositorySupabase implements AvailabilitySlotRepository {
         m.contains('schema cache');
     return missing
         ? AvailabilitySlotBackendMissingException(
-          'Kontrak AvailabilitySlot (C-SLOT-01..08) belum terverifikasi: '
-          'tabel/kolom "$_tableSlots" tidak dikenal backend. '
-          'Minta jawaban kontrak ke pemilik Back-End sebelum lanjut.',
-          e,
-        )
+            'Kontrak AvailabilitySlot tidak dikenal backend: ${e.message}',
+            e,
+          )
         : AvailabilitySlotBackendMissingException(
-          'Operasi slot gagal (bukan skema): ${e.message}',
-          e,
-        );
+            'Operasi slot gagal: ${e.message}',
+            e,
+          );
   }
 }
