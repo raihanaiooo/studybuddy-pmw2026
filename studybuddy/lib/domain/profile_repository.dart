@@ -26,8 +26,9 @@ class TutorProfileData {
   final String fullName;
   final String bio;
   final List<String> subjects;
+  final List<String> jenjangDiajar;
   final String? verificationStatus;
-  final String? rejectionReason;
+  final String? verificationNote;
 
   const TutorProfileData({
     required this.id,
@@ -35,8 +36,9 @@ class TutorProfileData {
     required this.fullName,
     required this.bio,
     required this.subjects,
+    this.jenjangDiajar = const [],
     this.verificationStatus,
-    this.rejectionReason,
+    this.verificationNote,
   });
 }
 
@@ -89,11 +91,11 @@ class BuddyProfilePatch {
 class TutorProfilePatch {
   final String? bio;
   final List<String>? subjects;
-  final List<String>? extraSkills;
+  final List<String>? jenjangDiajar;
 
-  const TutorProfilePatch({this.bio, this.subjects, this.extraSkills});
+  const TutorProfilePatch({this.bio, this.subjects, this.jenjangDiajar});
 
-  bool get isEmpty => bio == null && subjects == null && extraSkills == null;
+  bool get isEmpty => bio == null && subjects == null && jenjangDiajar == null;
 }
 
 enum SrsDocumentType {

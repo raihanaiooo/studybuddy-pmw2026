@@ -78,8 +78,9 @@ class ProfileRepositorySupabase implements ProfileRepository {
         fullName: data['full_name'] as String? ?? '',
         bio: data['bio'] as String? ?? '',
         subjects: List<String>.from(data['subjects'] as List? ?? []),
+        jenjangDiajar: List<String>.from(data['jenjang_diajar'] as List? ?? []),
         verificationStatus: data['verification_status'] as String?,
-        rejectionReason: data['verification_note'] as String?,
+        verificationNote: data['verification_note'] as String?,
       );
     } on PostgrestException catch (e) {
       throw _wrapMissing(e, 'tutors');
@@ -95,6 +96,7 @@ class ProfileRepositorySupabase implements ProfileRepository {
     final values = <String, dynamic>{
       if (patch.bio != null) 'bio': patch.bio,
       if (patch.subjects != null) 'subjects': patch.subjects,
+      if (patch.jenjangDiajar != null) 'jenjang_diajar': patch.jenjangDiajar,
     };
     if (values.isEmpty) {
       throw const ProfileBackendMissingException('Patch profil Tutor kosong.');

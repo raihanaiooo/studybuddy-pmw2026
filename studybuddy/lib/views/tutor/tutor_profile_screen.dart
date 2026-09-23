@@ -8,8 +8,6 @@ import '../../core/constants/app_text_styles.dart';
 import '../shared/widgets/document_tile.dart';
 import '../shared/widgets/verification_badge.dart';
 
-/// Profil Tutor: bio, mapel, kemampuan lain, dokumen verifikasi, & preview
-/// publik (FR-PROF-05..12)
 class TutorProfileScreen extends StatelessWidget {
   const TutorProfileScreen({super.key});
 
@@ -41,14 +39,12 @@ class TutorProfileScreen extends StatelessWidget {
       ),
       body: Obx(() {
         final tutor = profile.tutorProfile.value;
-        // Profil kini dimuat dari backend (C-TUT-01/D-46) — bila belum
-        // tersedia, tampilkan keadaan yang jujur alih-alih data karangan.
         if (tutor == null) {
           final String msg;
           if (profile.profileContractMissing.value) {
             msg = profile.errorMessage.value.isNotEmpty
                 ? profile.errorMessage.value
-                : 'Kontrak profil Tutor (C-TUT-01/D-46) belum tersedia.';
+                : 'Kontrak profil Tutor belum tersedia.';
           } else if (profile.isLoading.value) {
             msg = 'Memuat profil...';
           } else {
@@ -57,7 +53,11 @@ class TutorProfileScreen extends StatelessWidget {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(20),
-              child: Text(msg, textAlign: TextAlign.center, style: AppTextStyles.body),
+              child: Text(
+                msg,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.body,
+              ),
             ),
           );
         }
@@ -69,33 +69,12 @@ class TutorProfileScreen extends StatelessWidget {
               _buildHeader(tutor.fullName, tutor.university),
               const SizedBox(height: 12),
               Row(
-                children: [
-                  VerificationBadge(status: tutor.verificationStatus),
-                  if (tutor.isTutorOfTheMonth) ...[
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryYellow.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '⭐ Tutor of the Month',
-                        style: AppTextStyles.label.copyWith(
-                          color: AppColors.primaryYellow,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
+                children: [VerificationBadge(status: tutor.verificationStatus)],
               ),
               if (tutor.verificationStatus == 'pending' ||
                   tutor.verificationStatus == 'rejected') ...[
                 const SizedBox(height: 12),
-                _pendingBanner(tutor.rejectionReason),
+                _pendingBanner(tutor.verificationNote),
               ],
               const SizedBox(height: 20),
               _buildStatsRow(tutor),
@@ -118,15 +97,15 @@ class TutorProfileScreen extends StatelessWidget {
                           .map((s) => _tagChip(s, AppColors.primaryBlue))
                           .toList(),
                     ),
-                    if (tutor.extraSkills.isNotEmpty) ...[
+                    if (tutor.jenjangDiajar.isNotEmpty) ...[
                       const SizedBox(height: 12),
-                      Text('Kemampuan Lain', style: AppTextStyles.caption),
+                      Text('Jenjang Diajar', style: AppTextStyles.caption),
                       const SizedBox(height: 6),
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: tutor.extraSkills
-                            .map((s) => _tagChip(s, AppColors.accentPurple))
+                        children: tutor.jenjangDiajar
+                            .map((s) => _tagChip(s, AppColors.accentTeal))
                             .toList(),
                       ),
                     ],
@@ -157,7 +136,11 @@ class TutorProfileScreen extends StatelessWidget {
     ),
     child: Row(
       children: [
-        const Icon(Icons.info_outline, color: AppColors.primaryYellow, size: 18),
+        const Icon(
+          Icons.info_outline,
+          color: AppColors.primaryYellow,
+          size: 18,
+        ),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
@@ -179,7 +162,10 @@ class TutorProfileScreen extends StatelessWidget {
       color: Colors.white,
       borderRadius: BorderRadius.circular(20),
       boxShadow: [
-        BoxShadow(color: AppColors.primaryBlue.withOpacity(0.08), blurRadius: 8),
+        BoxShadow(
+          color: AppColors.primaryBlue.withOpacity(0.08),
+          blurRadius: 8,
+        ),
       ],
     ),
     child: Row(
@@ -234,7 +220,10 @@ class TutorProfileScreen extends StatelessWidget {
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
       boxShadow: [
-        BoxShadow(color: AppColors.primaryBlue.withOpacity(0.06), blurRadius: 6),
+        BoxShadow(
+          color: AppColors.primaryBlue.withOpacity(0.06),
+          blurRadius: 6,
+        ),
       ],
     ),
     child: Column(
@@ -274,7 +263,10 @@ class TutorProfileScreen extends StatelessWidget {
       color: Colors.white,
       borderRadius: BorderRadius.circular(18),
       boxShadow: [
-        BoxShadow(color: AppColors.primaryBlue.withOpacity(0.06), blurRadius: 6),
+        BoxShadow(
+          color: AppColors.primaryBlue.withOpacity(0.06),
+          blurRadius: 6,
+        ),
       ],
     ),
     child: child,
@@ -302,7 +294,9 @@ class TutorProfileScreen extends StatelessWidget {
   ) {
     final bioCtrl = TextEditingController(text: tutor.bio);
     final subjectsCtrl = TextEditingController(text: tutor.subjects.join(', '));
-    final skillsCtrl = TextEditingController(text: tutor.extraSkills.join(', '));
+    final jenjangCtrl = TextEditingController(
+      text: tutor.jenjangDiajar.join(', '),
+    );
 
     showModalBottomSheet(
       context: context,
@@ -321,7 +315,10 @@ class TutorProfileScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Edit Bio & Mata Pelajaran', style: AppTextStyles.heading2),
+                Text(
+                  'Edit Bio & Mata Pelajaran',
+                  style: AppTextStyles.heading2,
+                ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: bioCtrl,
@@ -335,8 +332,10 @@ class TutorProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 TextField(
-                  controller: skillsCtrl,
-                  decoration: _inputDeco('Kemampuan Lain (pisahkan koma)'),
+                  controller: jenjangCtrl,
+                  decoration: _inputDeco(
+                    'Jenjang Diajar (pisahkan koma: SMP, SMA, Mahasiswa)',
+                  ),
                 ),
                 const SizedBox(height: 20),
                 Obx(
@@ -345,7 +344,8 @@ class TutorProfileScreen extends StatelessWidget {
                     height: 50,
                     child: ElevatedButton(
                       onPressed: profile.isLoading.value
-                          ? null                            : () async {
+                          ? null
+                          : () async {
                               final ok = await profile.saveTutorProfile(
                                 bio: bioCtrl.text,
                                 subjects: subjectsCtrl.text
@@ -353,14 +353,12 @@ class TutorProfileScreen extends StatelessWidget {
                                     .map((s) => s.trim())
                                     .where((s) => s.isNotEmpty)
                                     .toList(),
-                                extraSkills: skillsCtrl.text
+                                jenjangDiajar: jenjangCtrl.text
                                     .split(',')
                                     .map((s) => s.trim())
                                     .where((s) => s.isNotEmpty)
                                     .toList(),
                               );
-                              // Tutup sheet HANYA saat backend mengonfirmasi
-                              // — saat gagal biarkan pengguna mencoba ulang.
                               if (ok) Get.back();
                             },
                       style: ElevatedButton.styleFrom(
