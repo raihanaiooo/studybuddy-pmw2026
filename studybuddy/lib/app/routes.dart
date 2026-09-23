@@ -36,6 +36,7 @@ import '../controllers/profile_controller.dart';
 import '../controllers/payment_controller.dart';
 import '../controllers/reschedule_controller.dart';
 import '../controllers/payroll_controller.dart';
+import '../controllers/meet_link_controller.dart';
 
 class AppRoutes {
   static const splash = '/';
@@ -158,6 +159,7 @@ class AppRoutes {
       binding: BindingsBuilder(() {
         Get.lazyPut(() => AuthController());
         Get.lazyPut(() => ProfileController());
+        Get.lazyPut(() => MeetLinkController());
       }),
     ),
     GetPage(

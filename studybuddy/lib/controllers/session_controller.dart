@@ -19,11 +19,25 @@ class SessionController extends GetxController {
     errorMessage.value = '';
     currentBooking.value = booking;
 
+    // Kalau tidak ada link yang di-pass, ambil dari session record yang
+    // sudah dibuat saat booking (Varian A)
+    var link = gmeetLink;
+    if (link == null || link.isEmpty) {
+      try {
+        final sessionRow = await SupabaseService.client
+            .from(SupabaseConstants.tableSessions)
+            .select('gmeet_link')
+            .eq('booking_id', booking.id)
+            .maybeSingle();
+        link = sessionRow?['gmeet_link'] as String?;
+      } catch (_) {}
+    }
+
     final sessionData = {
       'booking_id': booking.id,
       'start_time': DateTime.now().toIso8601String(),
       'status': 'ongoing',
-      'gmeet_link': gmeetLink,
+      'gmeet_link': link,
     };
 
     try {
@@ -35,14 +49,13 @@ class SessionController extends GetxController {
 
       currentSession.value = SessionModel.fromMap(data);
 
-      // Update status booking jadi 'ongoing'
       await SupabaseService.client
           .from(SupabaseConstants.tableBookings)
           .update({'status': 'ongoing'})
           .eq('id', booking.id);
 
-      if (gmeetLink != null && gmeetLink.isNotEmpty) {
-        await _launchGmeet(gmeetLink);
+      if (link != null && link.isNotEmpty) {
+        await _launchGmeet(link);
       }
 
       _startTimer();

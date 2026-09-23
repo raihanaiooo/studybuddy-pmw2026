@@ -7,6 +7,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../shared/widgets/document_tile.dart';
 import '../shared/widgets/verification_badge.dart';
+import '../../controllers/meet_link_controller.dart';
 
 class TutorProfileScreen extends StatelessWidget {
   const TutorProfileScreen({super.key});
@@ -120,6 +121,79 @@ class TutorProfileScreen extends StatelessWidget {
                   document: doc,
                   onUpload: () => profile.uploadDocument(doc.id),
                 ),
+              ),
+              const SizedBox(height: 20),
+              _sectionHeader('Link Google Meet'),
+              const SizedBox(height: 8),
+              _cardBox(
+                child: Obx(() {
+                  final meetCtrl = Get.find<MeetLinkController>();
+                  if (meetCtrl.isLoading.value) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Minimal 1 link diperlukan agar Buddy bisa memulai sesi video. '
+                        'Disarankan isi 3 link sebagai cadangan.',
+                        style: AppTextStyles.caption,
+                      ),
+                      const SizedBox(height: 12),
+                      ...meetCtrl.links.map(
+                        (link) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (link.label != null &&
+                                        link.label!.isNotEmpty)
+                                      Text(
+                                        link.label!,
+                                        style: AppTextStyles.bodySemiBold,
+                                      ),
+                                    Text(
+                                      link.meetLink,
+                                      style: AppTextStyles.caption,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete_outline,
+                                  color: AppColors.primaryRed,
+                                  size: 20,
+                                ),
+                                onPressed: () => meetCtrl.removeLink(link.id),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () =>
+                              _openAddMeetLinkSheet(context, meetCtrl),
+                          icon: const Icon(Icons.add, size: 18),
+                          label: const Text('Tambah Link'),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(
+                              color: AppColors.primaryBlue,
+                            ),
+                            foregroundColor: AppColors.primaryBlue,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }),
               ),
             ],
           ),
@@ -286,6 +360,80 @@ class TutorProfileScreen extends StatelessWidget {
       ),
     ),
   );
+
+  void _openAddMeetLinkSheet(BuildContext context, MeetLinkController ctrl) {
+    final urlCtrl = TextEditingController();
+    final labelCtrl = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Tambah Link Meet', style: AppTextStyles.heading2),
+              const SizedBox(height: 16),
+              TextField(
+                controller: urlCtrl,
+                decoration: _inputDeco('https://meet.google.com/xxx-xxxx-xxx'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: labelCtrl,
+                decoration: _inputDeco('Label (opsional, mis: Link Utama)'),
+              ),
+              const SizedBox(height: 20),
+              Obx(
+                () => SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: ctrl.isLoading.value
+                        ? null
+                        : () async {
+                            final ok = await ctrl.addLink(
+                              meetLink: urlCtrl.text,
+                              label: labelCtrl.text.isEmpty
+                                  ? null
+                                  : labelCtrl.text,
+                            );
+                            if (ok) Get.back();
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryBlue,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: ctrl.isLoading.value
+                        ? const CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          )
+                        : const Text(
+                            'Simpan',
+                            style: TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   void _openEditProfileSheet(
     BuildContext context,

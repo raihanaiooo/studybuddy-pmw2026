@@ -13,6 +13,8 @@ import '../models/booking_model.dart';
 import '../models/availability_slot_model.dart';
 import '../models/user_model.dart';
 import '../app/routes.dart';
+import '../data/meet_link_repository_supabase.dart';
+import '../domain/meet_link_repository.dart';
 
 /// Controller untuk pembuatan dan manajemen booking
 class BookingController extends GetxController {
@@ -52,6 +54,7 @@ class BookingController extends GetxController {
   final RxList<BookingModel> tutorBookings = <BookingModel>[].obs;
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
+  final MeetLinkRepository _meetLinks = MeetLinkRepositorySupabase();
 
   // Pilih-slot ala tiket bioskop (FR-BOOK-02/03/04)
   final RxList<AvailabilitySlotModel> availableSlots =
@@ -289,6 +292,13 @@ class BookingController extends GetxController {
         return;
       }
 
+      // FR-SESI-02 Varian A: pasang link Meet otomatis dari link Tutor
+      try {
+        await _attachMeetLinkToLatestBooking(tutorId);
+      } catch (_) {
+        // Booking tetap sukses walau link gagal — Tutor bisa attach nanti
+      }
+
       availableSlots.removeWhere((s) => s.id == slot.id);
       selectedSlot.value = null;
 
@@ -307,6 +317,34 @@ class BookingController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  Future<void> _attachMeetLinkToLatestBooking(String tutorId) async {
+    // Ambil booking terbaru milik user untuk tutor ini
+    final user = await _authService.getCurrentUser();
+    if (user == null) return;
+
+    final latest = await SupabaseService.client
+        .from(SupabaseConstants.tableBookings)
+        .select()
+        .eq('customer_id', user.id)
+        .eq('tutor_id', tutorId)
+        .order('created_at', ascending: false)
+        .limit(1)
+        .maybeSingle();
+    if (latest == null) return;
+
+    // Pilih link Meet aktif (yang pertama by created_at)
+    final meetLink = await _meetLinks.pickOneActive(tutorId);
+    if (meetLink == null) return;
+
+    // Insert session dengan link Meet
+    await SupabaseService.client.from(SupabaseConstants.tableSessions).insert({
+      'booking_id': latest['id'],
+      'start_time': latest['session_time'],
+      'status': 'scheduled',
+      'gmeet_link': meetLink.meetLink,
+    });
   }
 
   /// Batalkan booking
