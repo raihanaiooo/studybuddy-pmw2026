@@ -15,7 +15,6 @@ class ProfileController extends GetxController {
   final _authService = AuthService();
 
   final RxBool isLoading = false.obs;
-  final RxBool isEditing = false.obs;
 
   final RxInt completedSessions = 0.obs;
   final RxDouble avgRatingGiven = 0.0.obs;
@@ -89,8 +88,6 @@ class ProfileController extends GetxController {
       isLoading.value = false;
     }
   }
-
-  void toggleEditing() => isEditing.value = !isEditing.value;
 
   Future<bool> saveBuddyProfile({
     required AuthController auth,

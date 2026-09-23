@@ -84,15 +84,4 @@ class TutorController extends GetxController {
       tutorReviews.value = [];
     }
   }
-
-  /// Rekomendasi tutor berdasarkan kuesioner (subject match)
-  List<TutorModel> getRecommendations(String subject) {
-    return tutors
-        .where(
-          (t) => t.subjects.any(
-            (s) => s.toLowerCase().contains(subject.toLowerCase()),
-          ),
-        )
-        .toList();
-  }
 }

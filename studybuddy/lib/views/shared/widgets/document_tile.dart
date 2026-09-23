@@ -4,8 +4,6 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../models/tutor_document_model.dart';
 import 'verification_badge.dart';
 
-/// Baris dokumen verifikasi Tutor: label, wajib/opsional, status, aksi upload
-/// (FR-PROF-06/07/08/09)
 class DocumentTile extends StatelessWidget {
   final TutorDocumentModel document;
   final VoidCallback onUpload;
@@ -26,51 +24,67 @@ class DocumentTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: AppColors.primaryBlue.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            alignment: Alignment.center,
-            child: const Icon(
-              Icons.description_outlined,
-              color: AppColors.primaryBlue,
-              size: 18,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.description_outlined,
+                  color: AppColors.primaryBlue,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(document.label, style: AppTextStyles.bodySemiBold),
+                    Text(document.label, style: AppTextStyles.bodySemiBold),
+                    const SizedBox(height: 2),
+                    Text(
+                      _requirementLabel(document.requirement),
+                      style: AppTextStyles.caption,
                     ),
                   ],
                 ),
-                const SizedBox(height: 2),
-                Text(_requirementLabel(document.requirement), style: AppTextStyles.caption),
-                const SizedBox(height: 6),
-                VerificationBadge(status: document.status),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          TextButton(
-            onPressed: onUpload,
-            child: Text(
-              document.fileUrl == null ? 'Upload' : 'Ganti',
-              style: const TextStyle(
-                color: AppColors.primaryBlue,
-                fontWeight: FontWeight.w700,
               ),
-            ),
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: onUpload,
+                child: Text(
+                  document.fileUrl == null ? 'Upload' : 'Ganti',
+                  style: const TextStyle(
+                    color: AppColors.primaryBlue,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              VerificationBadge(status: document.status),
+              if (document.fileUrl != null) ...[
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.check_circle,
+                  size: 14,
+                  color: AppColors.onlineGreen,
+                ),
+                const SizedBox(width: 4),
+                Text('File tersedia', style: AppTextStyles.caption),
+              ],
+            ],
           ),
         ],
       ),
@@ -86,8 +100,6 @@ class DocumentTile extends StatelessWidget {
       case DocumentRequirement.optional:
         return 'Opsional';
       case DocumentRequirement.unclassified:
-        // Klasifikasi wajib/opsional per jenis dokumen menunggu jawaban
-        // D-17/C-DOC-07 — dilaporkan apa adanya, bukan ditebak.
         return 'Klasifikasi menunggu konfirmasi';
     }
   }
