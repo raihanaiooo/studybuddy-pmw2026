@@ -7,83 +7,98 @@ import '../models/session_model.dart';
 import '../models/booking_model.dart';
 import '../app/routes.dart';
 
-/// Controller untuk sesi belajar: timer chat & launch GMeet
 class SessionController extends GetxController {
   final Rx<SessionModel?> currentSession = Rx<SessionModel?>(null);
-
-  /// Booking yang sedang dipakai sesi ini — sumber konteks tutor & mata
-  /// pelajaran untuk alur review (W1-1).
   final Rx<BookingModel?> currentBooking = Rx<BookingModel?>(null);
   final RxInt timerSeconds = 0.obs;
   final RxBool isTimerRunning = false.obs;
+  final RxString errorMessage = ''.obs;
   Timer? _timer;
 
-  /// Mulai sesi dari data booking
   Future<void> startSession(BookingModel booking, String? gmeetLink) async {
+    errorMessage.value = '';
     currentBooking.value = booking;
+
     final sessionData = {
       'booking_id': booking.id,
       'start_time': DateTime.now().toIso8601String(),
-      'status': 'active',
+      'status': 'ongoing',
       'gmeet_link': gmeetLink,
     };
 
-    final data = await SupabaseService.client
-        .from(SupabaseConstants.tableSessions)
-        .insert(sessionData)
-        .select()
-        .single();
+    try {
+      final data = await SupabaseService.client
+          .from(SupabaseConstants.tableSessions)
+          .insert(sessionData)
+          .select()
+          .single();
 
-    currentSession.value = SessionModel.fromMap(data);
+      currentSession.value = SessionModel.fromMap(data);
 
-    // Auto-launch GMeet jika sesi video
-    if (gmeetLink != null) {
-      await _launchGmeet(gmeetLink);
-    } else {
+      // Update status booking jadi 'ongoing'
+      await SupabaseService.client
+          .from(SupabaseConstants.tableBookings)
+          .update({'status': 'ongoing'})
+          .eq('id', booking.id);
+
+      if (gmeetLink != null && gmeetLink.isNotEmpty) {
+        await _launchGmeet(gmeetLink);
+      }
+
       _startTimer();
+    } catch (e) {
+      print('SessionController.startSession error: $e');
+      errorMessage.value = 'Gagal memulai sesi. Coba lagi.';
     }
   }
 
-  /// Buka Google Meet di browser/app
   Future<void> _launchGmeet(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        errorMessage.value = 'Tidak bisa membuka link Google Meet.';
+      }
+    } catch (e) {
+      print('SessionController._launchGmeet error: $e');
+      errorMessage.value = 'Link Google Meet tidak valid.';
     }
   }
 
-  /// Mulai timer untuk sesi chat
   void _startTimer() {
     isTimerRunning.value = true;
+    _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       timerSeconds.value++;
     });
   }
 
-  /// Akhiri sesi dan navigasi ke review
   Future<void> endSession() async {
     _timer?.cancel();
     isTimerRunning.value = false;
 
-    if (currentSession.value != null) {
-      await SupabaseService.client
-          .from(SupabaseConstants.tableSessions)
-          .update({
-            'end_time': DateTime.now().toIso8601String(),
-            'status': 'ended',
-            'elapsed_seconds': timerSeconds.value,
-          })
-          .eq('id', currentSession.value!.id);
+    final session = currentSession.value;
+    if (session != null) {
+      try {
+        await SupabaseService.client
+            .from(SupabaseConstants.tableSessions)
+            .update({
+              'end_time': DateTime.now().toIso8601String(),
+              'status': 'completed',
+              'elapsed_seconds': timerSeconds.value,
+            })
+            .eq('id', session.id);
 
-      // Update status booking jadi 'done'
-      await SupabaseService.client
-          .from(SupabaseConstants.tableBookings)
-          .update({'status': 'done'})
-          .eq('id', currentSession.value!.bookingId);
+        await SupabaseService.client
+            .from(SupabaseConstants.tableBookings)
+            .update({'status': 'completed'})
+            .eq('id', session.bookingId);
+      } catch (e) {
+        print('SessionController.endSession error: $e');
+      }
     }
 
-    // Bawa identitas tutor & subject dari booking ke layar review, supaya
-    // ulasan tertulis ke tutor yang benar (W1-1).
     Get.offNamed(
       AppRoutes.review,
       arguments: {
@@ -94,7 +109,6 @@ class SessionController extends GetxController {
     );
   }
 
-  /// Format timer: "01:23:45"
   String get timerFormatted {
     final h = timerSeconds.value ~/ 3600;
     final m = (timerSeconds.value % 3600) ~/ 60;

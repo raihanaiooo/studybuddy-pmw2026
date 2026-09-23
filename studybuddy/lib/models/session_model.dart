@@ -1,12 +1,11 @@
-/// Model data sesi belajar yang sedang / sudah berlangsung
 class SessionModel {
   final String id;
   final String bookingId;
   final DateTime startTime;
   final DateTime? endTime;
-  final String status; // 'active' | 'ended'
+  final String status;
   final String? gmeetLink;
-  final int elapsedSeconds; // untuk chat timer
+  final int elapsedSeconds;
 
   const SessionModel({
     required this.id,
@@ -21,12 +20,26 @@ class SessionModel {
   factory SessionModel.fromMap(Map<String, dynamic> map) => SessionModel(
     id: map['id'] as String,
     bookingId: map['booking_id'] as String,
-    startTime: DateTime.parse(map['start_time'] as String),
-    endTime: map['end_time'] != null
-        ? DateTime.parse(map['end_time'] as String)
-        : null,
-    status: map['status'] as String? ?? 'active',
+    startTime: _parseDateTime(map['start_time']),
+    endTime: map['end_time'] != null ? _parseDateTime(map['end_time']) : null,
+    status: map['status'] as String? ?? 'scheduled',
     gmeetLink: map['gmeet_link'] as String?,
     elapsedSeconds: map['elapsed_seconds'] as int? ?? 0,
   );
+
+  static DateTime _parseDateTime(dynamic value) {
+    if (value is DateTime) return value;
+    if (value is String) {
+      try {
+        return DateTime.parse(value);
+      } catch (_) {
+        var normalized = value.replaceFirst(' ', 'T');
+        if (RegExp(r'[+-]\d{2}$').hasMatch(normalized)) {
+          normalized = '${normalized}:00';
+        }
+        return DateTime.parse(normalized);
+      }
+    }
+    return DateTime.now();
+  }
 }

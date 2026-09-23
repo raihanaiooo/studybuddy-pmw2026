@@ -19,11 +19,24 @@ class _SessionScreenState extends State<SessionScreen> {
     super.initState();
     final booking = Get.arguments as BookingModel?;
     if (booking != null) {
-      Get.find<SessionController>().startSession(
-        booking,
-        booking.sessionType == 'video' ? null : null, // GMeet link dari tutor
-      );
+      // Ambil link Meet — untuk sekarang null karena keputusan Varian A/B
+      // (Bab 8 #3) belum final. Nanti diisi dari slot booking / tutor.
+      final gmeetLink = _resolveGmeetLink(booking);
+      Get.find<SessionController>().startSession(booking, gmeetLink);
     }
+  }
+
+  /// Resolve link Google Meet untuk booking.
+  ///
+  /// Saat ini return null karena:
+  /// - Varian A (link permanen Tutor) belum diimplementasi (butuh tabel
+  ///   tutor_meet_links yang sudah ada, tapi UI Tutor belum ada)
+  /// - Varian B (Tutor kirim manual via chat) belum ada (chat belum dibangun)
+  ///
+  /// Akan diisi setelah keputusan Bab 8 #3 final.
+  String? _resolveGmeetLink(BookingModel booking) {
+    // TODO: implement setelah Varian A/B diputuskan
+    return null;
   }
 
   @override
