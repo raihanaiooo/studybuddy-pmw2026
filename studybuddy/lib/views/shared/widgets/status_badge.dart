@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 
-/// Badge status booking: pending, confirmed, ongoing, done, cancelled
 class StatusBadge extends StatelessWidget {
   final String status;
 
@@ -32,7 +31,7 @@ class StatusBadge extends StatelessWidget {
         return _StatusConfig(AppColors.primaryBlue, 'Dikonfirmasi');
       case 'ongoing':
         return _StatusConfig(AppColors.onlineGreen, 'Berlangsung');
-      case 'done':
+      case 'completed':
         return _StatusConfig(AppColors.accentTeal, 'Selesai');
       case 'cancelled':
         return _StatusConfig(AppColors.primaryRed, 'Dibatalkan');
