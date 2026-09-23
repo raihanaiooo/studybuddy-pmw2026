@@ -225,12 +225,23 @@ class _BookingScreenState extends State<BookingScreen> {
   /// Buat invoice untuk sesi yang dipilih, lalu arahkan ke pembayaran.
   /// Booking baru benar-benar dibuat (createBooking) begitu invoice
   /// Lunas — lihat onPaid di bawah (FR-PAY-08).
-  void _goToInvoice(TutorModel tutor, BookingController ctrl) {
+  Future<void> _goToInvoice(TutorModel tutor, BookingController ctrl) async {
+    final auth = Get.find<AuthController>();
+    final user = auth.currentUser.value;
+
+    // Block Buddy SMP tanpa consent (NFR-AUTH-03)
+    if (user != null && user.needsParentConsent) {
+      Get.snackbar(
+        'Persetujuan Diperlukan',
+        'Persetujuan orang tua diperlukan. Hubungi admin untuk melengkapi data orang tua/wali.',
+        duration: const Duration(seconds: 4),
+      );
+      return;
+    }
+
     final slot = ctrl.selectedSlot.value!;
     final durationMinutes = slot.endTime.difference(slot.startTime).inMinutes;
-    final auth = Get.find<AuthController>();
     final paymentCtrl = Get.find<PaymentController>();
-    final user = auth.currentUser.value;
     final price = tutor.pricePerHour * durationMinutes / 60;
 
     paymentCtrl.generateInvoice(
