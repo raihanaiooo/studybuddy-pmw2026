@@ -23,8 +23,10 @@ class RealtimeService {
           callback: (payload) async {
             final data = await SupabaseService.client
                 .from(SupabaseConstants.tableTutors)
-                .select('*, users(*)')
-                .eq('is_online', true);
+                .select()
+                .eq('is_online', true)
+                .eq('verification_status', 'verified')
+                .order('rating', ascending: false);
             onUpdate(data);
           },
         )
@@ -51,8 +53,9 @@ class RealtimeService {
     required String tutorId,
     required void Function() onChanged,
   }) {
-    final channel = SupabaseService.client
-        .channel(SupabaseConstants.channelBookings);
+    final channel = SupabaseService.client.channel(
+      SupabaseConstants.channelBookings,
+    );
     channel
         .onPostgresChanges(
           event: PostgresChangeEvent.all,

@@ -88,7 +88,9 @@ class _BookingScreenState extends State<BookingScreen> {
                       selected: _subject == s,
                       selectedColor: AppColors.primaryBlue,
                       labelStyle: TextStyle(
-                        color: _subject == s ? Colors.white : AppColors.textSecondary,
+                        color: _subject == s
+                            ? Colors.white
+                            : AppColors.textSecondary,
                         fontWeight: FontWeight.w700,
                       ),
                       onSelected: (_) => setState(() => _subject = s),
@@ -117,7 +119,9 @@ class _BookingScreenState extends State<BookingScreen> {
                 return const Padding(
                   padding: EdgeInsets.symmetric(vertical: 24),
                   child: Center(
-                    child: CircularProgressIndicator(color: AppColors.primaryBlue),
+                    child: CircularProgressIndicator(
+                      color: AppColors.primaryBlue,
+                    ),
                   ),
                 );
               }
@@ -130,7 +134,10 @@ class _BookingScreenState extends State<BookingScreen> {
                 // "Tutor belum membuka slot".
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 24),
-                  child: Text(ctrl.errorMessage.value, style: AppTextStyles.caption),
+                  child: Text(
+                    ctrl.errorMessage.value,
+                    style: AppTextStyles.caption,
+                  ),
                 );
               }
               if (!hasAvailableSlot) {
@@ -151,7 +158,9 @@ class _BookingScreenState extends State<BookingScreen> {
             TextField(
               controller: _notesCtrl,
               maxLines: 3,
-              decoration: _inputDeco('Ceritakan topik yang ingin dipelajari...'),
+              decoration: _inputDeco(
+                'Ceritakan topik yang ingin dipelajari...',
+              ),
             ),
             const SizedBox(height: 28),
 
@@ -227,8 +236,8 @@ class _BookingScreenState extends State<BookingScreen> {
     paymentCtrl.generateInvoice(
       tutorName: tutor.fullName,
       studentName: user?.fullName ?? 'Buddy',
-      studentGrade: user?.gradeLevel ?? '-',
-      studentSchool: user?.school ?? '-',
+      studentGrade: user?.jenjang ?? '-',
+      studentSchool: '-',
       sessions: [
         InvoiceSessionItem(
           subject: _subject!,
@@ -259,7 +268,10 @@ class _BookingScreenState extends State<BookingScreen> {
       color: Colors.white,
       borderRadius: BorderRadius.circular(20),
       boxShadow: [
-        BoxShadow(color: AppColors.primaryBlue.withOpacity(0.08), blurRadius: 8),
+        BoxShadow(
+          color: AppColors.primaryBlue.withOpacity(0.08),
+          blurRadius: 8,
+        ),
       ],
     ),
     child: Row(
@@ -288,7 +300,10 @@ class _BookingScreenState extends State<BookingScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(tutor.fullName, style: AppTextStyles.heading3),
-            Text(tutor.subjects.take(2).join(' · '), style: AppTextStyles.caption),
+            Text(
+              tutor.subjects.take(2).join(' · '),
+              style: AppTextStyles.caption,
+            ),
           ],
         ),
       ],
@@ -301,7 +316,9 @@ class _BookingScreenState extends State<BookingScreen> {
     final byDate = <String, List<AvailabilitySlotModel>>{};
     // Slot yang sudah 'booked' tidak boleh muncul sebagai pilihan
     // (FR-BOOK-04) — nggak cukup diandalkan dari data belum terpakai.
-    for (final slot in ctrl.availableSlots.where((s) => s.status == 'available')) {
+    for (final slot in ctrl.availableSlots.where(
+      (s) => s.status == 'available',
+    )) {
       final key = AppDateUtils.formatDate(slot.startTime);
       byDate.putIfAbsent(key, () => []).add(slot);
     }
@@ -341,7 +358,9 @@ class _BookingScreenState extends State<BookingScreen> {
                       child: Text(
                         AppDateUtils.formatTime(slot.startTime),
                         style: AppTextStyles.bodySemiBold.copyWith(
-                          color: selected ? Colors.white : AppColors.textPrimary,
+                          color: selected
+                              ? Colors.white
+                              : AppColors.textPrimary,
                         ),
                       ),
                     ),
@@ -357,7 +376,10 @@ class _BookingScreenState extends State<BookingScreen> {
 
   Widget _sectionTitle(String t) => Padding(
     padding: const EdgeInsets.only(bottom: 8),
-    child: Text(t, style: AppTextStyles.bodySemiBold.copyWith(fontWeight: FontWeight.w700)),
+    child: Text(
+      t,
+      style: AppTextStyles.bodySemiBold.copyWith(fontWeight: FontWeight.w700),
+    ),
   );
 
   Widget _sessionTypeChip(String type, String label) => Expanded(
@@ -369,14 +391,18 @@ class _BookingScreenState extends State<BookingScreen> {
           color: _sessionType == type ? AppColors.primaryBlue : Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: _sessionType == type ? AppColors.primaryBlue : AppColors.border,
+            color: _sessionType == type
+                ? AppColors.primaryBlue
+                : AppColors.border,
           ),
         ),
         alignment: Alignment.center,
         child: Text(
           label,
           style: AppTextStyles.caption.copyWith(
-            color: _sessionType == type ? Colors.white : AppColors.textSecondary,
+            color: _sessionType == type
+                ? Colors.white
+                : AppColors.textSecondary,
             fontWeight: FontWeight.w700,
           ),
         ),

@@ -31,6 +31,7 @@ class TutorController extends GetxController {
       final data = await SupabaseService.client
           .from(SupabaseConstants.tableTutors)
           .select()
+          .eq('verification_status', 'verified')
           .order('rating', ascending: false);
 
       tutors.value = (data as List)

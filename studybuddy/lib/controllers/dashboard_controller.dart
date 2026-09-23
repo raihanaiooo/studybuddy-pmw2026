@@ -26,13 +26,14 @@ class DashboardController extends GetxController {
           .from(SupabaseConstants.tableTutors)
           .select()
           .eq('is_online', true)
+          .eq('verification_status', 'verified')
           .order('rating', ascending: false);
 
       onlineTutors.value = (data as List)
           .map((e) => TutorModel.fromMap(e as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      // Tangani error tanpa crash
+      print('DashboardController._fetchOnlineTutors error: $e');
     } finally {
       isLoading.value = false;
     }

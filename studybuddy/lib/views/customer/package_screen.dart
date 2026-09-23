@@ -40,7 +40,10 @@ class PackageScreen extends StatelessWidget {
             onPressed: () => Get.toNamed(AppRoutes.myTokens),
             child: const Text(
               'Token Saya',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],
@@ -103,8 +106,8 @@ class PackageScreen extends StatelessWidget {
     paymentCtrl.generateInvoice(
       tutorName: '-', // pembelian paket, belum terikat ke Tutor tertentu
       studentName: user?.fullName ?? 'Buddy',
-      studentGrade: user?.gradeLevel ?? '-',
-      studentSchool: user?.school ?? '-',
+      studentGrade: user?.jenjang ?? '-',
+      studentSchool: '-',
       sessions: [
         InvoiceSessionItem(
           subject: package.name,
