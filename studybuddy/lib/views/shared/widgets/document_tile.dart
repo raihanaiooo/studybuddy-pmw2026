@@ -85,6 +85,10 @@ class DocumentTile extends StatelessWidget {
         return 'Bersyarat';
       case DocumentRequirement.optional:
         return 'Opsional';
+      case DocumentRequirement.unclassified:
+        // Klasifikasi wajib/opsional per jenis dokumen menunggu jawaban
+        // D-17/C-DOC-07 — dilaporkan apa adanya, bukan ditebak.
+        return 'Klasifikasi menunggu konfirmasi';
     }
   }
 }

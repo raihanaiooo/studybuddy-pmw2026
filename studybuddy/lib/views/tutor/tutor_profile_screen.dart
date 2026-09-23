@@ -41,6 +41,26 @@ class TutorProfileScreen extends StatelessWidget {
       ),
       body: Obx(() {
         final tutor = profile.tutorProfile.value;
+        // Profil kini dimuat dari backend (C-TUT-01/D-46) — bila belum
+        // tersedia, tampilkan keadaan yang jujur alih-alih data karangan.
+        if (tutor == null) {
+          final String msg;
+          if (profile.profileContractMissing.value) {
+            msg = profile.errorMessage.value.isNotEmpty
+                ? profile.errorMessage.value
+                : 'Kontrak profil Tutor (C-TUT-01/D-46) belum tersedia.';
+          } else if (profile.isLoading.value) {
+            msg = 'Memuat profil...';
+          } else {
+            msg = 'Profil belum dimuat. Coba lagi.';
+          }
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Text(msg, textAlign: TextAlign.center, style: AppTextStyles.body),
+            ),
+          );
+        }
         return SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -325,9 +345,8 @@ class TutorProfileScreen extends StatelessWidget {
                     height: 50,
                     child: ElevatedButton(
                       onPressed: profile.isLoading.value
-                          ? null
-                          : () async {
-                              await profile.saveTutorProfile(
+                          ? null                            : () async {
+                              final ok = await profile.saveTutorProfile(
                                 bio: bioCtrl.text,
                                 subjects: subjectsCtrl.text
                                     .split(',')
@@ -340,7 +359,9 @@ class TutorProfileScreen extends StatelessWidget {
                                     .where((s) => s.isNotEmpty)
                                     .toList(),
                               );
-                              Get.back();
+                              // Tutup sheet HANYA saat backend mengonfirmasi
+                              // — saat gagal biarkan pengguna mencoba ulang.
+                              if (ok) Get.back();
                             },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryBlue,

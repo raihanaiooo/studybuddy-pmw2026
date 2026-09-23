@@ -241,7 +241,7 @@ RTM coverage check: all **57** requirement rows that the RTM (rev 2) flags in it
 
 ### D-17 — Tutor document catalogue conflict
 **Reqs:** FR-PROF-05, FR-PROF-06, FR-PROF-08 · **Class:** Product/domain · **Owner (per SRS):** FOUNDER
-**Current implementation:** `controllers/profile_controller.dart › _dummyDocuments` lists **six** documents — transkrip (required), KTM/KTS (required), sertifikat bahasa (conditional), **skor UTBK (conditional)**, **sertifikat prestasi (optional)**, **CV/Portfolio (optional)** — rendered by `views/shared/widgets/document_tile.dart`.
+**Current implementation:** The former client catalogue (`profile_controller › _dummyDocuments`: six documents, with `skor UTBK`/`CV` added and `sertifikat prestasi` marked optional) was REMOVED in Wave 2.3 as a data source. Documents are now read from the backend via `ProfileRepository`; the four SRS-named types carry their SRS classification (FR-PROF-05) and any other type is reported unclassified — no replacement catalogue is invented and this decision remains fully OPEN/unchanged.
 **Why it matters:** The required set determines what the verification gate (FR-PROF-08, D-01) actually waits for, and FR-PROF-06's required/optional distinction is meaningless if the classification is wrong.
 **Options explicitly supported by the SRS:** (a) Exactly four documents with the SRS classification: transkrip (wajib), kartu identitas pelajar — KTM for students / Kartu Tanda Pelajar-Siswa for SMA (wajib), sertifikat prestasi akademik/non-akademik (wajib), sertifikat bahasa (khusus jika Tutor mengajar kelas bahasa asing). (b) Additional documents (UTBK score, CV) — **not specified by the SRS**.
 **Consequences:** (a) Conforms, but some Tutors may have no achievement certificate to submit — note the SRS lists it as required even though it calls the document set "fleksibel"; a fallback rule is **not specified by the SRS**. (b) Requires an SRS revision and re-opens the verification gate definition.
@@ -548,7 +548,7 @@ RTM coverage check: all **57** requirement rows that the RTM (rev 2) flags in it
 
 ### D-47 — Tutor document storage, access rules and RLS
 **Reqs:** NFR-PROF-01, NFR-PROF-02, NFR-PROF-03, FR-PROF-05, FR-PROF-09 · **Class:** Backend contract · **Owner:** BE
-**Current implementation:** `core/constants/supabase_constants.dart › bucketDocuments = 'documents'` is declared and never used; `controllers/profile_controller.dart › uploadDocument` writes the sentinel `'pending-upload'` and no storage call exists.
+**Current implementation:** Since Wave 2.3 no storage call exists and `profile_controller › uploadDocument` no longer fakes success — it reports the missing contract (C-DOC-01..05/D-47) honestly; `core/constants/supabase_constants.dart › bucketDocuments = 'documents'` remains declared-but-unused until this contract is answered.
 **Why it matters:** NFR-PROF-01 requires a **non-public** bucket readable only by the owning Tutor and Admin, enforced with RLS. The client cannot implement upload semantics without knowing the bucket, the access rule and the retention of replaced files.
 **Options explicitly supported by the SRS:** (a) Private storage with Tutor-owner + Admin access (NFR-PROF-01). (b) Anything else — **not specified by the SRS**.
 **Consequences:** A public or over-permissive bucket would expose identity documents and transcripts, including data of minors (D-09).

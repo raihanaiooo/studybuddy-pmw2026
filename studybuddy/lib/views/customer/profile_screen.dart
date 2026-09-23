@@ -304,7 +304,7 @@ class CustomerProfileScreen extends StatelessWidget {
                             ? null
                             : () async {
                                 if (!formKey.currentState!.validate()) return;
-                                await profile.saveBuddyProfile(
+                                final ok = await profile.saveBuddyProfile(
                                   auth: auth,
                                   fullName: nameCtrl.text,
                                   phone: phoneCtrl.text.isEmpty
@@ -321,7 +321,10 @@ class CustomerProfileScreen extends StatelessWidget {
                                       .where((s) => s.isNotEmpty)
                                       .toList(),
                                 );
-                                Get.back();
+                                // Tutup sheet HANYA saat backend
+                                // mengonfirmasi — saat gagal biarkan
+                                // pengguna mencoba ulang.
+                                if (ok) Get.back();
                               },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryBlue,

@@ -1,5 +1,11 @@
 /// Jenis dokumen verifikasi Tutor (FR-PROF-06/07/08)
-enum DocumentRequirement { required, conditional, optional }
+///
+/// Katalog enam dokumen lama klien KONFLIK dengan SRS FR-PROF-05 (UTBK & CV
+/// tidak ada di SRS; sertifikat prestasi ada di set wajib SRS tapi dulu
+/// ditandai opsional) — lihat D-17/C-DOC-07 yang masih terbuka.
+/// [DocumentRequirement.unclassified] adalah nilai JUJUR untuk "klasifikasi
+/// belum bisa diverifikasi" — jangan pernah menggantinya dengan tebakan.
+enum DocumentRequirement { required, conditional, optional, unclassified }
 
 /// Model dokumen yang diunggah Tutor untuk proses verifikasi
 class TutorDocumentModel {
@@ -29,7 +35,8 @@ class TutorDocumentModel {
         label: map['label'] as String? ?? map['jenis_dokumen'] as String,
         requirement: DocumentRequirement.values.firstWhere(
           (r) => r.name == map['requirement'],
-          orElse: () => DocumentRequirement.optional,
+          // Tidak menebak: nilai yang tidak dikenal dilaporkan apa adanya.
+          orElse: () => DocumentRequirement.unclassified,
         ),
         fileUrl: map['file_url'] as String?,
         status: map['status'] as String? ?? 'belum_upload',
