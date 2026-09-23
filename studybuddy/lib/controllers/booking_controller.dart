@@ -2,13 +2,19 @@ import 'package:get/get.dart';
 import '../core/services/supabase_service.dart';
 import '../core/services/auth_service.dart';
 import '../core/constants/supabase_constants.dart';
-import '../core/utils/date_utils.dart';
+import '../data/availability_slot_repository_supabase.dart';
+import '../domain/availability_slot_repository.dart';
+import '../domain/slot_booking_policy.dart';
 import '../models/booking_model.dart';
 import '../models/availability_slot_model.dart';
 import '../app/routes.dart';
 
 /// Controller untuk pembuatan dan manajemen booking
 class BookingController extends GetxController {
+  BookingController({AvailabilitySlotRepository? slotRepository})
+    : _slots = slotRepository ?? AvailabilitySlotRepositorySupabase();
+
+  final AvailabilitySlotRepository _slots;
   final _authService = AuthService();
 
   final RxList<BookingModel> myBookings = <BookingModel>[].obs;
@@ -23,44 +29,66 @@ class BookingController extends GetxController {
       Rx<AvailabilitySlotModel?>(null);
   final RxBool isLoadingSlots = false.obs;
 
+  /// True bila kegagalan slot disebabkan kontrak AvailabilitySlot
+  /// (C-SLOT-01..08) belum dijawab Back-End — bukan error transient.
+  final RxBool slotContractMissing = false.obs;
+
+  /// Slot mentah dari backend untuk evaluasi aturan (bentuk domain,
+  /// terpisah dari model UI).
+  List<AvailabilitySlotRef> _slotRefs = const [];
+
   @override
   void onInit() {
     super.onInit();
     fetchMyBookings();
   }
 
-  /// Ambil slot ketersediaan milik Tutor tertentu (dummy, contract-first —
-  /// tinggal ganti dengan query tabel AvailabilitySlot begitu kontrak BE
-  /// modul Booking tersedia).
+  /// Ambil slot ketersediaan nyata milik Tutor (FR-BOOK-02) dari
+  /// [AvailabilitySlotRepository]. Slot terbooking dan di luar jendela H-5
+  /// disaring lewat [SlotBookingPolicy] sehingga tidak pernah ditawarkan.
   Future<void> fetchAvailableSlots(String tutorId) async {
     isLoadingSlots.value = true;
     selectedSlot.value = null;
-    // Delay simulasi network — tanpa ini fungsinya sepenuhnya sinkron
-    // sehingga state loading tidak pernah benar-benar teramati/teruji.
-    await Future.delayed(const Duration(milliseconds: 300));
-    final now = DateTime.now();
-    availableSlots.value = List.generate(6, (i) {
-      final day = i ~/ 2; // 2 slot per hari, 3 hari ke depan
-      final hour = 9 + (i % 2) * 3;
-      final start = DateTime(
-        now.year,
-        now.month,
-        now.day + day + 1,
-        hour,
-      );
-      return AvailabilitySlotModel(
-        id: 'slot-$tutorId-$i',
-        tutorId: tutorId,
-        startTime: start,
-        endTime: start.add(const Duration(hours: 1)),
-      );
-    }).where((s) => AppDateUtils.isBookingTimeValid(s.startTime)).toList();
-    isLoadingSlots.value = false;
+    slotContractMissing.value = false;
+    errorMessage.value = '';
+    try {
+      final refs = await _slots.fetchTutorSlots(tutorId);
+      _slotRefs = refs;
+      final selectable = refs
+          .where((s) => SlotBookingPolicy.isSelectableForBooking(s))
+          .map(_mapRefToModel)
+          .toList();
+      availableSlots.value = selectable;
+    } on AvailabilitySlotBackendMissingException catch (e) {
+      _slotRefs = const [];
+      availableSlots.value = [];
+      slotContractMissing.value = true;
+      // Kontrak slot belum dijawab BE (C-SLOT-01..08) — dilaporkan
+      // sebagai kontrak hilang, bukan disamarkan "Tutor belum buka slot".
+      errorMessage.value = e.message;
+    } catch (e) {
+      _slotRefs = const [];
+      availableSlots.value = [];
+      errorMessage.value = 'Gagal memuat jadwal. Coba lagi.';
+    } finally {
+      isLoadingSlots.value = false;
+    }
   }
 
-  /// Kunci slot yang sedang dipilih Buddy agar tidak bisa dipilih Buddy
-  /// lain secara bersamaan (FR-BOOK-04 — simulasi lokal untuk MVP UI).
+  /// Tandai slot yang dipilih Buddy (FR-BOOK-04). Pemilihan UI bukan kunci —
+  /// penguncian nyata terjadi server-side saat booking dibuat
+  /// (lihat createBooking).
   void selectSlot(AvailabilitySlotModel slot) {
+    final ref = _slotRefs.firstWhereOrNull((r) => r.id == slot.id);
+    if (ref != null && !SlotBookingPolicy.isSelectableForBooking(ref)) {
+      // Slot menjadi tidak valid setelah daftar dimuat (mis. sudah
+      // diambil Buddy lain) — abaikan dan segarkan.
+      if (ref.status != SlotStatus.available) {
+        Get.snackbar('Slot sudah diambil', 'Pilih jadwal lain yang tersedia.');
+        fetchAvailableSlots(slot.tutorId);
+      }
+      return;
+    }
     selectedSlot.value = slot;
   }
 
@@ -99,7 +127,8 @@ class BookingController extends GetxController {
     }
   }
 
-  /// Buat booking baru dengan validasi H-5 jam
+  /// Buat booking baru dengan validasi H-5 jam dan check-and-book slot
+  /// atomik (FR-BOOK-03/04/05).
   Future<void> createBooking({
     required String tutorId,
     required DateTime sessionTime,
@@ -109,10 +138,17 @@ class BookingController extends GetxController {
     String? notes,
   }) async {
     errorMessage.value = '';
+    slotContractMissing.value = false;
 
-    // Validasi waktu minimal H-5 jam
-    if (!AppDateUtils.isBookingTimeValid(sessionTime)) {
+    // Validasi waktu minimal H-5 jam (aturan domain, SRS)
+    if (!SlotBookingPolicy.isBookingTimeValid(sessionTime)) {
       errorMessage.value = 'Booking minimal 5 jam sebelum sesi dimulai';
+      return;
+    }
+
+    final slot = selectedSlot.value;
+    if (slot == null) {
+      errorMessage.value = 'Pilih jadwal terlebih dahulu';
       return;
     }
 
@@ -121,7 +157,10 @@ class BookingController extends GetxController {
       final user = await _authService.getCurrentUser();
       if (user == null) return;
 
-      final booking = {
+      // Barisan booking: bentuk kolom TERVERIFIKASI dari kode yang berjalan —
+      // TIDAK ada kolom slot ditambahkan (hubungan slot↔booking adalah
+      // kontrak C-SLOT-07 yang belum dijawab).
+      final bookingValues = {
         'customer_id': user.id,
         'tutor_id': tutorId,
         'session_time': sessionTime.toIso8601String(),
@@ -133,20 +172,40 @@ class BookingController extends GetxController {
         'created_at': DateTime.now().toIso8601String(),
       };
 
-      await SupabaseService.client
-          .from(SupabaseConstants.tableBookings)
-          .insert(booking);
+      // FR-BOOK-04: kunci kondisional server-side — slot hanya berpindah
+      // available → booked bila masih available, lalu booking ditulis.
+      // Dua Buddy yang bersaing menghasilkan tepat satu pemenang.
+      final outcome = await _slots.bookSlot(
+        slotId: slot.id,
+        bookingValues: bookingValues,
+      );
 
-      // FR-BOOK-05: slot dihapus dari daftar tersedia begitu terkonfirmasi
-      final slot = selectedSlot.value;
-      if (slot != null) {
-        availableSlots.removeWhere((s) => s.id == slot.id);
+      if (!outcome.success) {
+        // Slot sudah diambil Buddy lain — jangan buat booking palsu.
         selectedSlot.value = null;
+        Get.snackbar(
+          'Slot sudah diambil',
+          'Jadwal ini baru saja dibooking Buddy lain. Pilih jadwal lain.',
+        );
+        await fetchAvailableSlots(tutorId);
+        return;
       }
+
+      // FR-BOOK-05: slot keluar dari daftar tersedia begitu booking dibuat
+      availableSlots.removeWhere((s) => s.id == slot.id);
+      selectedSlot.value = null;
 
       Get.back();
       Get.snackbar('Berhasil', 'Booking berhasil dibuat!');
       await fetchMyBookings();
+    } on AvailabilitySlotBackendMissingException catch (e) {
+      slotContractMissing.value = true;
+      errorMessage.value = e.message;
+      Get.snackbar(
+        'Kontrak backend belum tersedia',
+        'Booking tidak dibuat — kontrak AvailabilitySlot (C-SLOT-01..08) '
+        'belum dijawab pemilik Back-End.',
+      );
     } catch (e) {
       errorMessage.value = 'Gagal membuat booking. Coba lagi.';
     } finally {
@@ -168,4 +227,14 @@ class BookingController extends GetxController {
         .eq('id', bookingId);
     await fetchMyBookings();
   }
+
+  AvailabilitySlotModel _mapRefToModel(AvailabilitySlotRef ref) =>
+      AvailabilitySlotModel(
+        id: ref.id,
+        tutorId: ref.tutorId,
+        startTime: ref.startTime,
+        endTime: ref.endTime,
+        status: ref.status,
+        timezone: ref.timezone,
+      );
 }

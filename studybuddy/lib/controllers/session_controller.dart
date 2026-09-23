@@ -4,19 +4,25 @@ import 'package:url_launcher/url_launcher.dart';
 import '../core/services/supabase_service.dart';
 import '../core/constants/supabase_constants.dart';
 import '../models/session_model.dart';
+import '../models/booking_model.dart';
 import '../app/routes.dart';
 
 /// Controller untuk sesi belajar: timer chat & launch GMeet
 class SessionController extends GetxController {
   final Rx<SessionModel?> currentSession = Rx<SessionModel?>(null);
+
+  /// Booking yang sedang dipakai sesi ini — sumber konteks tutor & mata
+  /// pelajaran untuk alur review (W1-1).
+  final Rx<BookingModel?> currentBooking = Rx<BookingModel?>(null);
   final RxInt timerSeconds = 0.obs;
   final RxBool isTimerRunning = false.obs;
   Timer? _timer;
 
   /// Mulai sesi dari data booking
-  Future<void> startSession(String bookingId, String? gmeetLink) async {
+  Future<void> startSession(BookingModel booking, String? gmeetLink) async {
+    currentBooking.value = booking;
     final sessionData = {
-      'booking_id': bookingId,
+      'booking_id': booking.id,
       'start_time': DateTime.now().toIso8601String(),
       'status': 'active',
       'gmeet_link': gmeetLink,
@@ -76,7 +82,16 @@ class SessionController extends GetxController {
           .eq('id', currentSession.value!.bookingId);
     }
 
-    Get.offNamed(AppRoutes.review);
+    // Bawa identitas tutor & subject dari booking ke layar review, supaya
+    // ulasan tertulis ke tutor yang benar (W1-1).
+    Get.offNamed(
+      AppRoutes.review,
+      arguments: {
+        'sessionId': currentSession.value?.id,
+        'tutorId': currentBooking.value?.tutorId,
+        'subject': currentBooking.value?.subject,
+      },
+    );
   }
 
   /// Format timer: "01:23:45"

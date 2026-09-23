@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/review_controller.dart';
-import '../../controllers/session_controller.dart';
+import '../../app/routes.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 
@@ -26,7 +26,14 @@ class _ReviewScreenState extends State<ReviewScreen> {
   @override
   Widget build(BuildContext context) {
     final ctrl = Get.find<ReviewController>();
-    final session = Get.find<SessionController>().currentSession.value;
+
+    // Identitas tutor & subject dikirim lewat arguments dari
+    // SessionController.endSession(), bukan lagi di-hardcode kosong (W1-1).
+    final args = Get.arguments;
+    final reviewContext = args is Map ? args : const <String, dynamic>{};
+    final sessionId = reviewContext['sessionId'] as String?;
+    final tutorId = reviewContext['tutorId'] as String?;
+    final subject = reviewContext['subject'] as String? ?? '';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -117,13 +124,19 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   onPressed: ctrl.isSubmitting.value || _rating == 0
                       ? null
                       : () {
-                          if (session == null) return;
+                          if (sessionId == null || tutorId == null) {
+                            Get.snackbar(
+                              'Ulasan belum bisa dikirim',
+                              'Konteks sesi/tutor tidak tersedia.',
+                            );
+                            return;
+                          }
                           ctrl.submitReview(
-                            sessionId: session.id,
-                            tutorId: '', // isi dari session/booking
+                            sessionId: sessionId,
+                            tutorId: tutorId,
                             rating: _rating,
                             comment: _commentCtrl.text,
-                            subject: '',
+                            subject: subject,
                           );
                         },
                   style: ElevatedButton.styleFrom(
@@ -153,13 +166,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
             const SizedBox(height: 12),
             // Skip
             TextButton(
-              onPressed: () => Get.find<ReviewController>().submitReview(
-                sessionId: session?.id ?? '',
-                tutorId: '',
-                rating: 1,
-                comment: 'Tidak ada ulasan',
-                subject: '',
-              ),
+              // "Lewati" benar-benar melewati: tidak ada ulasan yang ditulis
+              // (sebelumnya menyimpan review 1 bintang palsu) — W1-2.
+              onPressed: () => Get.offAllNamed(AppRoutes.customerDashboard),
               child: Text(
                 'Lewati',
                 style: AppTextStyles.caption.copyWith(

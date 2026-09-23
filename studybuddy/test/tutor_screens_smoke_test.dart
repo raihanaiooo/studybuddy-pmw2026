@@ -6,9 +6,51 @@ import 'package:studybuddy/controllers/auth_controller.dart';
 import 'package:studybuddy/controllers/booking_controller.dart';
 import 'package:studybuddy/controllers/tutor_dashboard_controller.dart';
 import 'package:studybuddy/controllers/tutor_schedule_controller.dart';
+import 'package:studybuddy/domain/availability_slot_repository.dart';
+import 'package:studybuddy/domain/slot_booking_policy.dart';
 import 'package:studybuddy/models/user_model.dart';
 import 'package:studybuddy/views/tutor/tutor_dashboard_screen.dart';
 import 'package:studybuddy/views/tutor/tutor_schedule_screen.dart';
+
+/// Fake repository slot — layar diuji tanpa Supabase (belum diinisialisasi
+/// di widget test); kontrak AvailabilitySlot (C-SLOT-01..08) sendiri belum
+/// dijawab BE, jadi fake adalah satu-satunya sumber slot yang jujur di test.
+class _FakeSlotRepository implements AvailabilitySlotRepository {
+  @override
+  Future<List<AvailabilitySlotRef>> fetchTutorSlots(String tutorId) async => [
+    AvailabilitySlotRef(
+      id: 'slot-fake-1',
+      tutorId: tutorId,
+      startTime: DateTime.now().add(const Duration(days: 1)),
+      endTime: DateTime.now().add(const Duration(days: 1, hours: 1)),
+    ),
+    AvailabilitySlotRef(
+      id: 'slot-fake-2',
+      tutorId: tutorId,
+      startTime: DateTime.now().add(const Duration(days: 2)),
+      endTime: DateTime.now().add(const Duration(days: 2, hours: 1)),
+      status: SlotStatus.booked,
+    ),
+  ];
+
+  @override
+  Future<AvailabilitySlotRef> createSlot(AvailabilitySlotDraft draft) async =>
+      AvailabilitySlotRef(
+        id: 'slot-fake-new',
+        tutorId: draft.tutorId,
+        startTime: draft.startTime,
+        endTime: draft.endTime,
+      );
+
+  @override
+  Future<void> deleteSlot(String slotId) async {}
+
+  @override
+  Future<BookingSlotOutcome> bookSlot({
+    required String slotId,
+    required Map<String, dynamic> bookingValues,
+  }) async => const BookingSlotOutcome.success();
+}
 
 /// AuthController & BookingController memicu fetch ke Supabase saat
 /// onInit (gagal di widget test karena belum diinisialisasi, lalu
@@ -19,8 +61,9 @@ Future<void> _seedControllers(WidgetTester tester) async {
   final auth = Get.put(AuthController());
   Get.put(BookingController());
   Get.put(TutorDashboardController());
-  Get.put(TutorScheduleController());
   await tester.pump();
+  // Identitas diisi SETELAH fetch awal AuthController gagal/selesai (di
+  // aplikasi nyata urutannya sama: splash memuat user sebelum navigasi).
   auth.currentUser.value = UserModel(
     id: 'tutor-me',
     email: 'tutor@studybuddy.test',
@@ -28,6 +71,10 @@ Future<void> _seedControllers(WidgetTester tester) async {
     role: 'tutor',
     createdAt: DateTime(2026, 1, 1),
   );
+  // Sejak slice Wave 2.1, controller slot mengambil slot milik user yang
+  // login (bukan lagi dummy 'tutor-me') — dibuat SETELAH identitas terisi.
+  Get.put(TutorScheduleController(slotRepository: _FakeSlotRepository()));
+  await tester.pump();
 }
 
 void main() {

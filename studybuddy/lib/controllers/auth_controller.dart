@@ -11,6 +11,9 @@ class AuthController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
 
+  /// True setelah email reset password berhasil dikirim (FR-AUTH-05).
+  final RxBool resetEmailSent = false.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -68,6 +71,26 @@ class AuthController extends GetxController {
       _redirectByRole(user.role);
     } catch (e) {
       errorMessage.value = 'Registrasi gagal. Coba lagi.';
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /// Kirim email reset password dan tandai hasilnya.
+  ///
+  /// Mekanismenya memakai Supabase Auth (FR-AUTH-05, sama dengan FR-AUTH-03),
+  /// jadi tidak ada alur autentikasi baru yang diperkenalkan.
+  Future<bool> resetPassword(String email) async {
+    isLoading.value = true;
+    errorMessage.value = '';
+    resetEmailSent.value = false;
+    try {
+      await _authService.resetPassword(email: email);
+      resetEmailSent.value = true;
+      return true;
+    } catch (e) {
+      errorMessage.value = 'Gagal mengirim email reset password. Coba lagi.';
+      return false;
     } finally {
       isLoading.value = false;
     }

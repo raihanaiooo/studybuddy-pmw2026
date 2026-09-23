@@ -52,44 +52,31 @@ class AuthService {
     required String fullName,
     required String role,
   }) async {
-    try {
-      final response = await _client.auth.signUp(
-        email: email,
-        password: password,
-        data: {'full_name': fullName, 'role': role},
-      );
+    final response = await _client.auth.signUp(
+      email: email,
+      password: password,
+      data: {'full_name': fullName, 'role': role},
+    );
 
-      print('=== SIGNUP RESPONSE ===');
-      print('User: ${response.user}');
-      print('Session: ${response.session}');
+    if (response.user == null) throw Exception('Registrasi gagal: user null');
 
-      if (response.user == null) throw Exception('Registrasi gagal: user null');
+    final userData = {
+      'id': response.user!.id,
+      'email': email,
+      'full_name': fullName,
+      'role': role,
+      'created_at': DateTime.now().toIso8601String(),
+    };
 
-      final userData = {
-        'id': response.user!.id,
-        'email': email,
-        'full_name': fullName,
-        'role': role,
-        'created_at': DateTime.now().toIso8601String(),
-      };
+    await _client.from(SupabaseConstants.tableUsers).insert(userData);
 
-      print('=== INSERTING USER DATA ===');
-      print(userData);
+    return UserModel.fromMap(userData);
+  }
 
-      final insertResult = await _client
-          .from(SupabaseConstants.tableUsers)
-          .insert(userData);
-
-      print('=== INSERT RESULT ===');
-      print(insertResult);
-
-      return UserModel.fromMap(userData);
-    } catch (e, stack) {
-      print('=== SIGNUP ERROR ===');
-      print('Error: $e');
-      print('Stack: $stack');
-      rethrow;
-    }
+  /// Kirim email reset password (FR-AUTH-05) melalui mekanisme Supabase Auth
+  /// yang sama dengan login & registrasi.
+  Future<void> resetPassword({required String email}) async {
+    await _client.auth.resetPasswordForEmail(email);
   }
 
   /// Logout user

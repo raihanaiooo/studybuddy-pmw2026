@@ -11,6 +11,7 @@ class ReviewController extends GetxController {
 
   final RxInt selectedRating = 0.obs;
   final RxBool isSubmitting = false.obs;
+  final RxString errorMessage = ''.obs;
 
   /// Submit ulasan setelah sesi selesai
   Future<void> submitReview({
@@ -20,6 +21,15 @@ class ReviewController extends GetxController {
     required String comment,
     required String subject,
   }) async {
+    // Ulasan tanpa konteks sesi/tutor tidak boleh ditulis: record seperti itu
+    // tidak bisa diatribusikan ke Tutor mana pun (W1-1).
+    if (sessionId.isEmpty || tutorId.isEmpty) {
+      errorMessage.value =
+          'Konteks sesi/tutor tidak tersedia, ulasan tidak dikirim.';
+      return;
+    }
+
+    errorMessage.value = '';
     isSubmitting.value = true;
     try {
       final user = await _authService.getCurrentUser();

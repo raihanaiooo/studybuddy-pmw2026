@@ -124,6 +124,15 @@ class _BookingScreenState extends State<BookingScreen> {
               final hasAvailableSlot = ctrl.availableSlots.any(
                 (s) => s.status == 'available',
               );
+              if (ctrl.slotContractMissing.value) {
+                // Kontrak AvailabilitySlot (C-SLOT-01..08) belum dijawab
+                // Back-End — tampilkan apa adanya, jangan samakan dengan
+                // "Tutor belum membuka slot".
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: Text(ctrl.errorMessage.value, style: AppTextStyles.caption),
+                );
+              }
               if (!hasAvailableSlot) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 24),

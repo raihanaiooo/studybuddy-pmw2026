@@ -20,7 +20,7 @@ class _SessionScreenState extends State<SessionScreen> {
     final booking = Get.arguments as BookingModel?;
     if (booking != null) {
       Get.find<SessionController>().startSession(
-        booking.id,
+        booking,
         booking.sessionType == 'video' ? null : null, // GMeet link dari tutor
       );
     }

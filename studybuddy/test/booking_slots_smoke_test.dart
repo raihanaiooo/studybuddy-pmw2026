@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:studybuddy/controllers/booking_controller.dart';
-import 'package:studybuddy/models/availability_slot_model.dart';
+import 'package:studybuddy/domain/availability_slot_repository.dart';
+import 'package:studybuddy/domain/slot_booking_policy.dart';
 import 'package:studybuddy/models/tutor_model.dart';
 import 'package:studybuddy/views/customer/booking_screen.dart';
 
@@ -22,6 +23,48 @@ const _dummyTutor = TutorModel(
   gpa: 3.7,
 );
 
+/// Fake repository slot — layar diuji dengan slot nyata yang disimulasikan
+/// tanpa menyentuh Supabase (belum diinisialisasi di widget test). Satu slot
+/// available (di luar jendela H-5) dan satu slot booked: keduanya TIDAK boleh
+/// ditawarkan setelah penyaringan domain (SlotBookingPolicy, FR-BOOK-04).
+class _FakeSlotRepository implements AvailabilitySlotRepository {
+  @override
+  Future<List<AvailabilitySlotRef>> fetchTutorSlots(String tutorId) async => [
+    AvailabilitySlotRef(
+      id: 'slot-fake-available',
+      tutorId: tutorId,
+      startTime: DateTime.now().add(const Duration(days: 5)),
+      endTime: DateTime.now().add(const Duration(days: 5, hours: 1)),
+    ),
+    AvailabilitySlotRef(
+      id: 'slot-fake-booked',
+      tutorId: tutorId,
+      startTime: DateTime.now().add(const Duration(days: 6)),
+      endTime: DateTime.now().add(const Duration(days: 6, hours: 1)),
+      status: SlotStatus.booked,
+    ),
+    AvailabilitySlotRef(
+      id: 'slot-fake-too-soon',
+      tutorId: tutorId,
+      startTime: DateTime.now().add(const Duration(hours: 2)),
+      endTime: DateTime.now().add(const Duration(hours: 3)),
+    ),
+  ];
+
+  @override
+  Future<AvailabilitySlotRef> createSlot(AvailabilitySlotDraft draft) =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> deleteSlot(String slotId) => throw UnimplementedError();
+
+  @override
+  Future<BookingSlotOutcome> bookSlot({
+    required String slotId,
+    required Map<String, dynamic> bookingValues,
+  }) async => const BookingSlotOutcome.success();
+}
+
 void main() {
   setUpAll(() async {
     // AppDateUtils pakai DateFormat(..., 'id'), butuh ini diinisialisasi
@@ -31,7 +74,9 @@ void main() {
 
   setUp(() {
     Get.testMode = true;
-    Get.put(BookingController());
+    Get.put(
+      BookingController(slotRepository: _FakeSlotRepository()),
+    );
   });
 
   tearDown(Get.reset);
@@ -67,7 +112,9 @@ void main() {
     await _pumpBookingScreen(tester);
 
     final ctrl = Get.find<BookingController>();
-    expect(ctrl.availableSlots, isNotEmpty);
+
+    // Slot available di dalam jendela H-5 ditawarkan (FR-BOOK-02/04).
+    expect(ctrl.availableSlots.map((s) => s.id), contains('slot-fake-available'));
 
     final firstSlot = ctrl.availableSlots.first;
     await tester.tap(find.byKey(ValueKey('slot-${firstSlot.id}')));
@@ -81,22 +128,23 @@ void main() {
     expect(button.onPressed, isNotNull);
   });
 
-  testWidgets('Slot berstatus booked tidak muncul sebagai pilihan', (
+  testWidgets('Slot booked dan di luar H-5 tidak muncul sebagai pilihan', (
     tester,
   ) async {
     await _pumpBookingScreen(tester);
 
     final ctrl = Get.find<BookingController>();
-    final bookedSlot = AvailabilitySlotModel(
-      id: 'slot-already-booked',
-      tutorId: _dummyTutor.id,
-      startTime: DateTime.now().add(const Duration(days: 5)),
-      endTime: DateTime.now().add(const Duration(days: 5, hours: 1)),
-      status: 'booked',
-    );
-    ctrl.availableSlots.add(bookedSlot);
-    await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('slot-slot-already-booked')), findsNothing);
+    // FR-BOOK-04: penyaringan kini ada di domain (SlotBookingPolicy),
+    // bukan lagi di UI — sebelum slice ini slot-nya dummy dan saringannya
+    // hanya menyaring daftar yang sudah ditampilkan.
+    expect(ctrl.availableSlots.map((s) => s.id), isNot(contains('slot-fake-booked')));
+    expect(
+      ctrl.availableSlots.map((s) => s.id),
+      isNot(contains('slot-fake-too-soon')),
+    );
+    expect(ctrl.availableSlots.every((s) => s.status == SlotStatus.available),
+        isTrue);
+    expect(find.byKey(const ValueKey('slot-slot-fake-booked')), findsNothing);
   });
 }
