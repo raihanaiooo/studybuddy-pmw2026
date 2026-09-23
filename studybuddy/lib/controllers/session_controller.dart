@@ -79,6 +79,16 @@ class SessionController extends GetxController {
     }
   }
 
+  Future<void> openMeetLink() async {
+    final link = currentSession.value?.gmeetLink;
+    if (link == null || link.isEmpty) {
+      errorMessage.value = 'Link Google Meet tidak tersedia.';
+      Get.snackbar('Link Tidak Tersedia', errorMessage.value);
+      return;
+    }
+    await _launchGmeet(link);
+  }
+
   void _startTimer() {
     isTimerRunning.value = true;
     _timer?.cancel();
@@ -112,12 +122,21 @@ class SessionController extends GetxController {
       }
     }
 
+    final sessionId = currentSession.value?.id;
+    final tutorId = currentBooking.value?.tutorId;
+    final subject = currentBooking.value?.subject;
+
+    // Reset state setelah data disalin
+    currentSession.value = null;
+    currentBooking.value = null;
+    timerSeconds.value = 0;
+
     Get.offNamed(
       AppRoutes.review,
       arguments: {
-        'sessionId': currentSession.value?.id,
-        'tutorId': currentBooking.value?.tutorId,
-        'subject': currentBooking.value?.subject,
+        'sessionId': sessionId,
+        'tutorId': tutorId,
+        'subject': subject,
       },
     );
   }

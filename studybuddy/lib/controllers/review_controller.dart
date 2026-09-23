@@ -30,6 +30,21 @@ class ReviewController extends GetxController {
       final user = await _authService.getCurrentUser();
       if (user == null) return;
 
+      // Cek apakah sudah pernah review session ini
+      final existing = await SupabaseService.client
+          .from(SupabaseConstants.tableReviews)
+          .select('id')
+          .eq('session_id', sessionId)
+          .eq('customer_id', user.id)
+          .maybeSingle();
+
+      if (existing != null) {
+        errorMessage.value = 'Kamu sudah pernah memberi ulasan untuk sesi ini.';
+        Get.snackbar('Info', errorMessage.value);
+        Get.offAllNamed(AppRoutes.customerDashboard);
+        return;
+      }
+
       await SupabaseService.client.from(SupabaseConstants.tableReviews).insert({
         'session_id': sessionId,
         'customer_id': user.id,
@@ -40,13 +55,17 @@ class ReviewController extends GetxController {
         'created_at': DateTime.now().toIso8601String(),
       });
 
-      // Rating aggregate di-handle oleh trigger di DB
-      // (trg_reviews_update_tutor_stats) — tidak perlu client-side update.
-
       Get.offAllNamed(AppRoutes.customerDashboard);
       Get.snackbar('Terima kasih!', 'Ulasan kamu sudah tersimpan.');
     } catch (e) {
       print('ReviewController.submitReview error: $e');
+      // Handle unique constraint violation
+      if (e.toString().contains('uq_reviews_session')) {
+        errorMessage.value = 'Kamu sudah pernah memberi ulasan untuk sesi ini.';
+        Get.snackbar('Info', errorMessage.value);
+        Get.offAllNamed(AppRoutes.customerDashboard);
+        return;
+      }
       errorMessage.value = 'Gagal mengirim ulasan. Coba lagi.';
       Get.snackbar('Gagal', 'Ulasan tidak tersimpan. Coba lagi.');
     } finally {
