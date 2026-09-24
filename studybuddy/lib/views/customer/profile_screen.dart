@@ -6,6 +6,8 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../core/utils/validator_utils.dart';
 import '../../app/routes.dart';
+import 'package:file_picker/file_picker.dart';
+import '../../models/user_model.dart';
 
 class CustomerProfileScreen extends StatelessWidget {
   const CustomerProfileScreen({super.key});
@@ -48,7 +50,7 @@ class CustomerProfileScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(user.fullName, user.email),
+              _buildHeader(context, auth, user),
               const SizedBox(height: 20),
               _buildStatsRow(profile),
               const SizedBox(height: 20),
@@ -106,53 +108,180 @@ class CustomerProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(String name, String email) => Container(
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
-      boxShadow: [
-        BoxShadow(
-          color: AppColors.primaryBlue.withOpacity(0.08),
-          blurRadius: 8,
-        ),
-      ],
-    ),
-    child: Row(
-      children: [
-        Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [AppColors.primaryBlue, AppColors.blueLight],
+  Widget _buildHeader(
+    BuildContext context,
+    AuthController auth,
+    UserModel user,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryBlue.withOpacity(0.08),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => _showAvatarOptions(context, auth),
+            child: Stack(
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppColors.primaryBlue, AppColors.blueLight],
+                    ),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  alignment: Alignment.center,
+                  clipBehavior: Clip.antiAlias,
+                  child: user.avatarUrl != null && user.avatarUrl!.isNotEmpty
+                      ? Image.network(
+                          user.avatarUrl!,
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Text(
+                            user.fullName.isNotEmpty
+                                ? user.fullName[0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 24,
+                            ),
+                          ),
+                        )
+                      : Text(
+                          user.fullName.isNotEmpty
+                              ? user.fullName[0].toUpperCase()
+                              : '?',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 24,
+                          ),
+                        ),
+                ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryBlue,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt,
+                      color: Colors.white,
+                      size: 10,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            borderRadius: BorderRadius.circular(18),
           ),
-          alignment: Alignment.center,
-          child: Text(
-            name.isNotEmpty ? name[0].toUpperCase() : '?',
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-              fontSize: 24,
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(user.fullName, style: AppTextStyles.heading3),
+                const SizedBox(height: 2),
+                Text(user.email, style: AppTextStyles.caption),
+              ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showAvatarOptions(
+    BuildContext context,
+    AuthController auth,
+  ) async {
+    final hasAvatar =
+        auth.currentUser.value?.avatarUrl != null &&
+        auth.currentUser.value!.avatarUrl!.isNotEmpty;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(name, style: AppTextStyles.heading3),
-              const SizedBox(height: 2),
-              Text(email, style: AppTextStyles.caption),
-            ],
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Foto Profil', style: AppTextStyles.heading2),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(
+                Icons.photo_library_outlined,
+                color: AppColors.primaryBlue,
+              ),
+              title: const Text('Pilih dari Galeri'),
+              onTap: () {
+                Get.back();
+                _pickAvatar(auth);
+              },
+            ),
+            if (hasAvatar)
+              ListTile(
+                leading: const Icon(
+                  Icons.delete_outline,
+                  color: AppColors.primaryRed,
+                ),
+                title: const Text(
+                  'Hapus Foto',
+                  style: TextStyle(color: AppColors.primaryRed),
+                ),
+                onTap: () {
+                  Get.back();
+                  Get.find<ProfileController>().deleteAvatar(auth: auth);
+                },
+              ),
+          ],
         ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
+
+  Future<void> _pickAvatar(AuthController auth) async {
+    final pickedFiles = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
+    );
+
+    if (pickedFiles.isEmpty) return;
+    final picked = pickedFiles.single;
+    final bytes = await picked.readAsBytes();
+
+    if (bytes.isEmpty) {
+      Get.snackbar('Gagal', 'Tidak bisa membaca file.');
+      return;
+    }
+
+    await Get.find<ProfileController>().uploadAvatar(
+      auth: auth,
+      fileName: picked.name,
+      fileBytes: bytes,
+    );
+  }
 
   Widget _buildStatsRow(ProfileController profile) => Obx(
     () => Row(

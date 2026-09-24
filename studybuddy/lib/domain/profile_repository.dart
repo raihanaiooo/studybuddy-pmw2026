@@ -5,7 +5,6 @@ abstract class ProfileRepository {
   Future<void> updateTutorProfile(String tutorId, TutorProfilePatch patch);
   Future<List<TutorDocumentRecord>> fetchMyTutorDocuments(String tutorId);
 
-  /// Upload file dokumen ke Supabase Storage + update metadata
   Future<TutorDocumentRecord> uploadDocument({
     required String documentId,
     required String tutorId,
@@ -14,6 +13,16 @@ abstract class ProfileRepository {
     required String fileName,
     required List<int> fileBytes,
   });
+
+  /// Upload avatar untuk user (Buddy atau Tutor)
+  Future<String> uploadAvatar({
+    required String userId,
+    required String fileName,
+    required List<int> fileBytes,
+  });
+
+  /// Hapus avatar user
+  Future<void> deleteAvatar(String userId);
 }
 
 class BuddyProfileData {

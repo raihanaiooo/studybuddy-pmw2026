@@ -219,6 +219,79 @@ class ProfileController extends GetxController {
     }
   }
 
+  /// Upload avatar (Buddy atau Tutor)
+  Future<bool> uploadAvatar({
+    required AuthController auth,
+    required String fileName,
+    required List<int> fileBytes,
+  }) async {
+    // Validasi ukuran (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (fileBytes.length > maxSize) {
+      errorMessage.value = 'Ukuran foto maksimal 5MB.';
+      Get.snackbar('Foto Terlalu Besar', errorMessage.value);
+      return false;
+    }
+
+    // Validasi ekstensi
+    final ext = fileName.split('.').last.toLowerCase();
+    if (!['jpg', 'jpeg', 'png', 'webp'].contains(ext)) {
+      errorMessage.value = 'Format foto harus JPG, PNG, atau WEBP.';
+      Get.snackbar('Format Tidak Didukung', errorMessage.value);
+      return false;
+    }
+
+    isLoading.value = true;
+    errorMessage.value = '';
+    try {
+      final current = auth.currentUser.value;
+      if (current == null) {
+        errorMessage.value = 'Sesi berakhir.';
+        return false;
+      }
+
+      final url = await _profiles.uploadAvatar(
+        userId: current.id,
+        fileName: fileName,
+        fileBytes: fileBytes,
+      );
+
+      auth.currentUser.value = current.copyWith(avatarUrl: url);
+      Get.snackbar('Berhasil', 'Foto profil sudah diperbarui');
+      return true;
+    } on ProfileBackendMissingException catch (e) {
+      errorMessage.value = e.message;
+      Get.snackbar('Gagal Upload', e.message);
+      return false;
+    } catch (e) {
+      print('ProfileController.uploadAvatar error: $e');
+      errorMessage.value = 'Gagal upload foto. Coba lagi.';
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /// Hapus avatar
+  Future<bool> deleteAvatar({required AuthController auth}) async {
+    isLoading.value = true;
+    try {
+      final current = auth.currentUser.value;
+      if (current == null) return false;
+
+      await _profiles.deleteAvatar(current.id);
+      auth.currentUser.value = current.copyWith(avatarUrl: null);
+      Get.snackbar('Berhasil', 'Foto profil sudah dihapus');
+      return true;
+    } catch (e) {
+      print('ProfileController.deleteAvatar error: $e');
+      Get.snackbar('Gagal', 'Tidak bisa menghapus foto. Coba lagi.');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<bool> saveTutorProfile({
     required String bio,
     required List<String> subjects,

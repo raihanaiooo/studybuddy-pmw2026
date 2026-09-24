@@ -167,30 +167,24 @@ class TutorCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(size / 3),
     ),
     alignment: Alignment.center,
-    child: tutor.avatarUrl != null
-        ? ClipRRect(
-            borderRadius: BorderRadius.circular(size / 3),
-            child: Image.network(
-              tutor.avatarUrl!,
-              width: size,
-              height: size,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                color: AppColors.primaryBlue,
-                alignment: Alignment.center,
-                child: Text(
-                  tutor.fullName[0].toUpperCase(),
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: size * 0.4,
-                  ),
-                ),
+    clipBehavior: Clip.antiAlias,
+    child: tutor.avatarUrl != null && tutor.avatarUrl!.isNotEmpty
+        ? Image.network(
+            tutor.avatarUrl!,
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Text(
+              tutor.fullName.isNotEmpty ? tutor.fullName[0].toUpperCase() : '?',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: size * 0.4,
               ),
             ),
           )
         : Text(
-            tutor.fullName[0].toUpperCase(),
+            tutor.fullName.isNotEmpty ? tutor.fullName[0].toUpperCase() : '?',
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w800,

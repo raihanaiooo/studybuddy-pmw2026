@@ -88,6 +88,7 @@ class UserModel {
 
   UserModel copyWith({
     String? fullName,
+    Object? avatarUrl = _unset,
     Object? phone = _unset,
     Object? jenjang = _unset,
     Object? interestedSubjects = _unset,
@@ -99,7 +100,9 @@ class UserModel {
     email: email,
     fullName: fullName ?? this.fullName,
     role: role,
-    avatarUrl: avatarUrl,
+    avatarUrl: identical(avatarUrl, _unset)
+        ? this.avatarUrl
+        : avatarUrl as String?,
     fcmToken: fcmToken,
     createdAt: createdAt,
     phone: identical(phone, _unset) ? this.phone : phone as String?,
