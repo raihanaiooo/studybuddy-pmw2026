@@ -6,6 +6,8 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminLayout } from './components/layout/AdminLayout';
 import { TutorListPage } from './pages/TutorListPage';
 import { TutorDetailPage } from './pages/TutorDetailPage';
+import { BookingListPage } from './pages/BookingListPage';
+import { BookingDetailPage } from './pages/BookingDetailPage';
 
 function App() {
   return (
@@ -28,10 +30,8 @@ function App() {
             element={<TutorListPage />}
           />
           <Route path="/tutors/:id" element={<TutorDetailPage />} />
-          <Route
-            path="/bookings"
-            element={<div className="text-[#6B7280]">Halaman Bookings (coming soon)</div>}
-          />
+          <Route path="/bookings" element={<BookingListPage />} />
+          <Route path="/bookings/:id" element={<BookingDetailPage />} />
           <Route
             path="/payments"
             element={<div className="text-[#6B7280]">Halaman Transaksi (coming soon)</div>}
