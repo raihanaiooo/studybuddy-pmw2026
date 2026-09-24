@@ -12,6 +12,8 @@ import { PaymentListPage } from './pages/PaymentListPage';
 import { PaymentDetailPage } from './pages/PaymentDetailPage';
 import { ComplaintListPage } from './pages/ComplaintListPage';
 import { ComplaintDetailPage } from './pages/ComplaintDetailPage';
+import { RescheduleListPage } from './pages/RescheduleListPage';
+import { RescheduleDetailPage } from './pages/RescheduleDetailPage';
 
 function App() {
   return (
@@ -38,10 +40,8 @@ function App() {
           <Route path="/bookings/:id" element={<BookingDetailPage />} />
           <Route path="/payments" element={<PaymentListPage />} />
           <Route path="/payments/:id" element={<PaymentDetailPage />} />
-          <Route
-            path="/reschedules"
-            element={<div className="text-[#6B7280]">Halaman Reschedule (coming soon)</div>}
-          />
+          <Route path="/reschedules" element={<RescheduleListPage />} />
+          <Route path="/reschedules/:id" element={<RescheduleDetailPage />} />
           <Route path="/complaints" element={<ComplaintListPage />} />
           <Route path="/complaints/:id" element={<ComplaintDetailPage />} />
           <Route
