@@ -1,17 +1,16 @@
 import 'package:get/get.dart';
+import '../core/services/auth_service.dart';
+import '../data/reschedule_repository_supabase.dart';
+import '../domain/reschedule_repository.dart';
 import '../models/reschedule_model.dart';
 
-/// Controller pengajuan reschedule sesi (FR-RESCH-01..09)
-///
-/// Aturan bisnis (dari client):
-/// - Threshold: maksimal H-5 jam sebelum sesi
-/// - Max postpone: 2 hari dari jadwal semula
-/// - Max reschedule: 5x (khusus paket bulanan)
-/// - Wajib approval admin, tidak langsung disetujui
-///
-/// Masih dummy data — tinggal ganti fetch/submit dengan query tabel
-/// `reschedules` begitu migrasi DB dilakukan.
 class RescheduleController extends GetxController {
+  RescheduleController({RescheduleRepository? repository})
+    : _repo = repository ?? RescheduleRepositorySupabase();
+
+  final RescheduleRepository _repo;
+  final _authService = AuthService();
+
   static const thresholdHours = 5;
   static const maxPostponeDays = 2;
   static const maxRescheduleCount = 5;
@@ -28,21 +27,35 @@ class RescheduleController extends GetxController {
   }
 
   Future<void> fetchMyRequests() async {
-    myRequests.value = List<RescheduleModel>.from(_dummyRequests);
+    isLoading.value = true;
+    errorMessage.value = '';
+    try {
+      final user = await _authService.getCurrentUser();
+      if (user == null) return;
+      myRequests.value = await _repo.fetchMyRequests(user.id);
+      // Hitung kuota: max - jumlah yang sudah dipakai
+      final used = await _repo.countMyRequestsThisMonth(user.id);
+      quotaLeft.value = (maxRescheduleCount - used).clamp(
+        0,
+        maxRescheduleCount,
+      );
+    } catch (e) {
+      print('RescheduleController.fetchMyRequests error: $e');
+      errorMessage.value = 'Gagal memuat riwayat reschedule.';
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  /// Ajukan reschedule. Mengembalikan null kalau validasi gagal (lihat
-  /// errorMessage), atau RescheduleModel hasil pengajuan.
-  ///
-  /// Semua pengajuan sekarang masuk `menungguAdmin` — client bilang
-  /// harus persetujuan dulu, tidak langsung.
-  RescheduleModel? submitReschedule({
+  /// Ajukan reschedule. Mengembalikan null kalau validasi gagal
+  /// (lihat errorMessage), atau RescheduleModel hasil pengajuan.
+  Future<RescheduleModel?> submitReschedule({
     required String bookingId,
     required DateTime originalSessionTime,
     required DateTime newSessionTime,
     required String reason,
     bool switchTutor = false,
-  }) {
+  }) async {
     errorMessage.value = '';
 
     if (reason.trim().isEmpty) {
@@ -50,14 +63,12 @@ class RescheduleController extends GetxController {
       return null;
     }
 
-    // Cek kuota (max 5x)
     if (quotaLeft.value <= 0) {
       errorMessage.value =
           'Kuota reschedule sudah habis (maksimal $maxRescheduleCount kali).';
       return null;
     }
 
-    // Cek threshold H-5
     final hoursUntilSession = originalSessionTime
         .difference(DateTime.now())
         .inHours;
@@ -67,7 +78,6 @@ class RescheduleController extends GetxController {
       return null;
     }
 
-    // Cek max postpone 2 hari
     final maxAllowed = originalSessionTime.add(
       const Duration(days: maxPostponeDays),
     );
@@ -81,38 +91,30 @@ class RescheduleController extends GetxController {
       return null;
     }
 
-    // Semua pengajuan butuh approval admin (client: "harus persetujuan dulu")
-    final adminNote = switchTutor
-        ? 'Pengalihan ke Tutor lain perlu persetujuan Admin'
-        : 'Pengajuan reschedule perlu persetujuan Admin';
+    isLoading.value = true;
+    try {
+      final user = await _authService.getCurrentUser();
+      if (user == null) return null;
 
-    final request = RescheduleModel(
-      id: 'resch-${DateTime.now().millisecondsSinceEpoch}',
-      bookingId: bookingId,
-      reason: reason,
-      originalSessionTime: originalSessionTime,
-      newSessionTime: newSessionTime,
-      status: RescheduleStatus.menungguAdmin,
-      requestedBy: 'buddy',
-      adminNote: adminNote,
-      createdAt: DateTime.now(),
-    );
+      final request = await _repo.submitRequest(
+        bookingId: bookingId,
+        requestedBy: user.id,
+        requestedByRole: 'buddy',
+        reason: reason,
+        originalSessionTime: originalSessionTime,
+        newSessionTime: newSessionTime,
+      );
 
-    myRequests.insert(0, request);
-    quotaLeft.value--;
+      myRequests.insert(0, request);
+      quotaLeft.value = (quotaLeft.value - 1).clamp(0, maxRescheduleCount);
 
-    return request;
+      return request;
+    } catch (e) {
+      print('RescheduleController.submitReschedule error: $e');
+      errorMessage.value = 'Gagal mengirim pengajuan. Coba lagi.';
+      return null;
+    } finally {
+      isLoading.value = false;
+    }
   }
-
-  static final List<RescheduleModel> _dummyRequests = [
-    RescheduleModel(
-      id: 'resch-past-1',
-      bookingId: 'booking-past-1',
-      reason: 'Ada ujian mendadak',
-      originalSessionTime: DateTime.now().subtract(const Duration(days: 3)),
-      newSessionTime: DateTime.now().subtract(const Duration(days: 2)),
-      status: RescheduleStatus.disetujui,
-      createdAt: DateTime.now().subtract(const Duration(days: 4)),
-    ),
-  ];
 }

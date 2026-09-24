@@ -7,7 +7,6 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../core/utils/date_utils.dart';
 
-/// Pengajuan reschedule sesi (FR-RESCH-01..09)
 class RescheduleScreen extends StatefulWidget {
   const RescheduleScreen({super.key});
 
@@ -130,7 +129,7 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
                 style: AppTextStyles.bodySemiBold,
               ),
               subtitle: Text(
-                'Kalau Tutor asli tidak bisa di jadwal baru (FR-RESCH-07)',
+                'Kalau Tutor asli tidak bisa di jadwal baru',
                 style: AppTextStyles.caption,
               ),
             ),
@@ -150,22 +149,34 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
                   : const SizedBox(),
             ),
 
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: () => _submit(context, ctrl, booking),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryBlue,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+            Obx(
+              () => SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: ctrl.isLoading.value
+                      ? null
+                      : () => _submit(context, ctrl, booking),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryBlue,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
                   ),
-                  elevation: 0,
-                ),
-                child: const Text(
-                  'Ajukan Reschedule',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                  child: ctrl.isLoading.value
+                      ? const CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        )
+                      : const Text(
+                          'Ajukan Reschedule',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                          ),
+                        ),
                 ),
               ),
             ),
@@ -271,10 +282,6 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
 
   Future<void> _pickDate(DateTime originalSessionTime) async {
     final now = DateTime.now();
-    // Kalau sesi aslinya sudah lewat (booking lama yang statusnya masih
-    // 'confirmed'), jadwal semula + maxPostponeDays bisa jatuh SEBELUM
-    // `now` — showDatePicker mewajibkan lastDate >= firstDate, jadi
-    // di-clamp minimal `now` supaya tidak assertion-crash.
     final maxAllowed = originalSessionTime.add(
       const Duration(days: RescheduleController.maxPostponeDays),
     );
@@ -300,41 +307,51 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
     if (picked != null) setState(() => _newTime = picked);
   }
 
-  void _submit(
+  Future<void> _submit(
     BuildContext context,
     RescheduleController ctrl,
     BookingModel booking,
-  ) {
+  ) async {
     if (_newSessionTime == null) {
       Get.snackbar('Perhatian', 'Lengkapi tanggal & jam baru dulu');
       return;
     }
 
-    final result = ctrl.submitReschedule(
+    final result = await ctrl.submitReschedule(
       bookingId: booking.id,
       originalSessionTime: booking.sessionTime,
       newSessionTime: _newSessionTime!,
       reason: _reasonCtrl.text,
       switchTutor: _switchTutor,
     );
-    if (result == null) return; // errorMessage sudah di-set controller
+    if (result == null) return;
 
+    if (!mounted) return;
     _showResultDialog(context, result);
   }
 
   void _showResultDialog(BuildContext context, RescheduleModel result) {
     final approved = result.status == RescheduleStatus.disetujui;
+    final pending = result.status == RescheduleStatus.menungguAdmin;
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          approved ? 'Reschedule Disetujui' : 'Menunggu Approval Admin',
+          approved
+              ? 'Reschedule Disetujui'
+              : pending
+              ? 'Menunggu Approval Admin'
+              : 'Reschedule Ditolak',
         ),
         content: Text(
           approved
               ? 'Jadwal baru: ${AppDateUtils.formatDateTime(result.newSessionTime)}'
-              : result.adminNote ?? 'Butuh persetujuan Admin terlebih dahulu.',
+              : result.adminNote ??
+                    (pending
+                        ? 'Pengajuan kamu sedang ditinjau Admin. Kamu akan mendapat notifikasi setelah disetujui/ditolak.'
+                        : 'Pengajuan reschedule kamu ditolak.'),
         ),
         actions: [
           ElevatedButton(
