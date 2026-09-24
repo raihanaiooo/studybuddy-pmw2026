@@ -8,45 +8,48 @@ export function Header({ onMenuClick }: HeaderProps) {
   const { user, signOut } = useAuth();
 
   return (
-    <header className="bg-white border-b border-[#E5E7EB] px-4 lg:px-6 py-3 flex items-center justify-between sticky top-0 z-30">
-      {/* Hamburger untuk mobile */}
+    <header className="h-[72px] bg-card border-b border-border flex items-center justify-between px-4 lg:px-6 shrink-0 z-30">
+      {/* Hamburger mobile */}
       <button
         onClick={onMenuClick}
-        className="lg:hidden w-10 h-10 rounded-lg hover:bg-[#F5F6FA] flex items-center justify-center text-xl"
+        className="lg:hidden w-10 h-10 rounded-xl hover:bg-background flex items-center justify-center text-xl transition-colors"
         aria-label="Menu"
       >
         ☰
       </button>
 
       <div className="hidden lg:block">
-        <h2 className="text-sm text-[#6B7280]">
-          Selamat datang kembali,
+        <h2 className="text-[13.5px] text-text-secondary font-nunito">
+          Selamat datang kembali 👋
         </h2>
       </div>
 
-      {/* User info */}
-      <div className="flex items-center gap-3">
-        <div className="hidden sm:block text-right">
-          <p className="text-sm font-semibold text-[#1A1F3C]">
+      {/* User */}
+      <div className="flex items-center gap-2 lg:gap-3">
+        <div className="hidden sm:block text-right mr-1">
+          <p className="text-[13.5px] font-poppins font-semibold text-text-primary leading-tight">
             {user?.full_name ?? 'Admin'}
           </p>
-          <p className="text-xs text-[#6B7280]">{user?.email}</p>
+          <p className="text-[11px] text-text-light font-nunito leading-tight">
+            {user?.email}
+          </p>
         </div>
 
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1A5EAA] to-[#6BB5FF] flex items-center justify-center text-white font-bold">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-blue-dark to-primary-blue-light flex items-center justify-center text-white font-poppins font-bold text-sm shadow-sm shrink-0">
           {user?.full_name?.[0]?.toUpperCase() ?? 'A'}
         </div>
 
         <button
           onClick={signOut}
-          className="hidden sm:flex px-3 py-2 text-sm text-[#E53935] hover:bg-[#E53935]/10 rounded-lg font-medium transition-colors"
+          className="hidden sm:flex items-center gap-2 h-10 px-3.5 rounded-xl text-[13px] font-nunito font-semibold text-primary-red hover:bg-primary-red-subtle transition-colors"
         >
-          Keluar
+          <span>🚪</span>
+          <span>Keluar</span>
         </button>
 
         <button
           onClick={signOut}
-          className="sm:hidden w-10 h-10 rounded-lg hover:bg-[#E53935]/10 flex items-center justify-center"
+          className="sm:hidden w-10 h-10 rounded-xl hover:bg-primary-red-subtle flex items-center justify-center transition-colors"
           aria-label="Logout"
         >
           🚪

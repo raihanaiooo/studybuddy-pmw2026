@@ -1,57 +1,41 @@
 @import "tailwindcss";
+@source "./**/*.{ts,tsx}";
+@source "../index.html";
 
 @theme {
-  --color-primary-blue: #1A5EAA;
+  --color-primary-blue: #2E86DE;
+  --color-primary-blue-dark: #1A5EAA;
+  --color-primary-blue-light: #5BA4F5;
+  --color-primary-blue-subtle: #EBF4FF;
+  --color-primary-red: #E63946;
+  --color-primary-red-subtle: #FEF2F2;
   --color-primary-yellow: #F4A200;
-  --color-primary-red: #E53935;
-  --color-blue-dark: #1A1F3C;
-  --color-blue-light: #6BB5FF;
-  --color-accent-teal: #00BFA5;
-  --color-online-green: #00C853;
+  --color-primary-yellow-subtle: #FFF9EC;
+  --color-online-green: #22C55E;
+  --color-online-green-subtle: #F0FDF4;
+  --color-accent-purple: #7C3AED;
+  --color-accent-teal: #0891B2;
+  --color-accent-teal-subtle: #ECFEFF;
+  --color-background: #F0F4FF;
+  --color-card: #FFFFFF;
   --color-text-primary: #1A1F3C;
   --color-text-secondary: #6B7280;
   --color-text-light: #9CA3AF;
-  --color-bg-main: #F5F6FA;
-  --color-border-main: #E5E7EB;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  --color-border: #E5E7F0;
+  --font-poppins: 'Poppins', sans-serif;
+  --font-nunito: 'Nunito', sans-serif;
+  --shadow-sm: 0 1px 3px 0 rgba(26, 31, 60, 0.06);
+  --shadow-md: 0 4px 12px -2px rgba(26, 31, 60, 0.08);
+  --shadow-lg: 0 12px 24px -4px rgba(26, 31, 60, 0.1);
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background-color: #F5F6FA;
+  font-family: 'Nunito', sans-serif;
+  background-color: #F0F4FF;
   color: #1A1F3C;
 }
 
-html, body, #root {
-  height: 100%;
-}
-
-/* ============================================
-   Print styles untuk slip gaji
-   ============================================ */
-@media print {
-  body {
-    background: white !important;
-  }
-
-  .print\:hidden {
-    display: none !important;
-  }
-
-  .print\:border-0 {
-    border: 0 !important;
-  }
-
-  .print\:shadow-none {
-    box-shadow: none !important;
-  }
-
-  @page {
-    margin: 1cm;
-  }
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
 }

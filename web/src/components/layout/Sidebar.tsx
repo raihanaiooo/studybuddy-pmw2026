@@ -20,7 +20,7 @@ const menuItems = [
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   return (
     <>
-      {/* Overlay untuk mobile */}
+      {/* Overlay mobile */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/40 z-40 lg:hidden"
@@ -31,28 +31,29 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={`
-          fixed lg:static top-0 left-0 h-full w-64 bg-white border-r border-[#E5E7EB] z-50
-          transform transition-transform duration-200 ease-in-out
+          fixed lg:static top-0 left-0 h-full w-[260px] bg-card border-r border-border z-50
+          transform transition-transform duration-200 ease-out
+          flex flex-col
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
         {/* Logo */}
-        <div className="p-6 border-b border-[#E5E7EB]">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1A5EAA] to-[#6BB5FF] flex items-center justify-center text-white text-xl">
-              📚
-            </div>
-            <div>
-              <h1 className="font-bold text-[#1A1F3C] leading-tight">
-                Study Buddy
-              </h1>
-              <p className="text-xs text-[#6B7280]">Admin Panel</p>
-            </div>
+        <div className="px-5 h-[72px] flex items-center gap-3 border-b border-border shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-blue-dark via-primary-blue to-primary-blue-light flex items-center justify-center text-white text-xl shadow-md shrink-0">
+            📚
+          </div>
+          <div className="min-w-0">
+            <h1 className="font-poppins font-bold text-[15px] text-text-primary leading-tight">
+              Study Buddy
+            </h1>
+            <p className="text-[11px] text-text-light font-medium leading-tight">
+              Admin Panel
+            </p>
           </div>
         </div>
 
         {/* Menu */}
-        <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100%-88px)]">
+        <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
           {menuItems.map((item) => (
             <NavLink
               key={item.path}
@@ -60,21 +61,28 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               onClick={onClose}
               className={({ isActive }) =>
                 `
-                flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
-                transition-colors duration-150
-                ${
-                  isActive
-                    ? 'bg-[#1A5EAA] text-white'
-                    : 'text-[#6B7280] hover:bg-[#F5F6FA] hover:text-[#1A1F3C]'
-                }
-              `
+                  flex items-center gap-3 h-11 px-3 rounded-xl text-[13.5px] font-nunito
+                  transition-all duration-150
+                  ${
+                    isActive
+                      ? 'bg-primary-blue text-white font-semibold shadow-sm'
+                      : 'text-text-secondary font-medium hover:bg-background hover:text-text-primary'
+                  }
+                `
               }
             >
-              <span className="text-lg">{item.icon}</span>
-              <span>{item.label}</span>
+              <span className="text-[17px] leading-none shrink-0">{item.icon}</span>
+              <span className="truncate">{item.label}</span>
             </NavLink>
           ))}
         </nav>
+
+        {/* Footer */}
+        <div className="p-3 border-t border-border shrink-0">
+          <p className="text-[11px] text-text-light text-center font-nunito">
+            v1.0.0 · Study Buddy © 2026
+          </p>
+        </div>
       </aside>
     </>
   );
