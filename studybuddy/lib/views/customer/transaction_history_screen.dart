@@ -38,13 +38,37 @@ class TransactionHistoryScreen extends StatelessWidget {
       body: Obx(() {
         if (ctrl.history.isEmpty) {
           return Center(
-            child: Text('Belum ada transaksi', style: AppTextStyles.caption),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('🧾', style: TextStyle(fontSize: 48)),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Belum ada transaksi',
+                    style: AppTextStyles.bodySemiBold,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Transaksi kamu akan muncul di sini.',
+                    style: AppTextStyles.caption,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
           );
         }
-        return ListView.builder(
-          padding: const EdgeInsets.all(20),
-          itemCount: ctrl.history.length,
-          itemBuilder: (_, i) => _transactionCard(context, ctrl, ctrl.history[i]),
+        return RefreshIndicator(
+          onRefresh: ctrl.fetchHistory,
+          color: AppColors.primaryBlue,
+          child: ListView.builder(
+            padding: const EdgeInsets.all(20),
+            itemCount: ctrl.history.length,
+            itemBuilder: (_, i) =>
+                _transactionCard(context, ctrl, ctrl.history[i]),
+          ),
         );
       }),
     );
@@ -62,7 +86,10 @@ class TransactionHistoryScreen extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
-          BoxShadow(color: AppColors.primaryBlue.withOpacity(0.08), blurRadius: 8),
+          BoxShadow(
+            color: AppColors.primaryBlue.withOpacity(0.08),
+            blurRadius: 8,
+          ),
         ],
       ),
       child: Column(
@@ -82,13 +109,18 @@ class TransactionHistoryScreen extends StatelessWidget {
           const SizedBox(height: 6),
           Text('Sesi dengan ${inv.tutorName}', style: AppTextStyles.caption),
           const SizedBox(height: 2),
-          Text(AppDateUtils.formatDate(inv.createdAt), style: AppTextStyles.caption),
+          Text(
+            AppDateUtils.formatDate(inv.createdAt),
+            style: AppTextStyles.caption,
+          ),
           const SizedBox(height: 10),
           Row(
             children: [
               Text(
                 'Rp${CurrencyUtils.formatPrice(inv.total)}',
-                style: AppTextStyles.bodySemiBold.copyWith(color: AppColors.primaryBlue),
+                style: AppTextStyles.bodySemiBold.copyWith(
+                  color: AppColors.primaryBlue,
+                ),
               ),
               const Spacer(),
               if (inv.status == InvoiceStatus.paid)
@@ -96,7 +128,10 @@ class TransactionHistoryScreen extends StatelessWidget {
                   onPressed: () => _openRefundSheet(context, ctrl, inv),
                   child: const Text(
                     'Ajukan Refund',
-                    style: TextStyle(color: AppColors.primaryRed, fontWeight: FontWeight.w700),
+                    style: TextStyle(
+                      color: AppColors.primaryRed,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
             ],
@@ -106,8 +141,17 @@ class TransactionHistoryScreen extends StatelessWidget {
     );
   }
 
-  void _openRefundSheet(BuildContext context, PaymentController ctrl, InvoiceModel inv) {
-    const reasons = ['Berubah pikiran', 'Jadwal bentrok', 'Salah pilih Tutor', 'Lainnya'];
+  void _openRefundSheet(
+    BuildContext context,
+    PaymentController ctrl,
+    InvoiceModel inv,
+  ) {
+    const reasons = [
+      'Berubah pikiran',
+      'Jadwal bentrok',
+      'Salah pilih Tutor',
+      'Lainnya',
+    ];
     String selected = reasons.first;
 
     showModalBottomSheet(
@@ -116,7 +160,9 @@ class TransactionHistoryScreen extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheetState) => Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          ),
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: const BoxDecoration(
@@ -143,7 +189,9 @@ class TransactionHistoryScreen extends StatelessWidget {
                           selected: selected == r,
                           selectedColor: AppColors.primaryBlue,
                           labelStyle: TextStyle(
-                            color: selected == r ? Colors.white : AppColors.textSecondary,
+                            color: selected == r
+                                ? Colors.white
+                                : AppColors.textSecondary,
                             fontWeight: FontWeight.w700,
                           ),
                           onSelected: (_) => setSheetState(() => selected = r),
@@ -160,9 +208,14 @@ class TransactionHistoryScreen extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryRed,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
-                    child: const Text('Ajukan Refund', style: TextStyle(fontWeight: FontWeight.w700)),
+                    child: const Text(
+                      'Ajukan Refund',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ),
               ],
@@ -172,5 +225,4 @@ class TransactionHistoryScreen extends StatelessWidget {
       ),
     );
   }
-
 }

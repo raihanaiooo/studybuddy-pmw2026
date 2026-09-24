@@ -54,16 +54,63 @@ class PackageScreen extends StatelessWidget {
             child: CircularProgressIndicator(color: AppColors.primaryBlue),
           );
         }
-        return ListView.builder(
-          padding: const EdgeInsets.all(20),
-          itemCount: ctrl.packages.length,
-          itemBuilder: (_, i) {
-            final pkg = ctrl.packages[i];
-            return PackageCard(
-              package: pkg,
-              onBuy: () => _confirmPurchase(context, pkg),
-            );
-          },
+        if (ctrl.errorMessage.value.isNotEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('⚠️', style: TextStyle(fontSize: 48)),
+                  const SizedBox(height: 12),
+                  Text(
+                    ctrl.errorMessage.value,
+                    style: AppTextStyles.caption,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: ctrl.fetchPackages,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryBlue,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Coba Lagi'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        if (ctrl.packages.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('📦', style: TextStyle(fontSize: 48)),
+                const SizedBox(height: 12),
+                Text(
+                  'Belum ada paket tersedia',
+                  style: AppTextStyles.bodySemiBold,
+                ),
+              ],
+            ),
+          );
+        }
+        return RefreshIndicator(
+          onRefresh: ctrl.fetchPackages,
+          color: AppColors.primaryBlue,
+          child: ListView.builder(
+            padding: const EdgeInsets.all(20),
+            itemCount: ctrl.packages.length,
+            itemBuilder: (_, i) {
+              final pkg = ctrl.packages[i];
+              return PackageCard(
+                package: pkg,
+                onBuy: () => _confirmPurchase(context, pkg),
+              );
+            },
+          ),
         );
       }),
     );

@@ -67,10 +67,6 @@ class _TutorDashboardScreenState extends State<TutorDashboardScreen> {
                   _sectionHeader('Booking Masuk'),
                   const SizedBox(height: 12),
                   _buildIncomingBookings(booking),
-                  const SizedBox(height: 24),
-                  _sectionHeader('Link Google Meet Kamu'),
-                  const SizedBox(height: 12),
-                  _buildGmeetCard(context, dashboard),
                 ],
               ),
             ),
@@ -85,72 +81,74 @@ class _TutorDashboardScreenState extends State<TutorDashboardScreen> {
     );
   }
 
-  Widget _buildHeader(AuthController auth, TutorDashboardController dashboard) =>
-      Container(
-        decoration: const BoxDecoration(gradient: AppColors.headerGradient),
-        padding: EdgeInsets.fromLTRB(
-          22,
-          MediaQuery.of(context).padding.top + 20,
-          22,
-          20,
+  Widget _buildHeader(
+    AuthController auth,
+    TutorDashboardController dashboard,
+  ) => Container(
+    decoration: const BoxDecoration(gradient: AppColors.headerGradient),
+    padding: EdgeInsets.fromLTRB(
+      22,
+      MediaQuery.of(context).padding.top + 20,
+      22,
+      20,
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Obx(
+          () => Text(
+            'Halo, Kak ${auth.currentUser.value?.fullName.split(' ').first ?? 'Tutor'} 👋',
+            style: AppTextStyles.heading2.copyWith(
+              color: Colors.white,
+              fontFamily: 'Poppins',
+            ),
+          ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Obx(
-              () => Text(
-                'Halo, Kak ${auth.currentUser.value?.fullName.split(' ').first ?? 'Tutor'} 👋',
-                style: AppTextStyles.heading2.copyWith(
-                  color: Colors.white,
-                  fontFamily: 'Poppins',
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Status Online',
+                      style: AppTextStyles.bodySemiBold.copyWith(
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Kamu bisa ditemukan customer',
+                      style: AppTextStyles.caption.copyWith(
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(16),
+              Obx(
+                () => Switch(
+                  value: dashboard.isOnline.value,
+                  onChanged: dashboard.isUpdatingStatus.value
+                      ? null
+                      : (v) => dashboard.toggleOnline(v, auth),
+                  activeThumbColor: Colors.white,
+                  activeTrackColor: AppColors.onlineGreen,
+                ),
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Status Online',
-                          style: AppTextStyles.bodySemiBold.copyWith(
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Kamu bisa ditemukan customer',
-                          style: AppTextStyles.caption.copyWith(
-                            color: Colors.white70,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Obx(
-                    () => Switch(
-                      value: dashboard.isOnline.value,
-                      onChanged: dashboard.isUpdatingStatus.value
-                          ? null
-                          : (v) => dashboard.toggleOnline(v, auth),
-                      activeThumbColor: Colors.white,
-                      activeTrackColor: AppColors.onlineGreen,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
-      );
+      ],
+    ),
+  );
 
   Widget _buildStatsRow(TutorDashboardController dashboard) => Obx(
     () => Row(
@@ -177,31 +175,42 @@ class _TutorDashboardScreenState extends State<TutorDashboardScreen> {
     ),
   );
 
-  Widget _statCard(String value, String label, {VoidCallback? onTap}) => GestureDetector(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(color: AppColors.primaryBlue.withOpacity(0.06), blurRadius: 6),
-        ],
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: AppTextStyles.heading3.copyWith(color: AppColors.primaryBlue),
+  Widget _statCard(String value, String label, {VoidCallback? onTap}) =>
+      GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primaryBlue.withOpacity(0.06),
+                blurRadius: 6,
+              ),
+            ],
           ),
-          const SizedBox(height: 2),
-          Text(label, style: AppTextStyles.caption, textAlign: TextAlign.center),
-        ],
-      ),
-    ),
-  );
+          child: Column(
+            children: [
+              Text(
+                value,
+                style: AppTextStyles.heading3.copyWith(
+                  color: AppColors.primaryBlue,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: AppTextStyles.caption,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
 
-  Widget _sectionHeader(String title) => Text(title, style: AppTextStyles.heading3);
+  Widget _sectionHeader(String title) =>
+      Text(title, style: AppTextStyles.heading3);
 
   Widget _buildIncomingBookings(BookingController booking) => Obx(() {
     final pending = booking.tutorBookings
@@ -244,7 +253,10 @@ class _TutorDashboardScreenState extends State<TutorDashboardScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(b.subject, style: AppTextStyles.bodySemiBold),
+                        child: Text(
+                          b.subject,
+                          style: AppTextStyles.bodySemiBold,
+                        ),
                       ),
                       StatusBadge(status: b.status),
                     ],
@@ -291,98 +303,4 @@ class _TutorDashboardScreenState extends State<TutorDashboardScreen> {
           .toList(),
     );
   });
-
-  Widget _buildGmeetCard(BuildContext context, TutorDashboardController dashboard) =>
-      Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(color: AppColors.primaryBlue.withOpacity(0.06), blurRadius: 6),
-          ],
-        ),
-        child: Obx(
-          () => Column(
-            children: List.generate(dashboard.gmeetLinks.length, (i) {
-              return Padding(
-                padding: EdgeInsets.only(
-                  bottom: i == dashboard.gmeetLinks.length - 1 ? 0 : 12,
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: AppColors.accentTeal.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        '${i + 1}',
-                        style: const TextStyle(
-                          color: AppColors.accentTeal,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        dashboard.gmeetLinks[i],
-                        style: AppTextStyles.caption,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => _showEditLinkDialog(context, dashboard, i),
-                      child: const Text(
-                        'Update',
-                        style: TextStyle(
-                          color: AppColors.primaryBlue,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }),
-          ),
-        ),
-      );
-
-  void _showEditLinkDialog(
-    BuildContext context,
-    TutorDashboardController dashboard,
-    int index,
-  ) {
-    final ctrl = TextEditingController(text: dashboard.gmeetLinks[index]);
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Update Link GMeet #${index + 1}'),
-        content: TextField(
-          controller: ctrl,
-          decoration: const InputDecoration(hintText: 'meet.google.com/xxx-xxxx-xxx'),
-        ),
-        actions: [
-          TextButton(onPressed: Get.back, child: const Text('Batal')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryBlue,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () {
-              dashboard.updateGmeetLink(index, ctrl.text);
-              Get.back();
-            },
-            child: const Text('Simpan'),
-          ),
-        ],
-      ),
-    );
-  }
 }

@@ -5,7 +5,6 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../app/routes.dart';
 
-/// Halaman profil & portofolio tutor detail, lengkap dengan rating & CTA booking
 class TutorDetailScreen extends StatelessWidget {
   const TutorDetailScreen({super.key});
 
@@ -15,14 +14,30 @@ class TutorDetailScreen extends StatelessWidget {
 
     return Obx(() {
       final tutor = ctrl.selectedTutor.value;
-      if (tutor == null)
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+
+      // Loading state
+      if (tutor == null) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: AppColors.blueDark,
+            foregroundColor: Colors.white,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+              onPressed: Get.back,
+            ),
+            elevation: 0,
+          ),
+          body: const Center(
+            child: CircularProgressIndicator(color: AppColors.primaryBlue),
+          ),
+        );
+      }
 
       return Scaffold(
         backgroundColor: AppColors.background,
         body: CustomScrollView(
           slivers: [
-            // App bar dengan foto/avatar
             SliverAppBar(
               expandedHeight: 200,
               pinned: true,
@@ -40,7 +55,6 @@ class TutorDetailScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const SizedBox(height: 40),
-                      // Avatar
                       Container(
                         width: 80,
                         height: 80,
@@ -55,26 +69,30 @@ class TutorDetailScreen extends StatelessWidget {
                           border: Border.all(color: Colors.white, width: 3),
                         ),
                         alignment: Alignment.center,
-                        child: tutor.avatarUrl != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(24),
-                                child: Image.network(
-                                  tutor.avatarUrl!,
-                                  width: 80,
-                                  height: 80,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Text(
-                                    tutor.fullName[0].toUpperCase(),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.w800,
-                                    ),
+                        clipBehavior: Clip.antiAlias,
+                        child:
+                            tutor.avatarUrl != null &&
+                                tutor.avatarUrl!.isNotEmpty
+                            ? Image.network(
+                                tutor.avatarUrl!,
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Text(
+                                  tutor.fullName.isNotEmpty
+                                      ? tutor.fullName[0].toUpperCase()
+                                      : '?',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w800,
                                   ),
                                 ),
                               )
                             : Text(
-                                tutor.fullName[0].toUpperCase(),
+                                tutor.fullName.isNotEmpty
+                                    ? tutor.fullName[0].toUpperCase()
+                                    : '?',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 32,
@@ -110,12 +128,13 @@ class TutorDetailScreen extends StatelessWidget {
                             ),
                             const SizedBox(width: 10),
                           ],
-                          Text(
-                            tutor.university,
-                            style: AppTextStyles.caption.copyWith(
-                              color: Colors.white70,
+                          if (tutor.university.isNotEmpty)
+                            Text(
+                              tutor.university,
+                              style: AppTextStyles.caption.copyWith(
+                                color: Colors.white70,
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     ],
@@ -130,7 +149,6 @@ class TutorDetailScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Stats row
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       decoration: BoxDecoration(
@@ -148,7 +166,7 @@ class TutorDetailScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           _stat(
-                            '${tutor.rating}',
+                            tutor.rating.toStringAsFixed(1),
                             '★ Rating',
                             AppColors.primaryYellow,
                           ),
@@ -164,17 +182,30 @@ class TutorDetailScreen extends StatelessWidget {
                             'Ulasan',
                             AppColors.accentTeal,
                           ),
-                          _divider(),
-                          _stat('${tutor.gpa}', 'IPK', AppColors.onlineGreen),
+                          if (tutor.gpa > 0) ...[
+                            _divider(),
+                            _stat(
+                              tutor.gpa.toStringAsFixed(2),
+                              'IPK',
+                              AppColors.onlineGreen,
+                            ),
+                          ],
                         ],
                       ),
                     ),
                     const SizedBox(height: 20),
 
-                    // Tentang saya
                     Text('Tentang Saya', style: AppTextStyles.heading3),
                     const SizedBox(height: 8),
-                    Text(tutor.bio, style: AppTextStyles.body),
+                    Text(
+                      tutor.bio.isEmpty
+                          ? 'Tutor ini belum menulis bio.'
+                          : tutor.bio,
+                      style: AppTextStyles.body.copyWith(
+                        color: tutor.bio.isEmpty ? AppColors.textLight : null,
+                        fontStyle: tutor.bio.isEmpty ? FontStyle.italic : null,
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     Wrap(
                       spacing: 8,
@@ -203,15 +234,32 @@ class TutorDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
 
-                    // Rating summary
                     Text('⭐ Rating & Ulasan', style: AppTextStyles.heading3),
                     const SizedBox(height: 12),
                     Obx(() {
                       final reviews = ctrl.tutorReviews;
                       if (reviews.isEmpty) {
-                        return Text(
-                          'Belum ada ulasan',
-                          style: AppTextStyles.caption,
+                        return Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Center(
+                            child: Column(
+                              children: [
+                                const Text(
+                                  '💬',
+                                  style: TextStyle(fontSize: 32),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Belum ada ulasan',
+                                  style: AppTextStyles.caption,
+                                ),
+                              ],
+                            ),
+                          ),
                         );
                       }
                       return Column(
@@ -241,7 +289,9 @@ class TutorDetailScreen extends StatelessWidget {
                                           ),
                                           alignment: Alignment.center,
                                           child: Text(
-                                            r.customerId[0].toUpperCase(),
+                                            r.customerId.isNotEmpty
+                                                ? r.customerId[0].toUpperCase()
+                                                : '?',
                                             style: const TextStyle(
                                               color: Colors.white,
                                               fontWeight: FontWeight.w700,
@@ -259,16 +309,17 @@ class TutorDetailScreen extends StatelessWidget {
                                                 style:
                                                     AppTextStyles.bodySemiBold,
                                               ),
-                                              Text(
-                                                r.subject,
-                                                style: AppTextStyles.caption,
-                                              ),
+                                              if (r.subject.isNotEmpty)
+                                                Text(
+                                                  r.subject,
+                                                  style: AppTextStyles.caption,
+                                                ),
                                             ],
                                           ),
                                         ),
                                         Text(
                                           '★' * r.rating + '☆' * (5 - r.rating),
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             color: AppColors.primaryYellow,
                                             fontSize: 13,
                                           ),
@@ -276,7 +327,19 @@ class TutorDetailScreen extends StatelessWidget {
                                       ],
                                     ),
                                     const SizedBox(height: 8),
-                                    Text(r.comment, style: AppTextStyles.body),
+                                    Text(
+                                      r.comment.isEmpty
+                                          ? '(Tidak ada komentar)'
+                                          : r.comment,
+                                      style: AppTextStyles.body.copyWith(
+                                        color: r.comment.isEmpty
+                                            ? AppColors.textLight
+                                            : null,
+                                        fontStyle: r.comment.isEmpty
+                                            ? FontStyle.italic
+                                            : null,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -284,7 +347,7 @@ class TutorDetailScreen extends StatelessWidget {
                             .toList(),
                       );
                     }),
-                    const SizedBox(height: 100), // space for CTA
+                    const SizedBox(height: 100),
                   ],
                 ),
               ),
@@ -292,13 +355,11 @@ class TutorDetailScreen extends StatelessWidget {
           ],
         ),
 
-        // CTA sticky bottom
         bottomNavigationBar: Container(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
           color: Colors.white,
           child: Row(
             children: [
-              // Chat button
               Container(
                 width: 52,
                 height: 52,
@@ -313,7 +374,6 @@ class TutorDetailScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              // Booking button
               Expanded(
                 child: ElevatedButton(
                   onPressed: () =>
@@ -337,13 +397,14 @@ class TutorDetailScreen extends StatelessWidget {
                           fontSize: 14,
                         ),
                       ),
-                      Text(
-                        'mulai dari Rp${(tutor.pricePerHour / 1000).toStringAsFixed(0)}rb/jam',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Colors.white70,
+                      if (tutor.pricePerHour > 0)
+                        Text(
+                          'mulai dari Rp${(tutor.pricePerHour / 1000).toStringAsFixed(0)}rb/jam',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.white70,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),

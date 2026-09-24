@@ -33,8 +33,36 @@ class InvoiceScreen extends StatelessWidget {
       body: Obx(() {
         final inv = ctrl.invoice.value;
         if (inv == null) {
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.primaryBlue),
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('🧾', style: TextStyle(fontSize: 48)),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Tidak ada invoice aktif',
+                    style: AppTextStyles.bodySemiBold,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Silakan buat booking terlebih dahulu.',
+                    style: AppTextStyles.caption,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: Get.back,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryBlue,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Kembali'),
+                  ),
+                ],
+              ),
+            ),
           );
         }
 
