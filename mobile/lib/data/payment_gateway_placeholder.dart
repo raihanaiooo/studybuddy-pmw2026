@@ -1,18 +1,18 @@
 import 'dart:async';
 import '../domain/payment_gateway.dart';
 
-/// Implementasi placeholder — TIDAK terhubung ke provider sungguhan.
+/// Placeholder — TIDAK terhubung ke provider sungguhan.
 ///
 /// Pakai ini sementara sampai provider final diputuskan.
-/// Ganti dengan `payment_gateway_shopee.dart` atau `payment_gateway_midtrans.dart`
-/// kalau sudah ada.
+/// Ganti dengan implementasi asli kalau sudah ada.
 class PaymentGatewayPlaceholder implements PaymentGateway {
   @override
   PaymentGatewayProvider get provider => PaymentGatewayProvider.shopeePay;
 
   @override
   Future<PaymentResponse> createPayment(PaymentRequest request) async {
-    // Simulasi: langsung return QR palsu
+    // Simulasi: return QR palsu
+    await Future.delayed(const Duration(milliseconds: 300));
     return PaymentResponse(
       orderId: request.orderId,
       qrString: 'PLACEHOLDER_QR_${request.orderId}',
@@ -25,8 +25,7 @@ class PaymentGatewayPlaceholder implements PaymentGateway {
 
   @override
   Future<PaymentStatus> checkStatus(String orderId) async {
-    // Simulasi: cek di Supabase (tabel payments)
-    // Untuk sekarang, selalu return pending
+    // Simulasi: selalu pending
     return PaymentStatus.pending;
   }
 

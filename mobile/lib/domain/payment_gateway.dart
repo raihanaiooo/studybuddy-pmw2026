@@ -1,20 +1,17 @@
 /// Abstraksi payment gateway — bisa diganti provider kapan saja.
 ///
-/// Implementasi konkret ada di `lib/data/` (misal:
-/// `payment_gateway_shopee.dart`, `payment_gateway_midtrans.dart`).
+/// Implementasi konkret ada di `lib/data/`:
+/// - `payment_gateway_placeholder.dart` (sementara)
+/// - `payment_gateway_shopee.dart` (nanti)
+/// - `payment_gateway_midtrans.dart` (nanti)
 ///
 /// Cara pakai:
-/// 1. Panggil `createPayment()` untuk dapat QR/URL
-/// 2. Redirect user ke halaman payment (atau tampilkan QR)
+/// 1. `createPayment()` → dapat QR/URL
+/// 2. Tampilkan ke user
 /// 3. Tunggu callback/webhook dari provider
-/// 4. Cek status lewat `checkStatus()` (polling) atau tunggu realtime
+/// 4. `checkStatus()` untuk polling, atau `watchStatus()` untuk realtime
 
-enum PaymentGatewayProvider {
-  shopeePay,
-  midtrans,
-  xendit,
-  // ... tambah kalau perlu
-}
+enum PaymentGatewayProvider { shopeePay, midtrans, xendit }
 
 enum PaymentStatus { pending, success, failed, expired }
 
@@ -36,10 +33,10 @@ class PaymentRequest {
 
 class PaymentResponse {
   final String orderId;
-  final String? qrString; // untuk QRIS
-  final String? redirectUrl; // untuk redirect
-  final String? deeplink; // untuk e-wallet
-  final String? providerRef; // ID transaksi di provider
+  final String? qrString;
+  final String? redirectUrl;
+  final String? deeplink;
+  final String? providerRef;
   final DateTime expiresAt;
   final PaymentStatus status;
 
@@ -55,17 +52,9 @@ class PaymentResponse {
 }
 
 abstract class PaymentGateway {
-  /// Provider yang dipakai
   PaymentGatewayProvider get provider;
-
-  /// Buat pembayaran — return QR/URL yang bisa ditampilkan
   Future<PaymentResponse> createPayment(PaymentRequest request);
-
-  /// Cek status pembayaran (polling)
   Future<PaymentStatus> checkStatus(String orderId);
-
-  /// Cek apakah pembayaran sudah lunas (callback dari webhook)
-  /// — dipakai jika Supabase Realtime aktif
   Stream<PaymentStatus> watchStatus(String orderId);
 }
 

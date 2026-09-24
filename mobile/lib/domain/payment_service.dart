@@ -1,21 +1,25 @@
 import 'payment_gateway.dart';
+import '../data/payment_gateway_placeholder.dart';
 
-/// Service yang dipakai oleh controller (BookingController, PaymentController)
-/// — abstraksi di sini, implementasi konkret bisa diganti.
+/// Service pembayaran — dipakai oleh PaymentController.
+///
+/// Ganti `PaymentGatewayPlaceholder()` dengan implementasi asli
+/// (misal `PaymentGatewayShopee()`) kalau provider final sudah diputuskan.
 class PaymentService {
   final PaymentGateway _gateway;
 
   PaymentService({PaymentGateway? gateway})
     : _gateway = gateway ?? PaymentGatewayPlaceholder();
 
-  /// Buat pembayaran untuk booking
+  PaymentGatewayProvider get provider => _gateway.provider;
+
   Future<PaymentResponse> createPayment({
     required String orderId,
     required double amount,
     required String description,
     String? customerName,
     String? customerEmail,
-  }) async {
+  }) {
     return _gateway.createPayment(
       PaymentRequest(
         orderId: orderId,
@@ -27,11 +31,9 @@ class PaymentService {
     );
   }
 
-  /// Cek status pembayaran (polling)
   Future<PaymentStatus> checkStatus(String orderId) =>
       _gateway.checkStatus(orderId);
 
-  /// Watch status (realtime)
   Stream<PaymentStatus> watchStatus(String orderId) =>
       _gateway.watchStatus(orderId);
 }
