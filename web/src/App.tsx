@@ -14,6 +14,8 @@ import { ComplaintListPage } from './pages/ComplaintListPage';
 import { ComplaintDetailPage } from './pages/ComplaintDetailPage';
 import { RescheduleListPage } from './pages/RescheduleListPage';
 import { RescheduleDetailPage } from './pages/RescheduleDetailPage';
+import { PayrollListPage } from './pages/PayrollListPage';
+import { PayrollDetailPage } from './pages/PayrollDetailPage';
 
 function App() {
   return (
@@ -44,10 +46,8 @@ function App() {
           <Route path="/reschedules/:id" element={<RescheduleDetailPage />} />
           <Route path="/complaints" element={<ComplaintListPage />} />
           <Route path="/complaints/:id" element={<ComplaintDetailPage />} />
-          <Route
-            path="/payroll"
-            element={<div className="text-[#6B7280]">Halaman Payroll (coming soon)</div>}
-          />
+          <Route path="/payroll" element={<PayrollListPage />} />
+          <Route path="/payroll/:id" element={<PayrollDetailPage />} />
           <Route
             path="/packages"
             element={<div className="text-[#6B7280]">Halaman Paket & Token (coming soon)</div>}
