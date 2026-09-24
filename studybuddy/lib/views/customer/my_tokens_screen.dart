@@ -6,7 +6,6 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../models/token_model.dart';
 
-/// Riwayat & status token belajar milik Buddy (FR-PKG-03, FR-PKG-06)
 class MyTokensScreen extends StatelessWidget {
   const MyTokensScreen({super.key});
 
@@ -33,19 +32,48 @@ class MyTokensScreen extends StatelessWidget {
         ),
       ),
       body: Obx(() {
-        if (ctrl.myTokens.isEmpty) {
-          return Center(
-            child: Text('Belum ada token aktif', style: AppTextStyles.caption),
+        if (ctrl.isLoading.value) {
+          return const Center(
+            child: CircularProgressIndicator(color: AppColors.primaryBlue),
           );
         }
-        return ListView.builder(
-          padding: const EdgeInsets.all(20),
-          itemCount: ctrl.myTokens.length,
-          itemBuilder: (_, i) {
-            final token = ctrl.myTokens[i];
-            final pkg = ctrl.packageById(token.packageId);
-            return _tokenCard(token, pkg?.name ?? 'Paket', pkg?.rescheduleQuota ?? 0);
-          },
+        if (ctrl.myTokens.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('🎟️', style: TextStyle(fontSize: 56)),
+                  const SizedBox(height: 12),
+                  Text('Belum ada token', style: AppTextStyles.heading3),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Beli paket belajar untuk mendapatkan token sesi.',
+                    style: AppTextStyles.caption,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        return RefreshIndicator(
+          onRefresh: ctrl.fetchMyTokens,
+          color: AppColors.primaryBlue,
+          child: ListView.builder(
+            padding: const EdgeInsets.all(20),
+            itemCount: ctrl.myTokens.length,
+            itemBuilder: (_, i) {
+              final token = ctrl.myTokens[i];
+              final pkg = ctrl.packageById(token.packageId);
+              return _tokenCard(
+                token,
+                pkg?.name ?? 'Paket',
+                pkg?.rescheduleQuota ?? 0,
+              );
+            },
+          ),
         );
       }),
     );
@@ -75,7 +103,10 @@ class MyTokensScreen extends StatelessWidget {
                 child: Text(packageName, style: AppTextStyles.bodySemiBold),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: config.color.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(8),
@@ -87,7 +118,40 @@ class MyTokensScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
+          // Sisa sesi — penting!
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: token.sessionsRemaining > 0
+                  ? AppColors.primaryBlue.withOpacity(0.1)
+                  : AppColors.textLight.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.confirmation_number_outlined,
+                  size: 14,
+                  color: token.sessionsRemaining > 0
+                      ? AppColors.primaryBlue
+                      : AppColors.textLight,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Sisa ${token.sessionsRemaining} sesi',
+                  style: AppTextStyles.caption.copyWith(
+                    color: token.sessionsRemaining > 0
+                        ? AppColors.primaryBlue
+                        : AppColors.textLight,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
           Text(
             'Berlaku s.d. ${DateFormat('dd MMM yyyy').format(token.expiryDate)}',
             style: AppTextStyles.caption,
@@ -106,8 +170,13 @@ class MyTokensScreen extends StatelessWidget {
               ),
             ),
           ],
-          const SizedBox(height: 4),
-          Text('Kuota reschedule: $rescheduleQuota', style: AppTextStyles.caption),
+          if (rescheduleQuota > 0) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Kuota reschedule: $rescheduleQuota',
+              style: AppTextStyles.caption,
+            ),
+          ],
         ],
       ),
     );
