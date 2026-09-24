@@ -125,7 +125,7 @@ class DocumentTile extends StatelessWidget {
       allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
     );
 
-    if (pickedFiles == null || pickedFiles.isEmpty) return;
+    if (pickedFiles.isEmpty) return;
     final picked = pickedFiles.single;
 
     // v10: bytes tidak otomatis di-load, harus baca manual
