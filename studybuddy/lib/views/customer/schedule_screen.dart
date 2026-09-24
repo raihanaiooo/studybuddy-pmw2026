@@ -64,6 +64,7 @@ class CustomerScheduleScreen extends StatelessWidget {
 
   Widget _bookingCard(BuildContext context, BookingController ctrl, dynamic b) {
     final canCancel = b.status == 'pending' || b.status == 'confirmed';
+    final canReschedule = b.status == 'confirmed';
     final canStartSession =
         b.status == 'confirmed' && _isSessionReadyToStart(b.sessionTime);
 
@@ -158,12 +159,30 @@ class CustomerScheduleScreen extends StatelessWidget {
               ),
             ),
           ],
-          if (canCancel || canStartSession) ...[
+          if (canCancel || canReschedule || canStartSession) ...[
             const SizedBox(height: 8),
             const Divider(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 4,
               children: [
+                if (canReschedule)
+                  TextButton.icon(
+                    onPressed: () =>
+                        Get.toNamed(AppRoutes.reschedule, arguments: b),
+                    icon: const Icon(
+                      Icons.edit_calendar_outlined,
+                      size: 16,
+                      color: AppColors.accentTeal,
+                    ),
+                    label: const Text(
+                      'Reschedule',
+                      style: TextStyle(
+                        color: AppColors.accentTeal,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
                 if (canCancel)
                   TextButton(
                     onPressed: () => _confirmCancel(context, ctrl, b.id),
