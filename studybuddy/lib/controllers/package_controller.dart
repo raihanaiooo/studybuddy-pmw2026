@@ -88,5 +88,26 @@ class PackageController extends GetxController {
     status: r.status,
     activeDate: r.activeDate,
     expiryDate: r.expiryDate,
+    sessionsRemaining: r.sessionsRemaining,
   );
+
+  /// Cari token yang bisa dipakai booking (FIFO: paling cepat kadaluarsa).
+  /// Mengembalikan null kalau tidak ada token yang usable.
+  Future<TokenModel?> pickTokenForBooking() async {
+    try {
+      final user = await _authService.getCurrentUser();
+      if (user == null) return null;
+      final ref = await _repo.findUsableToken(user.id);
+      if (ref == null) return null;
+      return _toTokenModel(ref);
+    } catch (e) {
+      print('PackageController.pickTokenForBooking error: $e');
+      return null;
+    }
+  }
+
+  /// Refresh myTokens setelah token dipakai
+  Future<void> refreshTokens() async {
+    await fetchMyTokens();
+  }
 }

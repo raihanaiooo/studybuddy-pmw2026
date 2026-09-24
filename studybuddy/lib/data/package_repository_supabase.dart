@@ -30,6 +30,23 @@ class PackageRepositorySupabase implements PackageRepository {
   }
 
   @override
+  Future<TokenRef?> findUsableToken(String buddyId) async {
+    final now = DateTime.now().toIso8601String();
+    final data = await _client
+        .from(_tableTokens)
+        .select()
+        .eq('buddy_id', buddyId)
+        .eq('status', 'active')
+        .gt('sessions_remaining', 0)
+        .gt('expiry_date', now)
+        .order('expiry_date', ascending: true)
+        .limit(1)
+        .maybeSingle();
+    if (data == null) return null;
+    return _toTokenRef(data);
+  }
+
+  @override
   Future<TokenRef> createToken({
     required String buddyId,
     required String packageId,
@@ -105,7 +122,7 @@ class PackageRepositorySupabase implements PackageRepository {
       status: map['status'] as String,
       activeDate: _parseDateTime(map['active_date']),
       expiryDate: _parseDateTime(map['expiry_date']),
-      sessionsRemaining: map['sessions_remaining'] as int,
+      sessionsRemaining: map['sessions_remaining'] as int? ?? 0,
     );
   }
 

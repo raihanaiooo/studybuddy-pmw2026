@@ -1,4 +1,5 @@
-/// Model token belajar hasil pembelian paket, 1 token = 1 sesi (FR-PKG-02)
+/// Model token belajar hasil pembelian paket
+/// 1 token = beberapa sesi (sesuai paket), ada kadaluarsa
 class TokenModel {
   final String id;
   final String buddyId;
@@ -6,6 +7,7 @@ class TokenModel {
   final String status; // 'active' | 'used' | 'expired'
   final DateTime activeDate;
   final DateTime expiryDate;
+  final int sessionsRemaining;
 
   const TokenModel({
     required this.id,
@@ -14,6 +16,7 @@ class TokenModel {
     required this.status,
     required this.activeDate,
     required this.expiryDate,
+    this.sessionsRemaining = 0,
   });
 
   factory TokenModel.fromMap(Map<String, dynamic> map) => TokenModel(
@@ -21,12 +24,9 @@ class TokenModel {
     buddyId: map['buddy_id'] as String,
     packageId: map['package_id'] as String,
     status: map['status'] as String? ?? 'active',
-    activeDate: map['tanggal_aktif'] != null
-        ? DateTime.parse(map['tanggal_aktif'] as String)
-        : DateTime.now(),
-    expiryDate: map['tanggal_hangus'] != null
-        ? DateTime.parse(map['tanggal_hangus'] as String)
-        : DateTime.now(),
+    activeDate: _parseDateTime(map['active_date']),
+    expiryDate: _parseDateTime(map['expiry_date']),
+    sessionsRemaining: map['sessions_remaining'] as int? ?? 0,
   );
 
   Map<String, dynamic> toMap() => {
@@ -34,9 +34,29 @@ class TokenModel {
     'buddy_id': buddyId,
     'package_id': packageId,
     'status': status,
-    'tanggal_aktif': activeDate.toIso8601String(),
-    'tanggal_hangus': expiryDate.toIso8601String(),
+    'active_date': activeDate.toIso8601String(),
+    'expiry_date': expiryDate.toIso8601String(),
+    'sessions_remaining': sessionsRemaining,
   };
 
   int get daysLeft => expiryDate.difference(DateTime.now()).inDays;
+
+  bool get isUsable =>
+      status == 'active' && sessionsRemaining > 0 && daysLeft >= 0;
+
+  static DateTime _parseDateTime(dynamic value) {
+    if (value is DateTime) return value;
+    if (value is String) {
+      try {
+        return DateTime.parse(value);
+      } catch (_) {
+        var normalized = value.replaceFirst(' ', 'T');
+        if (RegExp(r'[+-]\d{2}$').hasMatch(normalized)) {
+          normalized = '${normalized}:00';
+        }
+        return DateTime.parse(normalized);
+      }
+    }
+    return DateTime.now();
+  }
 }

@@ -245,6 +245,8 @@ class BookingController extends GetxController {
     required String subject,
     required String sessionType,
     String? notes,
+    bool useToken = false,
+    String? tokenId,
   }) async {
     errorMessage.value = '';
     slotContractMissing.value = false;
@@ -277,6 +279,27 @@ class BookingController extends GetxController {
     try {
       if (user == null) return;
 
+      // Validasi token kalau mode pakai token
+      if (useToken && tokenId != null) {
+        final tokenCheck = await SupabaseService.client
+            .from('tokens')
+            .select('status, sessions_remaining, expiry_date')
+            .eq('id', tokenId)
+            .maybeSingle();
+
+        if (tokenCheck == null) {
+          errorMessage.value = 'Token tidak ditemukan.';
+          Get.snackbar('Gagal', errorMessage.value);
+          return;
+        }
+        if (tokenCheck['status'] != 'active' ||
+            (tokenCheck['sessions_remaining'] as int) <= 0) {
+          errorMessage.value = 'Token sudah habis atau kadaluarsa.';
+          Get.snackbar('Gagal', errorMessage.value);
+          return;
+        }
+      }
+
       final bookingValues = {
         'customer_id': user.id,
         'tutor_id': tutorId,
@@ -304,6 +327,27 @@ class BookingController extends GetxController {
         return;
       }
 
+      // Konsumsi token kalau mode pakai token
+      if (useToken && tokenId != null) {
+        try {
+          final tokenRow = await SupabaseService.client
+              .from('tokens')
+              .select('sessions_remaining')
+              .eq('id', tokenId)
+              .single();
+          final remaining = (tokenRow['sessions_remaining'] as int) - 1;
+          await SupabaseService.client
+              .from('tokens')
+              .update({
+                'sessions_remaining': remaining,
+                'status': remaining <= 0 ? 'used' : 'active',
+              })
+              .eq('id', tokenId);
+        } catch (e) {
+          print('Consume token error: $e');
+        }
+      }
+
       try {
         await _attachMeetLinkToLatestBooking(tutorId);
       } catch (_) {}
@@ -312,7 +356,12 @@ class BookingController extends GetxController {
       selectedSlot.value = null;
 
       Get.back();
-      Get.snackbar('Berhasil', 'Booking berhasil dibuat!');
+      Get.snackbar(
+        'Berhasil',
+        useToken
+            ? 'Booking berhasil! Token kamu sudah dipakai.'
+            : 'Booking berhasil dibuat!',
+      );
       await fetchMyBookings();
     } on AvailabilitySlotBackendMissingException catch (e) {
       slotContractMissing.value = true;
@@ -322,6 +371,7 @@ class BookingController extends GetxController {
         'Booking tidak dibuat — ${e.message}',
       );
     } catch (e) {
+      print('BookingController.createBooking error: $e');
       errorMessage.value = 'Gagal membuat booking. Coba lagi.';
     } finally {
       isLoading.value = false;

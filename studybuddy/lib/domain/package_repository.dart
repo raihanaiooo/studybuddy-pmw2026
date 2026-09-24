@@ -42,6 +42,9 @@ class TokenRef {
   });
 
   int get daysLeft => expiryDate.difference(DateTime.now()).inDays;
+
+  bool get isUsable =>
+      status == 'active' && sessionsRemaining > 0 && daysLeft >= 0;
 }
 
 abstract class PackageRepository {
@@ -54,5 +57,7 @@ abstract class PackageRepository {
     required int validityDays,
   });
   Future<void> consumeToken(String tokenId);
-  Future<void> expireOldTokens();
+
+  /// Cari token yang bisa dipakai untuk booking (FIFO: paling cepat kadaluarsa)
+  Future<TokenRef?> findUsableToken(String buddyId);
 }
