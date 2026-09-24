@@ -8,6 +8,8 @@ import { TutorListPage } from './pages/TutorListPage';
 import { TutorDetailPage } from './pages/TutorDetailPage';
 import { BookingListPage } from './pages/BookingListPage';
 import { BookingDetailPage } from './pages/BookingDetailPage';
+import { PaymentListPage } from './pages/PaymentListPage';
+import { PaymentDetailPage } from './pages/PaymentDetailPage';
 
 function App() {
   return (
@@ -32,10 +34,8 @@ function App() {
           <Route path="/tutors/:id" element={<TutorDetailPage />} />
           <Route path="/bookings" element={<BookingListPage />} />
           <Route path="/bookings/:id" element={<BookingDetailPage />} />
-          <Route
-            path="/payments"
-            element={<div className="text-[#6B7280]">Halaman Transaksi (coming soon)</div>}
-          />
+          <Route path="/payments" element={<PaymentListPage />} />
+          <Route path="/payments/:id" element={<PaymentDetailPage />} />
           <Route
             path="/reschedules"
             element={<div className="text-[#6B7280]">Halaman Reschedule (coming soon)</div>}
