@@ -21,4 +21,7 @@ class SupabaseConstants {
   // Realtime channel names
   static const String channelOnlineTutors = 'online-tutors';
   static const String channelBookings = 'bookings-changes';
+
+  static const String tableChatMessages = 'chat_messages';
+  static const String bucketChatAttachments = 'chat_attachments';
 }
