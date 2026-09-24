@@ -1,4 +1,9 @@
-/// Model paket/bundling belajar sesuai SRS 3.4 (Sistem Paket & Token)
+/// Model paket/bundling belajar (SRS 3.4 — Sistem Paket & Token)
+///
+/// Aturan dari client:
+/// - Paket bulanan: 35 hari berlaku
+/// - Tidak ada yang lebih dari 35 hari
+/// - Kalau hangus, tidak ada refund
 class PackageModel {
   final String id;
   final String name;
@@ -13,30 +18,30 @@ class PackageModel {
     required this.id,
     required this.name,
     required this.sessionCount,
-    required this.validityDays,
-    required this.rescheduleQuota,
-    required this.isRefundable,
+    this.validityDays = 35,
+    this.rescheduleQuota = 5,
+    this.isRefundable = false,
     required this.price,
     required this.description,
   });
 
   factory PackageModel.fromMap(Map<String, dynamic> map) => PackageModel(
     id: map['id'] as String,
-    name: map['nama_paket'] as String,
-    sessionCount: map['jumlah_sesi'] as int? ?? 0,
-    validityDays: map['masa_berlaku_hari'] as int? ?? 0,
-    rescheduleQuota: map['kuota_reschedule'] as int? ?? 0,
-    isRefundable: map['is_refundable'] as bool? ?? true,
+    name: map['package_name'] as String,
+    sessionCount: map['session_count'] as int? ?? 0,
+    validityDays: map['validity_days'] as int? ?? 35,
+    rescheduleQuota: map['reschedule_quota'] as int? ?? 5,
+    isRefundable: map['is_refundable'] as bool? ?? false,
     price: (map['price'] as num?)?.toDouble() ?? 0.0,
     description: map['description'] as String? ?? '',
   );
 
   Map<String, dynamic> toMap() => {
     'id': id,
-    'nama_paket': name,
-    'jumlah_sesi': sessionCount,
-    'masa_berlaku_hari': validityDays,
-    'kuota_reschedule': rescheduleQuota,
+    'package_name': name,
+    'session_count': sessionCount,
+    'validity_days': validityDays,
+    'reschedule_quota': rescheduleQuota,
     'is_refundable': isRefundable,
     'price': price,
     'description': description,

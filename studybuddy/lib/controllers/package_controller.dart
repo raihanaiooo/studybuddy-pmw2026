@@ -2,11 +2,16 @@ import 'package:get/get.dart';
 import '../models/package_model.dart';
 import '../models/token_model.dart';
 
-/// Controller katalog paket & token belajar (FR-PKG-01..07)
+/// Controller katalog paket & token belajar
 ///
-/// Masih pakai dummy data mengikuti alur contract-first tim (lihat SRS Bab 6):
-/// tinggal ganti isi fetchPackages()/fetchMyTokens() dengan query Supabase
-/// begitu Raihana menuliskan kontrak fungsi untuk modul Paket & Token.
+/// Aturan dari client:
+/// - Paket bulanan: 35 hari
+/// - Tidak ada yang lebih dari 35 hari
+/// - Tidak ada refund kalau hangus
+/// - Reschedule max 5x
+///
+/// Masih dummy data — tinggal ganti dengan query Supabase
+/// begitu tabel `packages` & `tokens` dibuat.
 class PackageController extends GetxController {
   final RxList<PackageModel> packages = <PackageModel>[].obs;
   final RxList<TokenModel> myTokens = <TokenModel>[].obs;
@@ -32,8 +37,7 @@ class PackageController extends GetxController {
   PackageModel? packageById(String id) =>
       packages.firstWhereOrNull((p) => p.id == id);
 
-  /// Terbitkan token baru begitu pembayaran paket Lunas (FR-PKG-02) —
-  /// dipanggil sebagai callback `onPaid` dari PaymentController.
+  /// Terbitkan token baru begitu pembayaran paket Lunas (FR-PKG-02)
   void grantToken(PackageModel package) {
     final now = DateTime.now();
     myTokens.add(
@@ -48,14 +52,18 @@ class PackageController extends GetxController {
     );
   }
 
+  /// Paket dummy sesuai aturan client:
+  /// - Paket bulanan: 35 hari
+  /// - Reschedule max 5x
+  /// - Non-refundable
   static final List<PackageModel> _dummyPackages = [
     const PackageModel(
       id: 'pkg-terset',
       name: 'Bundling Terset',
       sessionCount: 3,
       validityDays: 7,
-      rescheduleQuota: 0,
-      isRefundable: true,
+      rescheduleQuota: 1,
+      isRefundable: false,
       price: 150000,
       description: 'Paket 3 sesi fleksibel, cocok untuk kebutuhan mendadak.',
     ),
@@ -64,11 +72,10 @@ class PackageController extends GetxController {
       name: 'Bundling Bulanan (12 Sesi)',
       sessionCount: 12,
       validityDays: 35,
-      rescheduleQuota: 3,
-      isRefundable: true,
+      rescheduleQuota: 5,
+      isRefundable: false,
       price: 550000,
-      description:
-          'Belajar rutin sebulan penuh, 12 sesi dengan tutor pilihan.',
+      description: 'Belajar rutin sebulan penuh, 12 sesi dengan tutor pilihan.',
     ),
     const PackageModel(
       id: 'pkg-snbt-satset',
@@ -76,7 +83,7 @@ class PackageController extends GetxController {
       sessionCount: 3,
       validityDays: 7,
       rescheduleQuota: 1,
-      isRefundable: true,
+      isRefundable: false,
       price: 200000,
       description: 'Persiapan kilat UTBK, 3 sesi intensif.',
     ),
@@ -85,8 +92,8 @@ class PackageController extends GetxController {
       name: 'Bundling SNBT — Juara',
       sessionCount: 7,
       validityDays: 14,
-      rescheduleQuota: 1,
-      isRefundable: true,
+      rescheduleQuota: 2,
+      isRefundable: false,
       price: 420000,
       description: 'Persiapan UTBK menyeluruh, 7 sesi terjadwal.',
     ),
@@ -95,21 +102,10 @@ class PackageController extends GetxController {
       name: 'Bundling SNBT — SKS',
       sessionCount: 21,
       validityDays: 35,
-      rescheduleQuota: 3,
-      isRefundable: true,
+      rescheduleQuota: 5,
+      isRefundable: false,
       price: 1100000,
       description: 'Program UTBK jangka panjang, 21 sesi lengkap.',
-    ),
-    const PackageModel(
-      id: 'pkg-juara-snbt',
-      name: 'Bundling Juara SNBT',
-      sessionCount: 7,
-      validityDays: 7,
-      rescheduleQuota: 0,
-      isRefundable: false,
-      price: 500000,
-      description:
-          '7 sesi + 1 paket Soal TO. Non-refundable tanpa pengecualian.',
     ),
   ];
 

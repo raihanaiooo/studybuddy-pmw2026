@@ -3,17 +3,21 @@ import '../models/reschedule_model.dart';
 
 /// Controller pengajuan reschedule sesi (FR-RESCH-01..09)
 ///
-/// Masih dummy data (contract-first) — tinggal ganti fetch/submit dengan
-/// query tabel Reschedule begitu kontrak BE tersedia. Kuota reschedule
-/// (quotaLeft) idealnya datang dari Paket & Token milik Buddy (3.4);
-/// untuk sekarang dipakai nilai dummy karena modul itu di branch
-/// terpisah (ui/paket-token) yang belum di-merge.
+/// Aturan bisnis (dari client):
+/// - Threshold: maksimal H-5 jam sebelum sesi
+/// - Max postpone: 2 hari dari jadwal semula
+/// - Max reschedule: 5x (khusus paket bulanan)
+/// - Wajib approval admin, tidak langsung disetujui
+///
+/// Masih dummy data — tinggal ganti fetch/submit dengan query tabel
+/// `reschedules` begitu migrasi DB dilakukan.
 class RescheduleController extends GetxController {
-  static const thresholdHours = 6;
+  static const thresholdHours = 5;
   static const maxPostponeDays = 2;
+  static const maxRescheduleCount = 5;
 
   final RxList<RescheduleModel> myRequests = <RescheduleModel>[].obs;
-  final RxInt quotaLeft = 3.obs;
+  final RxInt quotaLeft = maxRescheduleCount.obs;
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
 
@@ -27,26 +31,11 @@ class RescheduleController extends GetxController {
     myRequests.value = List<RescheduleModel>.from(_dummyRequests);
   }
 
-  /// Kondisi FR-RESCH-06: kuota habis, pengajuan <6 jam sebelum sesi, atau
-  /// pengalihan ke Tutor lain — butuh approval manual Admin. Di luar itu,
-  /// diproses otomatis. Mengembalikan null kalau tidak perlu approval.
-  String? _adminApprovalReason({
-    required DateTime originalSessionTime,
-    required bool switchTutor,
-  }) {
-    if (switchTutor) return 'Pengalihan ke Tutor lain perlu persetujuan Admin';
-    final hoursUntilSession = originalSessionTime.difference(DateTime.now()).inHours;
-    if (hoursUntilSession < thresholdHours) {
-      return 'Pengajuan di bawah H-6 jam sebelum sesi perlu persetujuan Admin';
-    }
-    if (quotaLeft.value <= 0) {
-      return 'Kuota reschedule paket sudah habis, perlu persetujuan Admin';
-    }
-    return null;
-  }
-
   /// Ajukan reschedule. Mengembalikan null kalau validasi gagal (lihat
   /// errorMessage), atau RescheduleModel hasil pengajuan.
+  ///
+  /// Semua pengajuan sekarang masuk `menungguAdmin` — client bilang
+  /// harus persetujuan dulu, tidak langsung.
   RescheduleModel? submitReschedule({
     required String bookingId,
     required DateTime originalSessionTime,
@@ -61,7 +50,24 @@ class RescheduleController extends GetxController {
       return null;
     }
 
-    // FR-RESCH-05: batas maksimal pengunduran 2 hari dari jadwal semula
+    // Cek kuota (max 5x)
+    if (quotaLeft.value <= 0) {
+      errorMessage.value =
+          'Kuota reschedule sudah habis (maksimal $maxRescheduleCount kali).';
+      return null;
+    }
+
+    // Cek threshold H-5
+    final hoursUntilSession = originalSessionTime
+        .difference(DateTime.now())
+        .inHours;
+    if (hoursUntilSession < thresholdHours) {
+      errorMessage.value =
+          'Reschedule maksimal H-$thresholdHours jam sebelum sesi dimulai.';
+      return null;
+    }
+
+    // Cek max postpone 2 hari
     final maxAllowed = originalSessionTime.add(
       const Duration(days: maxPostponeDays),
     );
@@ -75,10 +81,10 @@ class RescheduleController extends GetxController {
       return null;
     }
 
-    final adminReason = _adminApprovalReason(
-      originalSessionTime: originalSessionTime,
-      switchTutor: switchTutor,
-    );
+    // Semua pengajuan butuh approval admin (client: "harus persetujuan dulu")
+    final adminNote = switchTutor
+        ? 'Pengalihan ke Tutor lain perlu persetujuan Admin'
+        : 'Pengajuan reschedule perlu persetujuan Admin';
 
     final request = RescheduleModel(
       id: 'resch-${DateTime.now().millisecondsSinceEpoch}',
@@ -86,15 +92,14 @@ class RescheduleController extends GetxController {
       reason: reason,
       originalSessionTime: originalSessionTime,
       newSessionTime: newSessionTime,
-      status: adminReason != null
-          ? RescheduleStatus.menungguAdmin
-          : RescheduleStatus.disetujui,
-      adminNote: adminReason,
+      status: RescheduleStatus.menungguAdmin,
+      requestedBy: 'buddy',
+      adminNote: adminNote,
       createdAt: DateTime.now(),
     );
 
     myRequests.insert(0, request);
-    if (quotaLeft.value > 0) quotaLeft.value--;
+    quotaLeft.value--;
 
     return request;
   }

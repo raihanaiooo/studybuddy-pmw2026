@@ -92,7 +92,9 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
             TextField(
               controller: _reasonCtrl,
               maxLines: 3,
-              decoration: _inputDeco('Ceritakan alasan kamu ingin reschedule...'),
+              decoration: _inputDeco(
+                'Ceritakan alasan kamu ingin reschedule...',
+              ),
             ),
             const SizedBox(height: 16),
 
@@ -123,7 +125,10 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
               value: _switchTutor,
               onChanged: (v) => setState(() => _switchTutor = v),
               activeThumbColor: AppColors.primaryBlue,
-              title: Text('Alihkan ke Tutor lain', style: AppTextStyles.bodySemiBold),
+              title: Text(
+                'Alihkan ke Tutor lain',
+                style: AppTextStyles.bodySemiBold,
+              ),
               subtitle: Text(
                 'Kalau Tutor asli tidak bisa di jadwal baru (FR-RESCH-07)',
                 style: AppTextStyles.caption,
@@ -137,7 +142,9 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
                       padding: const EdgeInsets.only(bottom: 12),
                       child: Text(
                         ctrl.errorMessage.value,
-                        style: AppTextStyles.caption.copyWith(color: AppColors.primaryRed),
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.primaryRed,
+                        ),
                       ),
                     )
                   : const SizedBox(),
@@ -151,7 +158,9 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryBlue,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   elevation: 0,
                 ),
                 child: const Text(
@@ -172,7 +181,10 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
       color: Colors.white,
       borderRadius: BorderRadius.circular(18),
       boxShadow: [
-        BoxShadow(color: AppColors.primaryBlue.withOpacity(0.08), blurRadius: 8),
+        BoxShadow(
+          color: AppColors.primaryBlue.withOpacity(0.08),
+          blurRadius: 8,
+        ),
       ],
     ),
     child: Column(
@@ -182,7 +194,10 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
         const SizedBox(height: 4),
         Text(booking.subject, style: AppTextStyles.heading3),
         const SizedBox(height: 2),
-        Text(AppDateUtils.formatDateTime(booking.sessionTime), style: AppTextStyles.body),
+        Text(
+          AppDateUtils.formatDateTime(booking.sessionTime),
+          style: AppTextStyles.body,
+        ),
       ],
     ),
   );
@@ -197,17 +212,56 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.info_outline, color: AppColors.primaryBlue, size: 18),
+          const Icon(
+            Icons.info_outline,
+            color: AppColors.primaryBlue,
+            size: 18,
+          ),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              'Ajukan maksimal H-${RescheduleController.thresholdHours} jam sebelum sesi, '
-              'jadwal baru maks ${RescheduleController.maxPostponeDays} hari dari jadwal semula. '
-              'Sisa kuota reschedule kamu: ${ctrl.quotaLeft.value}x.',
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.primaryBlue,
-                fontWeight: FontWeight.w600,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Aturan Reschedule:',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.primaryBlue,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '• Ajukan maksimal H-${RescheduleController.thresholdHours} jam sebelum sesi\n'
+                  '• Jadwal baru maks ${RescheduleController.maxPostponeDays} hari dari jadwal semula\n'
+                  '• Kuota maksimal ${RescheduleController.maxRescheduleCount}x\n'
+                  '• Wajib persetujuan Admin',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.primaryBlue,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: ctrl.quotaLeft.value > 0
+                        ? AppColors.primaryBlue.withOpacity(0.15)
+                        : AppColors.primaryRed.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Sisa kuota: ${ctrl.quotaLeft.value}x',
+                    style: AppTextStyles.caption.copyWith(
+                      color: ctrl.quotaLeft.value > 0
+                          ? AppColors.primaryBlue
+                          : AppColors.primaryRed,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -246,7 +300,11 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
     if (picked != null) setState(() => _newTime = picked);
   }
 
-  void _submit(BuildContext context, RescheduleController ctrl, BookingModel booking) {
+  void _submit(
+    BuildContext context,
+    RescheduleController ctrl,
+    BookingModel booking,
+  ) {
     if (_newSessionTime == null) {
       Get.snackbar('Perhatian', 'Lengkapi tanggal & jam baru dulu');
       return;
@@ -270,7 +328,9 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(approved ? 'Reschedule Disetujui' : 'Menunggu Approval Admin'),
+        title: Text(
+          approved ? 'Reschedule Disetujui' : 'Menunggu Approval Admin',
+        ),
         content: Text(
           approved
               ? 'Jadwal baru: ${AppDateUtils.formatDateTime(result.newSessionTime)}'
@@ -295,7 +355,10 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
 
   Widget _sectionTitle(String t) => Padding(
     padding: const EdgeInsets.only(bottom: 8),
-    child: Text(t, style: AppTextStyles.bodySemiBold.copyWith(fontWeight: FontWeight.w700)),
+    child: Text(
+      t,
+      style: AppTextStyles.bodySemiBold.copyWith(fontWeight: FontWeight.w700),
+    ),
   );
 
   Widget _dateTimeDisplay(String text, IconData icon) => Container(
@@ -312,7 +375,9 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
         Text(
           text,
           style: AppTextStyles.body.copyWith(
-            color: text.startsWith('Pilih') ? AppColors.textLight : AppColors.textPrimary,
+            color: text.startsWith('Pilih')
+                ? AppColors.textLight
+                : AppColors.textPrimary,
           ),
         ),
       ],
@@ -324,7 +389,10 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
     hintStyle: AppTextStyles.caption,
     filled: true,
     fillColor: Colors.white,
-    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide.none,
+    ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
       borderSide: const BorderSide(color: AppColors.primaryBlue, width: 1.5),
