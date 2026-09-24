@@ -4,6 +4,8 @@ import { DashboardPage } from './pages/DashboardPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminLayout } from './components/layout/AdminLayout';
+import { TutorListPage } from './pages/TutorListPage';
+import { TutorDetailPage } from './pages/TutorDetailPage';
 
 function App() {
   return (
@@ -23,8 +25,9 @@ function App() {
           {/* Placeholder untuk fase berikutnya */}
           <Route
             path="/tutors"
-            element={<div className="text-[#6B7280]">Halaman Verifikasi Tutor (coming soon)</div>}
+            element={<TutorListPage />}
           />
+          <Route path="/tutors/:id" element={<TutorDetailPage />} />
           <Route
             path="/bookings"
             element={<div className="text-[#6B7280]">Halaman Bookings (coming soon)</div>}
