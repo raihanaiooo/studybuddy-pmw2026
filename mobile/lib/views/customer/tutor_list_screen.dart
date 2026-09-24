@@ -4,6 +4,7 @@ import '../../controllers/tutor_controller.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../app/routes.dart';
+import '../shared/widgets/customer_scaffold.dart';
 import '../shared/widgets/tutor_card.dart';
 
 class TutorListScreen extends StatelessWidget {
@@ -16,8 +17,8 @@ class TutorListScreen extends StatelessWidget {
         (Get.arguments as Map<String, dynamic>?)?['onlineOnly'] as bool? ??
         false;
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return CustomerScaffold(
+      currentIndex: 1,
       appBar: AppBar(
         backgroundColor: AppColors.blueDark,
         foregroundColor: Colors.white,
@@ -29,14 +30,10 @@ class TutorListScreen extends StatelessWidget {
           ),
         ),
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-          onPressed: Get.back,
-        ),
+        automaticallyImplyLeading: false,
       ),
       body: Column(
         children: [
-          // Search bar
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: TextField(
@@ -59,13 +56,8 @@ class TutorListScreen extends StatelessWidget {
               ),
             ),
           ),
-
-          // Filter section
           _buildFilterSection(ctrl),
-
           const SizedBox(height: 8),
-
-          // List tutor
           Expanded(
             child: Obx(() {
               final list = onlineOnly
@@ -142,7 +134,6 @@ class TutorListScreen extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header filter + reset
           if (hasFilter)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
@@ -174,8 +165,6 @@ class TutorListScreen extends StatelessWidget {
                 ],
               ),
             ),
-
-          // Filter jenjang (FR-DISC-03)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Text(
@@ -206,8 +195,6 @@ class TutorListScreen extends StatelessWidget {
               ],
             ),
           ),
-
-          // Filter mapel (FR-DISC-02)
           if (ctrl.subjectOptions.isNotEmpty) ...[
             const SizedBox(height: 4),
             Padding(

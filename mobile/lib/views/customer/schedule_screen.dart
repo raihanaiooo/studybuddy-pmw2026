@@ -5,6 +5,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../core/utils/date_utils.dart';
 import '../../app/routes.dart';
+import '../shared/widgets/customer_scaffold.dart';
 import '../shared/widgets/status_badge.dart';
 
 class CustomerScheduleScreen extends StatelessWidget {
@@ -14,8 +15,8 @@ class CustomerScheduleScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final ctrl = Get.find<BookingController>();
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return CustomerScaffold(
+      currentIndex: 2,
       appBar: AppBar(
         backgroundColor: AppColors.blueDark,
         foregroundColor: Colors.white,

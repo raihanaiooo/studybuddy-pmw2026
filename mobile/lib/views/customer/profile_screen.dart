@@ -8,6 +8,7 @@ import '../../core/utils/validator_utils.dart';
 import '../../app/routes.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../models/user_model.dart';
+import '../shared/widgets/customer_scaffold.dart';
 
 class CustomerProfileScreen extends StatelessWidget {
   const CustomerProfileScreen({super.key});
@@ -17,8 +18,8 @@ class CustomerProfileScreen extends StatelessWidget {
     final auth = Get.find<AuthController>();
     final profile = Get.find<ProfileController>();
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return CustomerScaffold(
+      currentIndex: 3,
       appBar: AppBar(
         backgroundColor: AppColors.blueDark,
         foregroundColor: Colors.white,

@@ -8,6 +8,7 @@ import '../../core/constants/app_text_styles.dart';
 import '../../app/routes.dart';
 import '../shared/widgets/app_bottom_nav.dart';
 import '../shared/widgets/tutor_card.dart';
+import '../shared/widgets/customer_scaffold.dart';
 
 /// Dashboard utama customer: greeting, online tutors, quick access
 class CustomerDashboardScreen extends StatefulWidget {
@@ -41,8 +42,9 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
     final auth = Get.find<AuthController>();
     final tutorCtrl = Get.find<TutorController>();
 
-    return Scaffold(
+    return CustomerScaffold(
       backgroundColor: AppColors.background,
+      currentIndex: 0,
       body: Column(
         children: [
           // Header gradient
