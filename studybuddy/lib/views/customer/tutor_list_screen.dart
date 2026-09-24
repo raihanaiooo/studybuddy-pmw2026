@@ -6,7 +6,6 @@ import '../../core/constants/app_text_styles.dart';
 import '../../app/routes.dart';
 import '../shared/widgets/tutor_card.dart';
 
-/// Screen daftar & pencarian tutor dengan filter online/semua
 class TutorListScreen extends StatelessWidget {
   const TutorListScreen({super.key});
 
@@ -39,7 +38,7 @@ class TutorListScreen extends StatelessWidget {
         children: [
           // Search bar
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: TextField(
               onChanged: (v) => ctrl.searchQuery.value = v,
               decoration: InputDecoration(
@@ -60,6 +59,13 @@ class TutorListScreen extends StatelessWidget {
               ),
             ),
           ),
+
+          // Filter section
+          _buildFilterSection(ctrl),
+
+          const SizedBox(height: 8),
+
+          // List tutor
           Expanded(
             child: Obx(() {
               final list = onlineOnly
@@ -74,9 +80,34 @@ class TutorListScreen extends StatelessWidget {
               }
               if (list.isEmpty) {
                 return Center(
-                  child: Text(
-                    'Tidak ada tutor ditemukan',
-                    style: AppTextStyles.caption,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('🔍', style: TextStyle(fontSize: 48)),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Tidak ada tutor ditemukan',
+                        style: AppTextStyles.bodySemiBold,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        ctrl.hasActiveFilter
+                            ? 'Coba ubah filter atau reset'
+                            : 'Coba kata kunci lain',
+                        style: AppTextStyles.caption,
+                      ),
+                      if (ctrl.hasActiveFilter) ...[
+                        const SizedBox(height: 16),
+                        TextButton.icon(
+                          onPressed: ctrl.resetFilters,
+                          icon: const Icon(Icons.refresh, size: 16),
+                          label: const Text('Reset Filter'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.primaryBlue,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 );
               }
@@ -98,6 +129,150 @@ class TutorListScreen extends StatelessWidget {
             }),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFilterSection(TutorController ctrl) {
+    return Obx(() {
+      final jenjang = ctrl.filterJenjang.value;
+      final subject = ctrl.filterSubject.value;
+      final hasFilter = ctrl.hasActiveFilter;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header filter + reset
+          if (hasFilter)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.filter_alt_outlined,
+                    size: 16,
+                    color: AppColors.textSecondary,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Filter Aktif',
+                    style: AppTextStyles.caption.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: ctrl.resetFilters,
+                    child: Text(
+                      'Reset',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.primaryRed,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // Filter jenjang (FR-DISC-03)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Text(
+              'Jenjang:',
+              style: AppTextStyles.caption.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 36,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: [
+                _filterChip(
+                  label: 'Semua',
+                  selected: jenjang.isEmpty,
+                  onTap: () => ctrl.setFilterJenjang(''),
+                ),
+                ...TutorController.jenjangOptions.map(
+                  (j) => _filterChip(
+                    label: j,
+                    selected: jenjang == j,
+                    onTap: () => ctrl.setFilterJenjang(j),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Filter mapel (FR-DISC-02)
+          if (ctrl.subjectOptions.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Text(
+                'Mata Pelajaran:',
+                style: AppTextStyles.caption.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 36,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                children: [
+                  _filterChip(
+                    label: 'Semua',
+                    selected: subject.isEmpty,
+                    onTap: () => ctrl.setFilterSubject(''),
+                  ),
+                  ...ctrl.subjectOptions.map(
+                    (s) => _filterChip(
+                      label: s,
+                      selected: subject == s,
+                      onTap: () => ctrl.setFilterSubject(s),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      );
+    });
+  }
+
+  Widget _filterChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.primaryBlue : Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: selected ? AppColors.primaryBlue : AppColors.border,
+            ),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: AppTextStyles.caption.copyWith(
+              color: selected ? Colors.white : AppColors.textSecondary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
       ),
     );
   }
