@@ -4,6 +4,7 @@ import '../../controllers/session_controller.dart';
 import '../../models/booking_model.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
+import '../../app/routes.dart';
 
 class SessionScreen extends StatefulWidget {
   const SessionScreen({super.key});
@@ -212,7 +213,26 @@ class _SessionScreenState extends State<SessionScreen> {
                       ),
                     ],
                   ),
-
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: OutlinedButton.icon(
+                    onPressed: () => Get.toNamed(AppRoutes.chat),
+                    icon: const Icon(Icons.chat_bubble_outline, size: 18),
+                    label: const Text(
+                      'Buka Chat Sesi',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: const BorderSide(color: Colors.white54),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 60),
 
                 SizedBox(

@@ -37,7 +37,9 @@ import '../controllers/payment_controller.dart';
 import '../controllers/reschedule_controller.dart';
 import '../controllers/payroll_controller.dart';
 import '../controllers/meet_link_controller.dart';
-import '../controllers/package_controller.dart';
+// import '../controllers/package_controller.dart';
+import '../views/session/chat_screen.dart';
+import '../controllers/chat_controller.dart';
 
 class AppRoutes {
   static const splash = '/';
@@ -64,6 +66,7 @@ class AppRoutes {
   static const slipGaji = '/tutor/slip-gaji';
   static const session = '/session';
   static const review = '/review';
+  static const chat = '/session/chat';
 
   static final pages = [
     GetPage(name: splash, page: () => const SplashScreen()),
@@ -197,6 +200,14 @@ class AppRoutes {
       name: review,
       page: () => const ReviewScreen(),
       binding: BindingsBuilder(() => Get.lazyPut(() => ReviewController())),
+    ),
+    GetPage(
+      name: chat,
+      page: () => const ChatScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => ChatController());
+        Get.lazyPut(() => SessionController());
+      }),
     ),
   ];
 }
