@@ -4,6 +4,16 @@ abstract class ProfileRepository {
   Future<TutorProfileData> fetchMyTutorProfile(String userId);
   Future<void> updateTutorProfile(String tutorId, TutorProfilePatch patch);
   Future<List<TutorDocumentRecord>> fetchMyTutorDocuments(String tutorId);
+
+  /// Upload file dokumen ke Supabase Storage + update metadata
+  Future<TutorDocumentRecord> uploadDocument({
+    required String documentId,
+    required String tutorId,
+    required String jenisDokumen,
+    required String filePath,
+    required String fileName,
+    required List<int> fileBytes,
+  });
 }
 
 class BuddyProfileData {

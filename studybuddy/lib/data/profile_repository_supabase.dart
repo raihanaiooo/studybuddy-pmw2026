@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/constants/supabase_constants.dart';
 import '../core/services/supabase_service.dart';
 import '../domain/profile_repository.dart';
+import 'dart:typed_data';
 
 class ProfileRepositorySupabase implements ProfileRepository {
   static const String _tableTutorDocuments = 'tutor_documents';
@@ -122,6 +123,59 @@ class ProfileRepositorySupabase implements ProfileRepository {
           .eq('tutor_id', tutorId)
           .order('jenis_dokumen', ascending: true);
       return data.map(_toRecord).toList();
+    } on PostgrestException catch (e) {
+      throw _wrapMissing(e, _tableTutorDocuments);
+    }
+  }
+
+  @override
+  Future<TutorDocumentRecord> uploadDocument({
+    required String documentId,
+    required String tutorId,
+    required String jenisDokumen,
+    required String filePath,
+    required String fileName,
+    required List<int> fileBytes,
+  }) async {
+    try {
+      // Tentukan ekstensi file
+      final ext = fileName.split('.').last.toLowerCase();
+      // Path di bucket: {tutor_id}/{document_id}.{ext}
+      final storagePath = '$tutorId/$documentId.$ext';
+
+      // Upload file ke Supabase Storage (upsert = replace kalau sudah ada)
+      await _client.storage
+          .from('documents')
+          .uploadBinary(
+            storagePath,
+            Uint8List.fromList(fileBytes),
+            fileOptions: const FileOptions(upsert: true),
+          );
+
+      // Ambil public URL (walaupun bucket private, URL tetap valid untuk RLS)
+      final fileUrl = _client.storage
+          .from('documents')
+          .getPublicUrl(storagePath);
+
+      // Update metadata di tabel
+      final now = DateTime.now().toIso8601String();
+      final updated = await _client
+          .from(_tableTutorDocuments)
+          .update({
+            'file_url': fileUrl,
+            'status': 'menunggu_verifikasi',
+            'uploaded_at': now,
+          })
+          .eq('id', documentId)
+          .select()
+          .single();
+
+      return _toRecord(updated);
+    } on StorageException catch (e) {
+      throw ProfileBackendMissingException(
+        'Upload file gagal: ${e.message}',
+        e,
+      );
     } on PostgrestException catch (e) {
       throw _wrapMissing(e, _tableTutorDocuments);
     }

@@ -116,12 +116,21 @@ class TutorProfileScreen extends StatelessWidget {
               const SizedBox(height: 20),
               _sectionHeader('Dokumen Verifikasi'),
               const SizedBox(height: 8),
-              ...profile.tutorDocuments.map(
-                (doc) => DocumentTile(
-                  document: doc,
-                  onUpload: () => profile.uploadDocument(doc.id),
+              if (profile.tutorDocuments.isEmpty)
+                _cardBox(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      'Belum ada dokumen. Hubungi admin untuk setup dokumen.',
+                      style: AppTextStyles.caption,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                )
+              else
+                ...profile.tutorDocuments.map(
+                  (doc) => DocumentTile(document: doc),
                 ),
-              ),
               const SizedBox(height: 20),
               _sectionHeader('Link Google Meet'),
               const SizedBox(height: 8),

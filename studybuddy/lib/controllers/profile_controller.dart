@@ -143,6 +143,82 @@ class ProfileController extends GetxController {
     }
   }
 
+  /// Upload dokumen verifikasi Tutor ke Supabase Storage (FR-PROF-05/09)
+  Future<bool> uploadDocument({
+    required String documentId,
+    required String jenisDokumen,
+    required String filePath,
+    required String fileName,
+    required List<int> fileBytes,
+  }) async {
+    // Validasi ukuran (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (fileBytes.length > maxSize) {
+      errorMessage.value = 'Ukuran file maksimal 5MB.';
+      Get.snackbar('File Terlalu Besar', errorMessage.value);
+      return false;
+    }
+
+    // Validasi ekstensi
+    final ext = fileName.split('.').last.toLowerCase();
+    if (!['jpg', 'jpeg', 'png', 'pdf'].contains(ext)) {
+      errorMessage.value = 'Format file harus JPG, PNG, atau PDF.';
+      Get.snackbar('Format Tidak Didukung', errorMessage.value);
+      return false;
+    }
+
+    isLoading.value = true;
+    errorMessage.value = '';
+    try {
+      final current = tutorProfile.value;
+      if (current == null) {
+        errorMessage.value = 'Profil Tutor belum dimuat.';
+        return false;
+      }
+
+      final updated = await _profiles.uploadDocument(
+        documentId: documentId,
+        tutorId: current.id,
+        jenisDokumen: jenisDokumen,
+        filePath: filePath,
+        fileName: fileName,
+        fileBytes: fileBytes,
+      );
+
+      // Update state lokal
+      final idx = tutorDocuments.indexWhere((d) => d.id == documentId);
+      if (idx >= 0) {
+        tutorDocuments[idx] = TutorDocumentModel(
+          id: updated.id,
+          tutorId: updated.tutorId,
+          type: updated.jenisDokumen,
+          label: tutorDocuments[idx].label,
+          requirement: tutorDocuments[idx].requirement,
+          fileUrl: updated.fileUrl,
+          status: updated.status,
+        );
+      }
+
+      Get.snackbar(
+        'Berhasil',
+        'Dokumen berhasil diunggah. Menunggu verifikasi Admin.',
+      );
+      return true;
+    } on ProfileBackendMissingException catch (e) {
+      profileContractMissing.value = true;
+      errorMessage.value = e.message;
+      Get.snackbar('Gagal Upload', e.message);
+      return false;
+    } catch (e) {
+      print('ProfileController.uploadDocument error: $e');
+      errorMessage.value = 'Gagal upload dokumen. Coba lagi.';
+      Get.snackbar('Gagal Upload', errorMessage.value);
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<bool> saveTutorProfile({
     required String bio,
     required List<String> subjects,
@@ -197,17 +273,6 @@ class ProfileController extends GetxController {
     } finally {
       isLoading.value = false;
     }
-  }
-
-  void uploadDocument(String documentId) {
-    profileContractMissing.value = true;
-    errorMessage.value =
-        'Unggah dokumen belum tersedia: kontrak storage & akses dokumen '
-        '(C-DOC-01..05/D-47) belum dijawab pemilik Back-End.';
-    Get.snackbar(
-      'Belum tersedia',
-      'Kontrak storage dokumen (C-DOC-01..05/D-47) belum dijawab BE.',
-    );
   }
 
   TutorModel _toTutorModel(TutorProfileData d) => TutorModel(
