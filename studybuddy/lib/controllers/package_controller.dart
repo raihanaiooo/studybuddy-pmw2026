@@ -1,21 +1,21 @@
 import 'package:get/get.dart';
+import '../core/services/auth_service.dart';
+import '../data/package_repository_supabase.dart';
+import '../domain/package_repository.dart';
 import '../models/package_model.dart';
 import '../models/token_model.dart';
 
-/// Controller katalog paket & token belajar
-///
-/// Aturan dari client:
-/// - Paket bulanan: 35 hari
-/// - Tidak ada yang lebih dari 35 hari
-/// - Tidak ada refund kalau hangus
-/// - Reschedule max 5x
-///
-/// Masih dummy data — tinggal ganti dengan query Supabase
-/// begitu tabel `packages` & `tokens` dibuat.
 class PackageController extends GetxController {
+  PackageController({PackageRepository? repository})
+    : _repo = repository ?? PackageRepositorySupabase();
+
+  final PackageRepository _repo;
+  final _authService = AuthService();
+
   final RxList<PackageModel> packages = <PackageModel>[].obs;
   final RxList<TokenModel> myTokens = <TokenModel>[].obs;
   final RxBool isLoading = false.obs;
+  final RxString errorMessage = ''.obs;
 
   @override
   void onInit() {
@@ -26,97 +26,67 @@ class PackageController extends GetxController {
 
   Future<void> fetchPackages() async {
     isLoading.value = true;
-    packages.value = _dummyPackages;
-    isLoading.value = false;
+    errorMessage.value = '';
+    try {
+      final refs = await _repo.fetchActivePackages();
+      packages.value = refs.map(_toPackageModel).toList();
+    } catch (e) {
+      print('PackageController.fetchPackages error: $e');
+      errorMessage.value = 'Gagal memuat katalog paket.';
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> fetchMyTokens() async {
-    myTokens.value = _dummyTokens;
+    try {
+      final user = await _authService.getCurrentUser();
+      if (user == null) return;
+      final refs = await _repo.fetchMyTokens(user.id);
+      myTokens.value = refs.map(_toTokenModel).toList();
+    } catch (e) {
+      print('PackageController.fetchMyTokens error: $e');
+    }
   }
 
   PackageModel? packageById(String id) =>
       packages.firstWhereOrNull((p) => p.id == id);
 
   /// Terbitkan token baru begitu pembayaran paket Lunas (FR-PKG-02)
-  void grantToken(PackageModel package) {
-    final now = DateTime.now();
-    myTokens.add(
-      TokenModel(
-        id: 'tok-${now.millisecondsSinceEpoch}',
-        buddyId: 'me',
+  Future<void> grantToken(PackageModel package) async {
+    try {
+      final user = await _authService.getCurrentUser();
+      if (user == null) return;
+      final ref = await _repo.createToken(
+        buddyId: user.id,
         packageId: package.id,
-        status: 'active',
-        activeDate: now,
-        expiryDate: now.add(Duration(days: package.validityDays)),
-      ),
-    );
+        sessionCount: package.sessionCount,
+        validityDays: package.validityDays,
+      );
+      myTokens.insert(0, _toTokenModel(ref));
+    } catch (e) {
+      print('PackageController.grantToken error: $e');
+      Get.snackbar('Gagal', 'Token tidak tersimpan. Coba lagi.');
+    }
   }
 
-  /// Paket dummy sesuai aturan client:
-  /// - Paket bulanan: 35 hari
-  /// - Reschedule max 5x
-  /// - Non-refundable
-  static final List<PackageModel> _dummyPackages = [
-    const PackageModel(
-      id: 'pkg-terset',
-      name: 'Bundling Terset',
-      sessionCount: 3,
-      validityDays: 7,
-      rescheduleQuota: 1,
-      isRefundable: false,
-      price: 150000,
-      description: 'Paket 3 sesi fleksibel, cocok untuk kebutuhan mendadak.',
-    ),
-    const PackageModel(
-      id: 'pkg-bulanan-12',
-      name: 'Bundling Bulanan (12 Sesi)',
-      sessionCount: 12,
-      validityDays: 35,
-      rescheduleQuota: 5,
-      isRefundable: false,
-      price: 550000,
-      description: 'Belajar rutin sebulan penuh, 12 sesi dengan tutor pilihan.',
-    ),
-    const PackageModel(
-      id: 'pkg-snbt-satset',
-      name: 'Bundling SNBT — Satset',
-      sessionCount: 3,
-      validityDays: 7,
-      rescheduleQuota: 1,
-      isRefundable: false,
-      price: 200000,
-      description: 'Persiapan kilat UTBK, 3 sesi intensif.',
-    ),
-    const PackageModel(
-      id: 'pkg-snbt-juara',
-      name: 'Bundling SNBT — Juara',
-      sessionCount: 7,
-      validityDays: 14,
-      rescheduleQuota: 2,
-      isRefundable: false,
-      price: 420000,
-      description: 'Persiapan UTBK menyeluruh, 7 sesi terjadwal.',
-    ),
-    const PackageModel(
-      id: 'pkg-snbt-sks',
-      name: 'Bundling SNBT — SKS',
-      sessionCount: 21,
-      validityDays: 35,
-      rescheduleQuota: 5,
-      isRefundable: false,
-      price: 1100000,
-      description: 'Program UTBK jangka panjang, 21 sesi lengkap.',
-    ),
-  ];
+  PackageModel _toPackageModel(PackageRef r) => PackageModel(
+    id: r.id,
+    name: r.packageName,
+    sessionCount: r.sessionCount,
+    validityDays: r.validityDays,
+    rescheduleQuota: r.rescheduleQuota,
+    isRefundable: r.isRefundable,
+    price: r.price,
+    description: r.description ?? '',
+  );
 
-  static final List<TokenModel> _dummyTokens = [
-    TokenModel(
-      id: 'tok-1',
-      buddyId: 'me',
-      packageId: 'pkg-bulanan-12',
-      status: 'active',
-      activeDate: DateTime.now().subtract(const Duration(days: 5)),
-      expiryDate: DateTime.now().add(const Duration(days: 30)),
-    ),
-  ];
+  TokenModel _toTokenModel(TokenRef r) => TokenModel(
+    id: r.id,
+    buddyId: r.buddyId,
+    packageId: r.packageId,
+    status: r.status,
+    activeDate: r.activeDate,
+    expiryDate: r.expiryDate,
+  );
 }

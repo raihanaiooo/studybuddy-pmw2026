@@ -37,6 +37,7 @@ import '../controllers/payment_controller.dart';
 import '../controllers/reschedule_controller.dart';
 import '../controllers/payroll_controller.dart';
 import '../controllers/meet_link_controller.dart';
+import '../controllers/package_controller.dart';
 
 class AppRoutes {
   static const splash = '/';
