@@ -10,6 +10,8 @@ import { BookingListPage } from './pages/BookingListPage';
 import { BookingDetailPage } from './pages/BookingDetailPage';
 import { PaymentListPage } from './pages/PaymentListPage';
 import { PaymentDetailPage } from './pages/PaymentDetailPage';
+import { ComplaintListPage } from './pages/ComplaintListPage';
+import { ComplaintDetailPage } from './pages/ComplaintDetailPage';
 
 function App() {
   return (
@@ -40,10 +42,8 @@ function App() {
             path="/reschedules"
             element={<div className="text-[#6B7280]">Halaman Reschedule (coming soon)</div>}
           />
-          <Route
-            path="/complaints"
-            element={<div className="text-[#6B7280]">Halaman Komplain (coming soon)</div>}
-          />
+          <Route path="/complaints" element={<ComplaintListPage />} />
+          <Route path="/complaints/:id" element={<ComplaintDetailPage />} />
           <Route
             path="/payroll"
             element={<div className="text-[#6B7280]">Halaman Payroll (coming soon)</div>}
