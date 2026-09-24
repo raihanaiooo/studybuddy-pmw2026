@@ -13,7 +13,8 @@ const menuItems = [
   { path: '/reschedules', label: 'Reschedule', icon: '🔄' },
   { path: '/complaints', label: 'Komplain', icon: '⚠️' },
   { path: '/payroll', label: 'Payroll', icon: '📄' },
-  { path: '/packages', label: 'Paket & Token', icon: '🎟️' },
+  { path: '/packages', label: 'Paket Belajar', icon: '📦' },
+  { path: '/tokens', label: 'Token Buddy', icon: '🎟️' },
 ];
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {

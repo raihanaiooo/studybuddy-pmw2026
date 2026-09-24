@@ -16,6 +16,8 @@ import { RescheduleListPage } from './pages/RescheduleListPage';
 import { RescheduleDetailPage } from './pages/RescheduleDetailPage';
 import { PayrollListPage } from './pages/PayrollListPage';
 import { PayrollDetailPage } from './pages/PayrollDetailPage';
+import { PackageListPage } from './pages/PackageListPage';
+import { TokenListPage } from './pages/TokenListPage';
 
 function App() {
   return (
@@ -48,10 +50,8 @@ function App() {
           <Route path="/complaints/:id" element={<ComplaintDetailPage />} />
           <Route path="/payroll" element={<PayrollListPage />} />
           <Route path="/payroll/:id" element={<PayrollDetailPage />} />
-          <Route
-            path="/packages"
-            element={<div className="text-[#6B7280]">Halaman Paket & Token (coming soon)</div>}
-          />
+          <Route path="/packages" element={<PackageListPage />} />
+          <Route path="/tokens" element={<TokenListPage />} />
         </Route>
 
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
