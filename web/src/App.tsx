@@ -18,6 +18,7 @@ import { PayrollListPage } from './pages/PayrollListPage';
 import { PayrollDetailPage } from './pages/PayrollDetailPage';
 import { PackageListPage } from './pages/PackageListPage';
 import { TokenListPage } from './pages/TokenListPage';
+import { PerformancePage } from './pages/PerformancePage';
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
             element={<TutorListPage />}
           />
           <Route path="/tutors/:id" element={<TutorDetailPage />} />
+          <Route path="/performance" element={<PerformancePage />} />
           <Route path="/bookings" element={<BookingListPage />} />
           <Route path="/bookings/:id" element={<BookingDetailPage />} />
           <Route path="/payments" element={<PaymentListPage />} />

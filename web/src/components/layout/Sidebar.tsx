@@ -8,6 +8,7 @@ interface SidebarProps {
 const menuItems = [
   { path: '/dashboard', label: 'Dashboard', icon: '📊' },
   { path: '/tutors', label: 'Verifikasi Tutor', icon: '👨‍🏫' },
+  { path: '/performance', label: 'Performa Tutor', icon: '📈' },  // ← BARU
   { path: '/bookings', label: 'Bookings', icon: '📅' },
   { path: '/payments', label: 'Transaksi', icon: '💰' },
   { path: '/reschedules', label: 'Reschedule', icon: '🔄' },
