@@ -11,7 +11,8 @@ export async function fetchTutors(
   let query = supabase
     .from('tutors')
     .select('*')
-    .order('created_at', { ascending: false });
+    // Sort: pending paling lama di atas, verified/rejected di bawah
+    .order('created_at', { ascending: true });
 
   if (status && status !== 'all') {
     query = query.eq('verification_status', status);

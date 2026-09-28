@@ -55,3 +55,44 @@ export const DOCUMENT_REQUIREMENTS: Record<
   sertifikat_prestasi: 'Wajib',
   sertifikat_bahasa: 'Bersyarat',
 };
+
+// ============================================
+// SLA Helper — Verifikasi Tutor
+// ============================================
+
+/** SLA dalam hari — sesuai keputusan client (~1 minggu) */
+export const SLA_DAYS = 7;
+
+/** Batas "mendekati SLA" — 5 hari */
+export const SLA_WARNING_DAYS = 5;
+
+/** Hitung berapa hari Tutor sudah pending (dari register) */
+export function getPendingDays(tutor: Tutor): number {
+  const created = new Date(tutor.created_at).getTime();
+  const now = Date.now();
+  const diffMs = now - created;
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+}
+
+export type SlaStatus = 'normal' | 'warning' | 'overdue';
+
+/** Klasifikasi status SLA */
+export function getSlaStatus(tutor: Tutor): SlaStatus {
+  if (tutor.verification_status !== 'pending') return 'normal';
+  const days = getPendingDays(tutor);
+  if (days > SLA_DAYS) return 'overdue';
+  if (days >= SLA_WARNING_DAYS) return 'warning';
+  return 'normal';
+}
+
+/** Label status SLA dalam bahasa Indonesia */
+export function getSlaLabel(status: SlaStatus): string {
+  switch (status) {
+    case 'overdue':
+      return 'Lewat SLA';
+    case 'warning':
+      return 'Mendekati SLA';
+    case 'normal':
+      return '';
+  }
+}
