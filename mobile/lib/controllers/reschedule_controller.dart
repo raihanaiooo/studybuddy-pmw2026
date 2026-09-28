@@ -11,8 +11,13 @@ class RescheduleController extends GetxController {
   final RescheduleRepository _repo;
   final _authService = AuthService();
 
-  static const thresholdHours = 5;
+  /// Threshold reschedule: 8 jam sebelum sesi (dari client)
+  static const thresholdHours = 8;
+
+  /// Max postpone: 2 hari dari jadwal semula
   static const maxPostponeDays = 2;
+
+  /// Max reschedule: 5x per bulan
   static const maxRescheduleCount = 5;
 
   final RxList<RescheduleModel> myRequests = <RescheduleModel>[].obs;
@@ -33,7 +38,6 @@ class RescheduleController extends GetxController {
       final user = await _authService.getCurrentUser();
       if (user == null) return;
       myRequests.value = await _repo.fetchMyRequests(user.id);
-      // Hitung kuota: max - jumlah yang sudah dipakai
       final used = await _repo.countMyRequestsThisMonth(user.id);
       quotaLeft.value = (maxRescheduleCount - used).clamp(
         0,
