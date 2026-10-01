@@ -3,7 +3,6 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../models/tutor_model.dart';
 
-/// Card tutor untuk list discovery maupun tampilan online tutors
 class TutorCard extends StatelessWidget {
   final TutorModel tutor;
   final VoidCallback onTap;
@@ -15,6 +14,9 @@ class TutorCard extends StatelessWidget {
     required this.onTap,
     this.compact = false,
   });
+
+  /// Rating dianggap "rekomendasi" kalau >= 4.5
+  bool get _isRecommended => tutor.rating >= 4.5;
 
   @override
   Widget build(BuildContext context) {
@@ -86,6 +88,10 @@ class TutorCard extends StatelessWidget {
           ),
         ],
       ),
+      if (_isRecommended) ...[
+        const SizedBox(height: 6),
+        _buildRecommendBadge(compact: true),
+      ],
     ],
   );
 
@@ -100,7 +106,14 @@ class TutorCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Text(tutor.fullName, style: AppTextStyles.heading3),
+                Flexible(
+                  child: Text(
+                    tutor.fullName,
+                    style: AppTextStyles.heading3,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 const SizedBox(width: 6),
                 if (tutor.isOnline)
                   Container(
@@ -121,6 +134,10 @@ class TutorCard extends StatelessWidget {
                   ),
               ],
             ),
+            if (_isRecommended) ...[
+              const SizedBox(height: 4),
+              _buildRecommendBadge(),
+            ],
             const SizedBox(height: 2),
             Text(
               tutor.subjects.take(3).join(' • '),
@@ -138,23 +155,55 @@ class TutorCard extends StatelessWidget {
                     color: AppColors.textPrimary,
                   ),
                 ),
-                Text(
-                  ' (${tutor.totalSessions} sesi)',
-                  style: AppTextStyles.caption,
-                ),
+                Text(' (${tutor.totalReviews})', style: AppTextStyles.caption),
                 const Spacer(),
-                Text(
-                  'Rp${(tutor.pricePerHour / 1000).toStringAsFixed(0)}rb/jam',
-                  style: AppTextStyles.bodySemiBold.copyWith(
-                    color: AppColors.primaryBlue,
+                if (tutor.pricePerHour > 0)
+                  Text(
+                    'Rp${(tutor.pricePerHour / 1000).toStringAsFixed(0)}rb/jam',
+                    style: AppTextStyles.bodySemiBold.copyWith(
+                      color: AppColors.primaryBlue,
+                    ),
                   ),
-                ),
               ],
             ),
           ],
         ),
       ),
     ],
+  );
+
+  Widget _buildRecommendBadge({bool compact = false}) => Container(
+    padding: EdgeInsets.symmetric(
+      horizontal: compact ? 8 : 10,
+      vertical: compact ? 3 : 4,
+    ),
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        colors: [
+          AppColors.primaryYellow,
+          AppColors.primaryYellow.withOpacity(0.7),
+        ],
+      ),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          '⭐',
+          style: TextStyle(fontSize: compact ? 10 : 11),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          'Rekomendasi',
+          style: AppTextStyles.label.copyWith(
+            color: Colors.white,
+            fontSize: compact ? 9 : 10,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    ),
   );
 
   Widget _buildAvatar(double size) => Container(

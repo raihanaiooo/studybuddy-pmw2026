@@ -4,7 +4,6 @@ import '../core/constants/supabase_constants.dart';
 import '../models/tutor_model.dart';
 import '../models/review_model.dart';
 
-/// Controller untuk discovery & detail tutor
 class TutorController extends GetxController {
   final RxList<TutorModel> tutors = <TutorModel>[].obs;
   final RxList<TutorModel> filtered = <TutorModel>[].obs;
@@ -13,14 +12,12 @@ class TutorController extends GetxController {
   final RxBool isLoading = true.obs;
   final RxString searchQuery = ''.obs;
 
-  // Filter aktif (FR-DISC-02, FR-DISC-03)
-  final RxString filterJenjang = ''.obs; // '' = semua
-  final RxString filterSubject = ''.obs; // '' = semua
+  // Filter (FR-DISC-02, FR-DISC-03)
+  final RxString filterJenjang = ''.obs;
+  final RxString filterSubject = ''.obs;
 
-  /// Daftar jenjang yang tersedia (hardcode sesuai SRS FR-DISC-03)
   static const List<String> jenjangOptions = ['SMP', 'SMA', 'Mahasiswa'];
 
-  /// Daftar mapel unik dari data tutor (untuk chip filter)
   final RxList<String> subjectOptions = <String>[].obs;
 
   @override
@@ -33,6 +30,9 @@ class TutorController extends GetxController {
       time: const Duration(milliseconds: 300),
     );
   }
+
+  /// Top 5 Tutor berdasarkan rating — untuk section "Rekomendasi"
+  List<TutorModel> get topTutors => tutors.take(5).toList();
 
   Future<void> fetchAllTutors() async {
     isLoading.value = true;
@@ -57,7 +57,6 @@ class TutorController extends GetxController {
     }
   }
 
-  /// Ambil daftar mapel unik dari semua tutor
   void _extractSubjectOptions() {
     final set = <String>{};
     for (final t in tutors) {
@@ -67,26 +66,22 @@ class TutorController extends GetxController {
     subjectOptions.value = sorted;
   }
 
-  /// Terapkan semua filter: search query + jenjang + mapel
   void _applyFilter() {
     final q = searchQuery.value.toLowerCase().trim();
     final jenjang = filterJenjang.value;
     final subject = filterSubject.value;
 
     filtered.value = tutors.where((t) {
-      // Filter search query
       if (q.isNotEmpty) {
         final matchName = t.fullName.toLowerCase().contains(q);
         final matchSubject = t.subjects.any((s) => s.toLowerCase().contains(q));
         if (!matchName && !matchSubject) return false;
       }
 
-      // Filter jenjang (FR-DISC-03)
       if (jenjang.isNotEmpty && !t.jenjangDiajar.contains(jenjang)) {
         return false;
       }
 
-      // Filter mapel (FR-DISC-02)
       if (subject.isNotEmpty && !t.subjects.contains(subject)) {
         return false;
       }
@@ -95,19 +90,16 @@ class TutorController extends GetxController {
     }).toList();
   }
 
-  /// Set filter jenjang
   void setFilterJenjang(String jenjang) {
     filterJenjang.value = jenjang;
     _applyFilter();
   }
 
-  /// Set filter mapel
   void setFilterSubject(String subject) {
     filterSubject.value = subject;
     _applyFilter();
   }
 
-  /// Reset semua filter
   void resetFilters() {
     filterJenjang.value = '';
     filterSubject.value = '';
@@ -115,7 +107,6 @@ class TutorController extends GetxController {
     _applyFilter();
   }
 
-  /// Apakah ada filter aktif?
   bool get hasActiveFilter =>
       filterJenjang.value.isNotEmpty || filterSubject.value.isNotEmpty;
 

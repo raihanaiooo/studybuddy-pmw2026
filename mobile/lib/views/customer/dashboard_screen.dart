@@ -63,7 +63,54 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
                   // Paket & Token
                   _buildPackageBanner(),
                   const SizedBox(height: 24),
-
+                  // REKOMENDASI UNTUK KAMU (BARU)
+                  _buildSectionHeader(
+                    '⭐ Rekomendasi untuk Kamu',
+                    onSeeAll: () {
+                      Get.toNamed(AppRoutes.tutorList);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  Obx(() {
+                    final topTutors = tutorCtrl.topTutors;
+                    if (tutorCtrl.isLoading.value) {
+                      return const SizedBox(
+                        height: 180,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.primaryBlue,
+                          ),
+                        ),
+                      );
+                    }
+                    if (topTutors.isEmpty) {
+                      return SizedBox(
+                        height: 100,
+                        child: Center(
+                          child: Text(
+                            'Belum ada rekomendasi',
+                            style: AppTextStyles.caption,
+                          ),
+                        ),
+                      );
+                    }
+                    return SizedBox(
+                      height: 180,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: topTutors.length,
+                        itemBuilder: (_, i) => TutorCard(
+                          tutor: topTutors[i],
+                          compact: true,
+                          onTap: () {
+                            tutorCtrl.selectTutor(topTutors[i]);
+                            Get.toNamed(AppRoutes.tutorDetail);
+                          },
+                        ),
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 24),
                   // Tutor online sekarang
                   _buildSectionHeader(
                     '🟢 Tutor Online Sekarang',
