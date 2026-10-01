@@ -13,6 +13,7 @@ const emptyForm: PackageFormData = {
   session_count: 1,
   validity_days: 35,
   reschedule_quota: 0,
+  max_tutors: 1,
   is_refundable: false,
   price: 0,
   description: '',
@@ -30,6 +31,7 @@ export function PackageFormModal({ isOpen, editing, onClose, onSubmit }: Props) 
         session_count: editing.session_count,
         validity_days: editing.validity_days,
         reschedule_quota: editing.reschedule_quota,
+        max_tutors: editing.max_tutors ?? 1,
         is_refundable: editing.is_refundable,
         price: editing.price,
         description: editing.description ?? '',
@@ -52,6 +54,10 @@ export function PackageFormModal({ isOpen, editing, onClose, onSubmit }: Props) 
       alert('Harga harus lebih dari 0');
       return;
     }
+    if (form.max_tutors < 1) {
+      alert('Max Tutor minimal 1');
+      return;
+    }
     setSaving(true);
     try {
       await onSubmit(form);
@@ -72,14 +78,14 @@ export function PackageFormModal({ isOpen, editing, onClose, onSubmit }: Props) 
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 my-4">
-        <h3 className="text-lg font-bold text-[#1A1F3C] mb-4">
+      <div className="bg-card rounded-2xl shadow-2xl max-w-lg w-full p-6 my-4 border border-border">
+        <h3 className="text-lg font-poppins font-bold text-text-primary mb-4">
           {editing ? 'Edit Paket' : 'Tambah Paket Baru'}
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-[#1A1F3C] mb-2">
+            <label className="block text-sm font-nunito font-semibold text-text-primary mb-2">
               Nama Paket *
             </label>
             <input
@@ -87,13 +93,13 @@ export function PackageFormModal({ isOpen, editing, onClose, onSubmit }: Props) 
               value={form.package_name}
               onChange={(e) => update('package_name', e.target.value)}
               placeholder="Misal: Bundling Bulanan (12 Sesi)"
-              className="w-full px-4 py-3 rounded-xl border border-[#E5E7EB] bg-[#F5F6FA] text-sm focus:outline-none focus:border-[#1A5EAA]"
+              className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-semibold text-[#1A1F3C] mb-2">
+              <label className="block text-sm font-nunito font-semibold text-text-primary mb-2">
                 Jumlah Sesi *
               </label>
               <input
@@ -103,11 +109,11 @@ export function PackageFormModal({ isOpen, editing, onClose, onSubmit }: Props) 
                 onChange={(e) =>
                   update('session_count', Number(e.target.value) || 1)
                 }
-                className="w-full px-4 py-3 rounded-xl border border-[#E5E7EB] bg-[#F5F6FA] text-sm focus:outline-none focus:border-[#1A5EAA]"
+                className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary-blue"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-[#1A1F3C] mb-2">
+              <label className="block text-sm font-nunito font-semibold text-text-primary mb-2">
                 Berlaku (hari) *
               </label>
               <input
@@ -118,15 +124,15 @@ export function PackageFormModal({ isOpen, editing, onClose, onSubmit }: Props) 
                 onChange={(e) =>
                   update('validity_days', Number(e.target.value) || 1)
                 }
-                className="w-full px-4 py-3 rounded-xl border border-[#E5E7EB] bg-[#F5F6FA] text-sm focus:outline-none focus:border-[#1A5EAA]"
+                className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary-blue"
               />
-              <p className="text-xs text-[#9CA3AF] mt-1">Maks 35 hari</p>
+              <p className="text-xs text-text-light mt-1">Maks 35 hari</p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-semibold text-[#1A1F3C] mb-2">
+              <label className="block text-sm font-nunito font-semibold text-text-primary mb-2">
                 Kuota Reschedule
               </label>
               <input
@@ -137,32 +143,51 @@ export function PackageFormModal({ isOpen, editing, onClose, onSubmit }: Props) 
                 onChange={(e) =>
                   update('reschedule_quota', Number(e.target.value) || 0)
                 }
-                className="w-full px-4 py-3 rounded-xl border border-[#E5E7EB] bg-[#F5F6FA] text-sm focus:outline-none focus:border-[#1A5EAA]"
+                className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary-blue"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-[#1A1F3C] mb-2">
-                Harga (Rp) *
+              <label className="block text-sm font-nunito font-semibold text-text-primary mb-2">
+                Max Tutor *
               </label>
               <input
                 type="number"
-                min={0}
-                value={form.price}
-                onChange={(e) => update('price', Number(e.target.value) || 0)}
-                className="w-full px-4 py-3 rounded-xl border border-[#E5E7EB] bg-[#F5F6FA] text-sm focus:outline-none focus:border-[#1A5EAA]"
+                min={1}
+                max={10}
+                value={form.max_tutors}
+                onChange={(e) =>
+                  update('max_tutors', Number(e.target.value) || 1)
+                }
+                className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary-blue"
               />
+              <p className="text-xs text-text-light mt-1">
+                3-12 sesi: max 2 · Bulanan: max 4
+              </p>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#1A1F3C] mb-2">
+            <label className="block text-sm font-nunito font-semibold text-text-primary mb-2">
+              Harga (Rp) *
+            </label>
+            <input
+              type="number"
+              min={0}
+              value={form.price}
+              onChange={(e) => update('price', Number(e.target.value) || 0)}
+              className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary-blue"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-nunito font-semibold text-text-primary mb-2">
               Deskripsi
             </label>
             <textarea
               value={form.description}
               onChange={(e) => update('description', e.target.value)}
               rows={2}
-              className="w-full px-4 py-3 rounded-xl border border-[#E5E7EB] bg-[#F5F6FA] text-sm focus:outline-none focus:border-[#1A5EAA] resize-none"
+              className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary-blue resize-none"
             />
           </div>
 
@@ -174,7 +199,9 @@ export function PackageFormModal({ isOpen, editing, onClose, onSubmit }: Props) 
                 onChange={(e) => update('is_refundable', e.target.checked)}
                 className="w-4 h-4 rounded"
               />
-              <span className="text-sm text-[#1A1F3C]">Bisa refund</span>
+              <span className="text-sm font-nunito text-text-primary">
+                Bisa refund
+              </span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -183,7 +210,9 @@ export function PackageFormModal({ isOpen, editing, onClose, onSubmit }: Props) 
                 onChange={(e) => update('is_active', e.target.checked)}
                 className="w-4 h-4 rounded"
               />
-              <span className="text-sm text-[#1A1F3C]">Aktif</span>
+              <span className="text-sm font-nunito text-text-primary">
+                Aktif
+              </span>
             </label>
           </div>
 
@@ -192,14 +221,14 @@ export function PackageFormModal({ isOpen, editing, onClose, onSubmit }: Props) 
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="flex-1 px-4 py-3 rounded-xl border border-[#E5E7EB] text-[#6B7280] font-semibold hover:bg-[#F5F6FA]"
+              className="flex-1 px-4 py-3 rounded-xl border border-border text-text-secondary font-nunito font-semibold hover:bg-background transition-colors"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 px-4 py-3 rounded-xl bg-[#1A5EAA] text-white font-semibold hover:bg-[#154A87] disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-3 rounded-xl bg-primary-blue text-white font-nunito font-semibold hover:bg-primary-blue-dark disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
             >
               {saving ? (
                 <>

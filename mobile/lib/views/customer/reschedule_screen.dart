@@ -18,7 +18,6 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
   final _reasonCtrl = TextEditingController();
   DateTime? _newDate;
   TimeOfDay? _newTime;
-  bool _switchTutor = false;
 
   @override
   void dispose() {
@@ -117,23 +116,7 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
                 Icons.access_time_outlined,
               ),
             ),
-            const SizedBox(height: 16),
-
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              value: _switchTutor,
-              onChanged: (v) => setState(() => _switchTutor = v),
-              activeThumbColor: AppColors.primaryBlue,
-              title: Text(
-                'Alihkan ke Tutor lain',
-                style: AppTextStyles.bodySemiBold,
-              ),
-              subtitle: Text(
-                'Kalau Tutor asli tidak bisa di jadwal baru',
-                style: AppTextStyles.caption,
-              ),
-            ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 20),
 
             Obx(
               () => ctrl.errorMessage.value.isNotEmpty
@@ -204,6 +187,16 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
         Text('Jadwal Semula', style: AppTextStyles.caption),
         const SizedBox(height: 4),
         Text(booking.subject, style: AppTextStyles.heading3),
+        if (booking.tutorFullName != null) ...[
+          const SizedBox(height: 2),
+          Text(
+            'dengan ${booking.tutorFullName}',
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.primaryBlue,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
         const SizedBox(height: 2),
         Text(
           AppDateUtils.formatDateTime(booking.sessionTime),
@@ -245,6 +238,7 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
                   '• Ajukan maksimal H-${RescheduleController.thresholdHours} jam sebelum sesi\n'
                   '• Jadwal baru maks ${RescheduleController.maxPostponeDays} hari dari jadwal semula\n'
                   '• Kuota maksimal ${RescheduleController.maxRescheduleCount}x\n'
+                  '• Tutor & mapel harus SAMA — cuma jadwal yang ganti\n'
                   '• Wajib persetujuan Admin',
                   style: AppTextStyles.caption.copyWith(
                     color: AppColors.primaryBlue,
@@ -322,7 +316,6 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
       originalSessionTime: booking.sessionTime,
       newSessionTime: _newSessionTime!,
       reason: _reasonCtrl.text,
-      switchTutor: _switchTutor,
     );
     if (result == null) return;
 

@@ -11,7 +11,7 @@ class RescheduleController extends GetxController {
   final RescheduleRepository _repo;
   final _authService = AuthService();
 
-  /// Threshold reschedule: 8 jam sebelum sesi (dari client)
+  /// Threshold reschedule: 8 jam sebelum sesi
   static const thresholdHours = 8;
 
   /// Max postpone: 2 hari dari jadwal semula
@@ -53,12 +53,17 @@ class RescheduleController extends GetxController {
 
   /// Ajukan reschedule. Mengembalikan null kalau validasi gagal
   /// (lihat errorMessage), atau RescheduleModel hasil pengajuan.
+  ///
+  /// Aturan (dari client):
+  /// - H-8 jam sebelum sesi
+  /// - Max postpone 2 hari
+  /// - Max 5x per bulan
+  /// - **Tutor & mapel HARUS SAMA** — cuma jadwal yang ganti
   Future<RescheduleModel?> submitReschedule({
     required String bookingId,
     required DateTime originalSessionTime,
     required DateTime newSessionTime,
     required String reason,
-    bool switchTutor = false,
   }) async {
     errorMessage.value = '';
 

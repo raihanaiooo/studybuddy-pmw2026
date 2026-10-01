@@ -4,6 +4,7 @@ export interface Package {
   session_count: number;
   validity_days: number;
   reschedule_quota: number;
+  max_tutors: number;
   is_refundable: boolean;
   price: number;
   description: string | null;
@@ -47,6 +48,7 @@ export interface PackageFormData {
   session_count: number;
   validity_days: number;
   reschedule_quota: number;
+  max_tutors: number;
   is_refundable: boolean;
   price: number;
   description: string;
