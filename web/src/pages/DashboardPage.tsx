@@ -1,133 +1,81 @@
 import { useEffect, useState } from 'react';
+import { PageHeader } from '../components/ui/PageHeader';
 import { StatCard } from '../components/ui/StatCard';
-import { supabase } from '../lib/supabase';
-import type { AdminStats } from '../types';
+import { ShoppingCart, GraduationCap, Users, Wallet } from 'lucide-react';
 
 export function DashboardPage() {
-  const [stats, setStats] = useState<AdminStats>({
-    totalBookings: 0,
-    totalRevenue: 0,
-    totalTutors: 0,
-    totalBuddies: 0,
-    pendingVerifications: 0,
-    pendingReschedules: 0,
-  });
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ orders: 0, tutors: 0, users: 0, revenue: 0 });
 
   useEffect(() => {
-    async function loadStats() {
-      try {
-        const [bookings, tutors, buddies, pendingTutors, pendingResch, payments] =
-          await Promise.all([
-            supabase.from('bookings').select('*', { count: 'exact', head: true }),
-            supabase
-              .from('tutors')
-              .select('*', { count: 'exact', head: true })
-              .eq('verification_status', 'verified'),
-            supabase
-              .from('users')
-              .select('*', { count: 'exact', head: true })
-              .eq('role', 'buddy'),
-            supabase
-              .from('tutors')
-              .select('*', { count: 'exact', head: true })
-              .eq('verification_status', 'pending'),
-            supabase
-              .from('reschedules')
-              .select('*', { count: 'exact', head: true })
-              .eq('status', 'menunggu_admin'),
-            supabase.from('payments').select('amount').eq('status', 'success'),
-          ]);
-
-        const revenue =
-          payments.data?.reduce((sum, p) => sum + Number(p.amount ?? 0), 0) ?? 0;
-
-        setStats({
-          totalBookings: bookings.count ?? 0,
-          totalTutors: tutors.count ?? 0,
-          totalBuddies: buddies.count ?? 0,
-          pendingVerifications: pendingTutors.count ?? 0,
-          pendingReschedules: pendingResch.count ?? 0,
-          totalRevenue: revenue,
-        });
-      } catch (e) {
-        console.error('Failed to load stats', e);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadStats();
+    // Nanti ganti pakai data asli dari Supabase
+    setStats({ orders: 7, tutors: 5, users: 25, revenue: 1500000 });
   }, []);
 
-  const formatRupiah = (n: number) =>
-    `Rp${n.toLocaleString('id-ID')}`;
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="w-10 h-10 border-4 border-[#1A5EAA] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-[#1A1F3C]">Dashboard</h1>
-        <p className="text-sm text-[#6B7280] mt-1">
-          Ringkasan aktivitas Study Buddy
-        </p>
+    <div>
+      <PageHeader title="Dashboard" subtitle="Ringkasan aktivitas Study Buddy hari ini." />
+
+      {/* 4 Card Statistik */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard label="Total Orderan" value={stats.orders} icon={<ShoppingCart size={20} strokeWidth={2.5} />} color="blue" />
+        <StatCard label="Tutor Terverifikasi" value={stats.tutors} icon={<GraduationCap size={20} strokeWidth={2.5} />} color="green" />
+        <StatCard label="Total Pengguna" value={stats.users} icon={<Users size={20} strokeWidth={2.5} />} color="yellow" />
+        <StatCard label="Pendapatan" value={`Rp${stats.revenue.toLocaleString('id-ID')}`} icon={<Wallet size={20} strokeWidth={2.5} />} color="blue" />
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        <StatCard
-          label="Total Booking"
-          value={stats.totalBookings}
-          icon="📅"
-          color="blue"
-        />
-        <StatCard
-          label="Total Pendapatan"
-          value={formatRupiah(stats.totalRevenue)}
-          icon="💰"
-          color="green"
-        />
-        <StatCard
-          label="Tutor Terverifikasi"
-          value={stats.totalTutors}
-          icon="👨‍🏫"
-          color="teal"
-        />
-        <StatCard
-          label="Total Buddy"
-          value={stats.totalBuddies}
-          icon="🎓"
-          color="blue"
-        />
+      {/* Tabel Orderan Terbaru */}
+      <div className="flex justify-between items-end mb-3">
+        <h2 className="text-lg font-bold text-[var(--ink)]">Orderan Terbaru</h2>
+        <a href="/orders" className="text-sm font-bold text-[var(--blue)] hover:underline">Lihat Semua</a>
       </div>
 
-      {/* Action Required */}
-      <div>
-        <h2 className="text-lg font-bold text-[#1A1F3C] mb-3">
-          Perlu Tindakan
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <StatCard
-            label="Tutor Menunggu Verifikasi"
-            value={stats.pendingVerifications}
-            icon="⏳"
-            color="yellow"
-            subtitle="Perlu ditinjau"
-          />
-          <StatCard
-            label="Reschedule Menunggu Approval"
-            value={stats.pendingReschedules}
-            icon="🔄"
-            color="red"
-            subtitle="Perlu disetujui"
-          />
+      <div className="card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Nama Siswa</th>
+                <th>Mapel</th>
+                <th>Tanggal</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div className="flex items-center gap-3">
+                    <span className="w-8 h-8 rounded-full bg-[var(--blue)] text-white grid place-items-center font-bold text-xs">RP</span>
+                    <b>Rani Putri</b>
+                  </div>
+                </td>
+                <td>Matematika SMA</td>
+                <td className="text-[var(--mute)]">03 Nov 2026</td>
+                <td><span className="badge b-pending"><i></i>Pending</span></td>
+              </tr>
+              <tr>
+                <td>
+                  <div className="flex items-center gap-3">
+                    <span className="w-8 h-8 rounded-full bg-[var(--blue)] text-white grid place-items-center font-bold text-xs">FN</span>
+                    <b>Fajar Nugroho</b>
+                  </div>
+                </td>
+                <td>Fisika SMA</td>
+                <td className="text-[var(--mute)]">03 Nov 2026</td>
+                <td><span className="badge b-fu"><i></i>Follow Up</span></td>
+              </tr>
+              <tr>
+                <td>
+                  <div className="flex items-center gap-3">
+                    <span className="w-8 h-8 rounded-full bg-[var(--blue)] text-white grid place-items-center font-bold text-xs">SM</span>
+                    <b>Salsa Maharani</b>
+                  </div>
+                </td>
+                <td>Kimia SMA</td>
+                <td className="text-[var(--mute)]">01 Nov 2026</td>
+                <td><span className="badge b-done"><i></i>Done</span></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

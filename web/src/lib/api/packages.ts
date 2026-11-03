@@ -151,7 +151,7 @@ export async function fetchPackageStats(): Promise<PackageStats> {
 
   return {
     totalPackages: packages.length,
-    activePackages: packages.filter((p) => p.is_active).length,
+    activePackages: packages.filter((p: { is_active: boolean }) => p.is_active).length,
     totalTokens: tokens.length,
     activeTokens,
     totalRevenue,

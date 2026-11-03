@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { X, Save, Loader2 } from 'lucide-react';
 import type { Package, PackageFormData } from '../../types/package';
 
 interface Props {
@@ -78,14 +79,25 @@ export function PackageFormModal({ isOpen, editing, onClose, onSubmit }: Props) 
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-card rounded-2xl shadow-2xl max-w-lg w-full p-6 my-4 border border-border">
-        <h3 className="text-lg font-poppins font-bold text-text-primary mb-4">
-          {editing ? 'Edit Paket' : 'Tambah Paket Baru'}
-        </h3>
+      <div className="card shadow-2xl max-w-lg w-full p-6 my-4">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-[var(--ink)]">
+            {editing ? 'Edit Paket' : 'Tambah Paket Baru'}
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            className="p-1.5 rounded-lg text-[var(--mute)] hover:bg-[var(--hov)] disabled:opacity-50"
+            aria-label="Tutup"
+          >
+            <X size={18} />
+          </button>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-nunito font-semibold text-text-primary mb-2">
+            <label className="block text-sm font-semibold text-[var(--ink)] mb-2">
               Nama Paket *
             </label>
             <input
@@ -93,13 +105,13 @@ export function PackageFormModal({ isOpen, editing, onClose, onSubmit }: Props) 
               value={form.package_name}
               onChange={(e) => update('package_name', e.target.value)}
               placeholder="Misal: Bundling Bulanan (12 Sesi)"
-              className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20"
+              className="inp"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-nunito font-semibold text-text-primary mb-2">
+              <label className="block text-sm font-semibold text-[var(--ink)] mb-2">
                 Jumlah Sesi *
               </label>
               <input
@@ -109,11 +121,11 @@ export function PackageFormModal({ isOpen, editing, onClose, onSubmit }: Props) 
                 onChange={(e) =>
                   update('session_count', Number(e.target.value) || 1)
                 }
-                className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary-blue"
+                className="inp"
               />
             </div>
             <div>
-              <label className="block text-sm font-nunito font-semibold text-text-primary mb-2">
+              <label className="block text-sm font-semibold text-[var(--ink)] mb-2">
                 Berlaku (hari) *
               </label>
               <input
@@ -124,15 +136,15 @@ export function PackageFormModal({ isOpen, editing, onClose, onSubmit }: Props) 
                 onChange={(e) =>
                   update('validity_days', Number(e.target.value) || 1)
                 }
-                className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary-blue"
+                className="inp"
               />
-              <p className="text-xs text-text-light mt-1">Maks 35 hari</p>
+              <p className="text-xs text-[var(--mute)] mt-1">Maks 35 hari</p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-nunito font-semibold text-text-primary mb-2">
+              <label className="block text-sm font-semibold text-[var(--ink)] mb-2">
                 Kuota Reschedule
               </label>
               <input
@@ -143,11 +155,11 @@ export function PackageFormModal({ isOpen, editing, onClose, onSubmit }: Props) 
                 onChange={(e) =>
                   update('reschedule_quota', Number(e.target.value) || 0)
                 }
-                className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary-blue"
+                className="inp"
               />
             </div>
             <div>
-              <label className="block text-sm font-nunito font-semibold text-text-primary mb-2">
+              <label className="block text-sm font-semibold text-[var(--ink)] mb-2">
                 Max Tutor *
               </label>
               <input
@@ -158,16 +170,16 @@ export function PackageFormModal({ isOpen, editing, onClose, onSubmit }: Props) 
                 onChange={(e) =>
                   update('max_tutors', Number(e.target.value) || 1)
                 }
-                className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary-blue"
+                className="inp"
               />
-              <p className="text-xs text-text-light mt-1">
+              <p className="text-xs text-[var(--mute)] mt-1">
                 3-12 sesi: max 2 · Bulanan: max 4
               </p>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-nunito font-semibold text-text-primary mb-2">
+            <label className="block text-sm font-semibold text-[var(--ink)] mb-2">
               Harga (Rp) *
             </label>
             <input
@@ -175,42 +187,42 @@ export function PackageFormModal({ isOpen, editing, onClose, onSubmit }: Props) 
               min={0}
               value={form.price}
               onChange={(e) => update('price', Number(e.target.value) || 0)}
-              className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary-blue"
+              className="inp"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-nunito font-semibold text-text-primary mb-2">
+            <label className="block text-sm font-semibold text-[var(--ink)] mb-2">
               Deskripsi
             </label>
             <textarea
               value={form.description}
               onChange={(e) => update('description', e.target.value)}
               rows={2}
-              className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary-blue resize-none"
+              className="inp resize-none"
             />
           </div>
 
           <div className="flex flex-wrap gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={form.is_refundable}
                 onChange={(e) => update('is_refundable', e.target.checked)}
-                className="w-4 h-4 rounded"
+                className="w-4 h-4 rounded accent-[var(--blue)]"
               />
-              <span className="text-sm font-nunito text-text-primary">
+              <span className="text-sm font-semibold text-[var(--ink)]">
                 Bisa refund
               </span>
             </label>
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={form.is_active}
                 onChange={(e) => update('is_active', e.target.checked)}
-                className="w-4 h-4 rounded"
+                className="w-4 h-4 rounded accent-[var(--blue)]"
               />
-              <span className="text-sm font-nunito text-text-primary">
+              <span className="text-sm font-semibold text-[var(--ink)]">
                 Aktif
               </span>
             </label>
@@ -221,22 +233,25 @@ export function PackageFormModal({ isOpen, editing, onClose, onSubmit }: Props) 
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="flex-1 px-4 py-3 rounded-xl border border-border text-text-secondary font-nunito font-semibold hover:bg-background transition-colors"
+              className="btn flex-1 justify-center"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 px-4 py-3 rounded-xl bg-primary-blue text-white font-nunito font-semibold hover:bg-primary-blue-dark disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+              className="btn btn-p flex-1 justify-center disabled:opacity-50"
             >
               {saving ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <Loader2 size={16} className="animate-spin" />
                   Menyimpan...
                 </>
               ) : (
-                'Simpan'
+                <>
+                  <Save size={16} />
+                  Simpan
+                </>
               )}
             </button>
           </div>

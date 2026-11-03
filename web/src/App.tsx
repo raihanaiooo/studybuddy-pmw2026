@@ -19,6 +19,8 @@ import { PayrollDetailPage } from './pages/PayrollDetailPage';
 import { PackageListPage } from './pages/PackageListPage';
 import { TokenListPage } from './pages/TokenListPage';
 import { PerformancePage } from './pages/PerformancePage';
+import { OrderListPage } from './pages/OrderListPage';
+import { ContentManagementPage } from './pages/ContentManagementPage';
 
 function App() {
   return (
@@ -54,6 +56,8 @@ function App() {
           <Route path="/payroll/:id" element={<PayrollDetailPage />} />
           <Route path="/packages" element={<PackageListPage />} />
           <Route path="/tokens" element={<TokenListPage />} />
+          <Route path="/orders" element={<OrderListPage />} />
+          <Route path="/content" element={<ContentManagementPage />} />
         </Route>
 
         <Route path="/" element={<Navigate to="/dashboard" replace />} />

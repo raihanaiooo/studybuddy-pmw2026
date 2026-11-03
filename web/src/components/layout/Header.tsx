@@ -1,58 +1,33 @@
 import { useAuth } from '../../hooks/useAuth';
+import { LogOut } from 'lucide-react';
 
-interface HeaderProps {
-  onMenuClick: () => void;
-}
-
-export function Header({ onMenuClick }: HeaderProps) {
+export function Header({ onMenuClick }: { onMenuClick: () => void }) {
   const { user, signOut } = useAuth();
 
   return (
-    <header className="h-[72px] bg-card border-b border-border flex items-center justify-between px-4 lg:px-6 shrink-0 z-30">
-      {/* Hamburger mobile */}
-      <button
-        onClick={onMenuClick}
-        className="lg:hidden w-10 h-10 rounded-xl hover:bg-background flex items-center justify-center text-xl transition-colors"
-        aria-label="Menu"
-      >
-        ☰
+    <header className="h-14 shrink-0 bg-[var(--card)] border-b border-[var(--line)] flex items-center gap-3 px-4 md:px-6">
+      {/* Tombol Hamburger Mobile */}
+      <button onClick={onMenuClick} className="btn !p-2 lg:hidden">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
 
-      <div className="hidden lg:block">
-        <h2 className="text-[13.5px] text-text-secondary font-nunito">
-          Selamat datang kembali 👋
-        </h2>
-      </div>
+      <h1 className="font-extrabold text-lg text-[var(--ink)]">Admin Panel</h1>
 
-      {/* User */}
-      <div className="flex items-center gap-2 lg:gap-3">
-        <div className="hidden sm:block text-right mr-1">
-          <p className="text-[13.5px] font-poppins font-semibold text-text-primary leading-tight">
-            {user?.full_name ?? 'Admin'}
-          </p>
-          <p className="text-[11px] text-text-light font-nunito leading-tight">
-            {user?.email}
-          </p>
+      {/* User Area */}
+      <div className="ml-auto flex items-center gap-3">
+        <div className="hidden sm:flex items-center gap-2.5">
+          <span className="w-8 h-8 rounded-full bg-[var(--blue)] text-white grid place-items-center font-bold text-xs">
+            {user?.full_name?.[0]?.toUpperCase() || 'A'}
+          </span>
+          <div className="leading-tight">
+            <p className="font-bold text-sm text-[var(--ink)]">{user?.full_name || 'Admin'}</p>
+            <p className="text-xs text-[var(--mute)]">Admin</p>
+          </div>
         </div>
 
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-blue-dark to-primary-blue-light flex items-center justify-center text-white font-poppins font-bold text-sm shadow-sm shrink-0">
-          {user?.full_name?.[0]?.toUpperCase() ?? 'A'}
-        </div>
-
-        <button
-          onClick={signOut}
-          className="hidden sm:flex items-center gap-2 h-10 px-3.5 rounded-xl text-[13px] font-nunito font-semibold text-primary-red hover:bg-primary-red-subtle transition-colors"
-        >
-          <span>🚪</span>
-          <span>Keluar</span>
-        </button>
-
-        <button
-          onClick={signOut}
-          className="sm:hidden w-10 h-10 rounded-xl hover:bg-primary-red-subtle flex items-center justify-center transition-colors"
-          aria-label="Logout"
-        >
-          🚪
+        <button onClick={signOut} className="btn text-[var(--mute)]">
+          <LogOut size={16} />
+          <span className="hidden sm:inline">Logout</span>
         </button>
       </div>
     </header>

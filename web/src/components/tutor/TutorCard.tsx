@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Clock, BookOpen } from 'lucide-react';
 import type { Tutor } from '../../types/tutor';
 import {
   getPendingDays,
@@ -11,23 +12,29 @@ interface Props {
   tutor: Tutor;
 }
 
+/**
+ * Mapping warna SLA → token baru.
+ * - overdue → merah (selaras badge .b-no)
+ * - warning → kuning (selaras badge .b-pending)
+ * - normal  → netral (soft/mute)
+ */
 const slaConfig = {
   overdue: {
-    bg: 'bg-primary-red-subtle',
-    text: 'text-primary-red',
-    border: 'border-primary-red/30',
+    bg: 'bg-[#FEE2E2]',
+    text: 'text-[#991B1B]',
+    border: 'border-[#FCA5A5]',
   },
   warning: {
-    bg: 'bg-primary-yellow-subtle',
-    text: 'text-primary-yellow',
-    border: 'border-primary-yellow/30',
+    bg: 'bg-[#FEF3C7]',
+    text: 'text-[#92400E]',
+    border: 'border-[#FCD34D]',
   },
   normal: {
-    bg: 'bg-background',
-    text: 'text-text-secondary',
-    border: 'border-border',
+    bg: 'bg-[var(--soft)]',
+    text: 'text-[var(--mute)]',
+    border: 'border-[var(--line)]',
   },
-};
+} as const;
 
 export function TutorCard({ tutor }: Props) {
   const slaStatus = getSlaStatus(tutor);
@@ -39,31 +46,32 @@ export function TutorCard({ tutor }: Props) {
   return (
     <Link
       to={`/tutors/${tutor.id}`}
-      className="block bg-card rounded-2xl p-5 border border-border shadow-sm hover:shadow-md hover:border-primary-blue/30 transition-all"
+      className="card block p-5 hover:shadow-md hover:border-[var(--blue)]/30 transition-all"
     >
       <div className="flex items-start gap-4">
         {/* Avatar */}
-        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary-blue-dark to-primary-blue-light flex items-center justify-center text-white text-xl font-bold shrink-0">
+        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[var(--blue)] to-[#6BB5FF] flex items-center justify-center text-white text-xl font-bold shrink-0">
           {tutor.full_name?.[0]?.toUpperCase() ?? '?'}
         </div>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2 mb-1">
-            <h3 className="font-bold text-text-primary truncate">
+            <h3 className="font-bold text-[var(--ink)] truncate">
               {tutor.full_name}
             </h3>
             <VerificationBadge status={tutor.verification_status} />
             {slaLabel && (
               <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold border ${sla.bg} ${sla.text} ${sla.border}`}
+                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold border ${sla.bg} ${sla.text} ${sla.border}`}
               >
-                ⏱ {slaLabel}
+                <Clock size={11} />
+                {slaLabel}
               </span>
             )}
           </div>
 
-          <p className="text-sm text-text-secondary truncate">
+          <p className="text-sm text-[var(--mute)] truncate">
             {tutor.university ?? 'Belum ada institusi'}
           </p>
 
@@ -72,10 +80,10 @@ export function TutorCard({ tutor }: Props) {
             <p
               className={`text-[11.5px] font-semibold mt-1 ${
                 slaStatus === 'overdue'
-                  ? 'text-primary-red'
+                  ? 'text-[#991B1B]'
                   : slaStatus === 'warning'
-                    ? 'text-primary-yellow'
-                    : 'text-text-light'
+                    ? 'text-[#92400E]'
+                    : 'text-[var(--mute)]'
               }`}
             >
               {pendingDays === 0
@@ -89,13 +97,14 @@ export function TutorCard({ tutor }: Props) {
               {tutor.subjects.slice(0, 3).map((s) => (
                 <span
                   key={s}
-                  className="text-xs px-2 py-0.5 rounded-lg bg-primary-blue-subtle text-primary-blue font-medium"
+                  className="text-xs px-2 py-0.5 rounded-lg bg-[var(--blue)]/10 text-[var(--blue)] font-semibold inline-flex items-center gap-1"
                 >
+                  <BookOpen size={11} />
                   {s}
                 </span>
               ))}
               {tutor.subjects.length > 3 && (
-                <span className="text-xs px-2 py-0.5 text-text-secondary">
+                <span className="text-xs px-2 py-0.5 text-[var(--mute)]">
                   +{tutor.subjects.length - 3}
                 </span>
               )}

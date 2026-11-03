@@ -1,145 +1,78 @@
-import { Link, useParams } from 'react-router-dom';
-import { usePaymentDetail } from '../hooks/usePaymentDetail';
-import { PaymentStatusBadge } from '../components/payment/PaymentStatusBadge';
-
-function formatRupiah(n: number) {
-  return `Rp${n.toLocaleString('id-ID')}`;
-}
-
-function formatDateTime(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleString('id-ID', {
-    weekday: 'long',
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
+import { useEffect, useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { ArrowLeft, CreditCard, Calendar, User, Hash } from 'lucide-react';
 
 export function PaymentDetailPage() {
-  const { id } = useParams<{ id: string }>();
-  const { payment, loading, error } = usePaymentDetail(id);
+  const { id } = useParams();
+  const [payment, setPayment] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center py-20">
-        <div className="w-10 h-10 border-4 border-[#1A5EAA] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
+  useEffect(() => {
+    const fetchPayment = async () => {
+      const { data } = await supabase
+        .from('payments')
+        .select(`*, booking:bookings!payments_booking_id_fkey(subject, customer:users!bookings_customer_id_fkey(full_name))`)
+        .eq('id', id)
+        .single();
+      if (data) setPayment(data);
+      setLoading(false);
+    };
+    fetchPayment();
+  }, [id]);
 
-  if (error || !payment) {
-    return (
-      <div className="bg-white rounded-2xl p-8 text-center border border-[#E5E7EB]">
-        <p className="text-[#E53935] mb-4">
-          {error ?? 'Transaksi tidak ditemukan'}
-        </p>
-        <Link
-          to="/payments"
-          className="inline-block bg-[#1A5EAA] text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-[#154A87]"
-        >
-          Kembali
-        </Link>
-      </div>
-    );
-  }
+  if (loading) return <div className="p-10 text-center text-[var(--mute)]">Memuat data...</div>;
+  if (!payment) return <div className="p-10 text-center text-red-500">Transaksi tidak ditemukan.</div>;
+
+  const getBadge = (status: string) => {
+    switch (status) {
+      case 'pending': return <span className="badge b-pending"><i></i>Pending</span>;
+      case 'success': return <span className="badge b-done"><i></i>Berhasil</span>;
+      case 'failed': return <span className="badge b-no"><i></i>Gagal</span>;
+      case 'expired': return <span className="badge b-no"><i></i>Kedaluwarsa</span>;
+      case 'refunded': return <span className="badge b-fu"><i></i>Refund</span>;
+      default: return <span className="badge b-no">{status}</span>;
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <Link
-          to="/payments"
-          className="text-sm text-[#1A5EAA] hover:underline font-medium inline-flex items-center gap-1 mb-3"
-        >
-          ← Kembali ke daftar Transaksi
-        </Link>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-[#1A1F3C]">
-              Detail Transaksi
-            </h1>
-            <p className="text-sm text-[#6B7280] mt-1">ID: {payment.id}</p>
-          </div>
-          <PaymentStatusBadge status={payment.status} />
-        </div>
-      </div>
+    <div>
+      <Link to="/payments" className="inline-flex items-center gap-2 text-sm font-bold text-[var(--mute)] hover:text-[var(--blue)] mb-4 transition-colors">
+        <ArrowLeft size={16} /> Kembali ke Daftar Transaksi
+      </Link>
 
-      {/* Amount Card */}
-      <div className="bg-gradient-to-br from-[#1A5EAA] to-[#6BB5FF] rounded-2xl p-6 text-white">
-        <p className="text-sm opacity-90 mb-1">Total Pembayaran</p>
-        <p className="text-3xl font-bold">{formatRupiah(payment.amount)}</p>
-      </div>
-
-      {/* Info Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB]">
-          <h2 className="font-bold text-[#1A1F3C] mb-3">Informasi Transaksi</h2>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between gap-3">
-              <span className="text-[#6B7280]">Metode</span>
-              <span className="text-[#1A1F3C] font-medium uppercase">
-                {payment.method}
-              </span>
-            </div>
-            <div className="flex justify-between gap-3">
-              <span className="text-[#6B7280]">Ref Eksternal</span>
-              <span className="text-[#1A1F3C] font-medium text-right">
-                {payment.external_ref ?? '-'}
-              </span>
-            </div>
-            <div className="flex justify-between gap-3">
-              <span className="text-[#6B7280]">Dibuat</span>
-              <span className="text-[#1A1F3C] font-medium text-right">
-                {formatDateTime(payment.created_at)}
-              </span>
-            </div>
-            {payment.paid_at && (
-              <div className="flex justify-between gap-3">
-                <span className="text-[#6B7280]">Dibayar</span>
-                <span className="text-[#1A1F3C] font-medium text-right">
-                  {formatDateTime(payment.paid_at)}
-                </span>
-              </div>
-            )}
-            {payment.expires_at && (
-              <div className="flex justify-between gap-3">
-                <span className="text-[#6B7280]">Kedaluwarsa</span>
-                <span className="text-[#1A1F3C] font-medium text-right">
-                  {formatDateTime(payment.expires_at)}
-                </span>
-              </div>
-            )}
-          </div>
+      <div className="max-w-3xl mx-auto">
+        <div className="card p-8 text-center mb-6 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-[var(--blue)]"></div>
+          <p className="text-[var(--mute)] font-semibold mb-2">Total Pembayaran</p>
+          <h1 className="text-4xl font-extrabold text-[var(--blue)] mb-4">
+            Rp{payment.amount?.toLocaleString('id-ID')}
+          </h1>
+          <div>{getBadge(payment.status)}</div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB]">
-          <h2 className="font-bold text-[#1A1F3C] mb-3">Booking Terkait</h2>
-          {payment.booking ? (
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between gap-3">
-                <span className="text-[#6B7280]">Mapel</span>
-                <span className="text-[#1A1F3C] font-medium text-right">
-                  {payment.booking.subject}
-                </span>
-              </div>
-              <div className="flex justify-between gap-3">
-                <span className="text-[#6B7280]">Jadwal</span>
-                <span className="text-[#1A1F3C] font-medium text-right">
-                  {formatDateTime(payment.booking.session_time)}
-                </span>
-              </div>
-              <Link
-                to={`/bookings/${payment.booking.id}`}
-                className="inline-block mt-3 text-sm text-[#1A5EAA] hover:underline font-medium"
-              >
-                Lihat Booking →
-              </Link>
+        <div className="card p-6">
+          <h2 className="text-lg font-bold mb-4 text-[var(--ink)] border-b border-[var(--line)] pb-3">Rincian Transaksi</h2>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center py-2">
+              <span className="text-[var(--mute)] flex items-center gap-2"><Hash size={16} /> ID Transaksi</span>
+              <span className="font-mono text-sm font-semibold">{payment.id}</span>
             </div>
-          ) : (
-            <p className="text-sm text-[#9CA3AF]">Booking tidak ditemukan</p>
-          )}
+            <div className="flex justify-between items-center py-2 border-t border-[var(--line)]">
+              <span className="text-[var(--mute)] flex items-center gap-2"><User size={16} /> Nama Buddy</span>
+              <span className="font-semibold">{payment.booking?.customer?.full_name || '-'}</span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-t border-[var(--line)]">
+              <span className="text-[var(--mute)] flex items-center gap-2"><CreditCard size={16} /> Metode Pembayaran</span>
+              <span className="font-semibold uppercase">{payment.method}</span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-t border-[var(--line)]">
+              <span className="text-[var(--mute)] flex items-center gap-2"><Calendar size={16} /> Waktu Transaksi</span>
+              <span className="font-semibold">
+                {new Date(payment.created_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

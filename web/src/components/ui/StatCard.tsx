@@ -1,81 +1,35 @@
+import type { ReactNode } from 'react';
+
 interface StatCardProps {
   label: string;
   value: string | number;
-  icon: string;
+  icon: ReactNode;
   color?: 'blue' | 'green' | 'yellow' | 'red' | 'teal';
   subtitle?: string;
-  onClick?: () => void;
 }
 
-const colorMap = {
-  blue: {
-    bg: 'bg-primary-blue-subtle',
-    text: 'text-primary-blue',
-    icon: 'text-primary-blue',
-  },
-  green: {
-    bg: 'bg-online-green-subtle',
-    text: 'text-online-green',
-    icon: 'text-online-green',
-  },
-  yellow: {
-    bg: 'bg-primary-yellow-subtle',
-    text: 'text-primary-yellow',
-    icon: 'text-primary-yellow',
-  },
-  red: {
-    bg: 'bg-primary-red-subtle',
-    text: 'text-primary-red',
-    icon: 'text-primary-red',
-  },
-  teal: {
-    bg: 'bg-accent-teal-subtle',
-    text: 'text-accent-teal',
-    icon: 'text-accent-teal',
-  },
-};
-
-export function StatCard({
-  label,
-  value,
-  icon,
-  color = 'blue',
-  subtitle,
-  onClick,
-}: StatCardProps) {
-  const c = colorMap[color];
+export function StatCard({ label, value, icon, color = 'blue', subtitle }: StatCardProps) {
+  // Warna background icon (soft color)
+  const iconBg = {
+    blue: 'bg-[#DBEAFE] text-[#1E40AF]',
+    green: 'bg-[#DCFCE7] text-[#166534]',
+    yellow: 'bg-[#FEF3C7] text-[#92400E]',
+    red: 'bg-[#FEE2E2] text-[#991B1B]',
+    teal: 'bg-[#CCFBF1] text-[#0F766E]',
+  }[color];
 
   return (
-    <div
-      onClick={onClick}
-      className={`
-        bg-card rounded-2xl p-5 border border-border
-        shadow-[var(--shadow-sm)]
-        hover:shadow-[var(--shadow-md)]
-        transition-all duration-200
-        ${onClick ? 'cursor-pointer hover:-translate-y-0.5' : ''}
-      `}
-    >
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <p className="text-[12.5px] font-nunito font-semibold text-text-secondary uppercase tracking-wide">
-          {label}
-        </p>
-        <div
-          className={`w-9 h-9 rounded-xl ${c.bg} flex items-center justify-center text-[16px] shrink-0`}
-        >
-          {icon}
+    <div className="card p-5">
+      <p className="text-[var(--mute)] font-semibold text-sm">{label}</p>
+      <div className="flex justify-between items-end mt-2">
+        <div>
+          <p className="text-3xl font-extrabold text-[var(--ink)]">{value}</p>
+          {subtitle && <p className="text-xs text-[var(--mute)] mt-1">{subtitle}</p>}
         </div>
+        <span className={`w-10 h-10 rounded-xl flex items-center justify-center ${iconBg}`}>
+          {icon}
+        </span>
       </div>
-
-      <p className="text-[26px] font-poppins font-bold text-text-primary leading-none mb-1.5">
-        {value}
-      </p>
-
-      {subtitle && (
-        <p className={`text-[12px] font-nunito font-medium ${c.text}`}>
-          {subtitle}
-        </p>
-      )}
     </div>
   );
 }
