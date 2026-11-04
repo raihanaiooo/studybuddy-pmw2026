@@ -48,15 +48,15 @@ export function PackageFormModal({ isOpen, editing, onClose, onSubmit }: Props) 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.package_name.trim()) {
-      alert('Nama paket wajib diisi');
+      await (window.alert as any)('Nama paket wajib diisi');
       return;
     }
     if (form.price <= 0) {
-      alert('Harga harus lebih dari 0');
+      await (window.alert as any)('Harga harus lebih dari 0');
       return;
     }
     if (form.max_tutors < 1) {
-      alert('Max Tutor minimal 1');
+      await (window.alert as any)('Max Tutor minimal 1');
       return;
     }
     setSaving(true);
@@ -64,7 +64,7 @@ export function PackageFormModal({ isOpen, editing, onClose, onSubmit }: Props) 
       await onSubmit(form);
       onClose();
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Terjadi kesalahan');
+      await (window.alert as any)(e instanceof Error ? e.message : 'Terjadi kesalahan');
     } finally {
       setSaving(false);
     }

@@ -52,7 +52,7 @@ const formatDateLong = (iso: string) =>
   });
 
 export function RescheduleListPage() {
-  const { reschedules, filter, setFilter, search, setSearch, loading, error } =
+  const { reschedules, filter, setFilter, search, setSearch, loading, error, reload } =
     useReschedules();
 
   const [stats, setStats] = useState<RescheduleStats>({
@@ -64,7 +64,6 @@ export function RescheduleListPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('table');
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [selectedData, setSelectedData] = useState<any>(null);
-  const [, setRefetchKey] = useState(0);
 
   useEffect(() => {
     fetchRescheduleStats()
@@ -100,11 +99,10 @@ export function RescheduleListPage() {
       }
 
       setSelectedData(null);
-      // Trigger refetch (lihat catatan). Sementara pakai reload:
-      setRefetchKey((k) => k + 1);
-      window.location.reload();
+      // Panggil reload dari hook untuk refetch data
+      await reload();
     } catch (err: any) {
-      alert('Gagal memproses: ' + (err?.message ?? err));
+      await (window.alert as any)('Gagal memproses: ' + (err?.message ?? err));
     } finally {
       setLoadingId(null);
     }
@@ -279,7 +277,7 @@ export function RescheduleListPage() {
                           <button
                             type="button"
                             onClick={() => setSelectedData(r)}
-                            className="btn !py-1 !px-2 text-[var(--mute)] border-transparent hover:bg-[var(--hov)]"
+                            className="btn !py-1.5 !px-2.5 text-[var(--mute)] border-transparent hover:bg-[var(--hov)]"
                             title="Lihat Detail"
                           >
                             <Eye size={16} />
@@ -292,7 +290,7 @@ export function RescheduleListPage() {
                                 type="button"
                                 onClick={() => handleAction(r, 'disetujui')}
                                 disabled={loadingId === r.id}
-                                className="btn !py-1 !px-2 text-[#166534] border-transparent hover:bg-[#DCFCE7] disabled:opacity-50"
+                                className="btn !py-1.5 !px-2.5 text-[#166534] border-transparent hover:bg-[#DCFCE7] disabled:opacity-50"
                                 title="Setujui"
                               >
                                 {loadingId === r.id ? (
@@ -309,7 +307,7 @@ export function RescheduleListPage() {
                                 type="button"
                                 onClick={() => handleAction(r, 'ditolak')}
                                 disabled={loadingId === r.id}
-                                className="btn !py-1 !px-2 text-[#991B1B] border-transparent hover:bg-[#FEE2E2] disabled:opacity-50"
+                                className="btn !py-1.5 !px-2.5 text-[#991B1B] border-transparent hover:bg-[#FEE2E2] disabled:opacity-50"
                                 title="Tolak"
                               >
                                 <XCircle size={16} />

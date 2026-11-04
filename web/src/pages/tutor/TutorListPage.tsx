@@ -273,7 +273,7 @@ export function TutorListPage() {
                             type="button"
                             onClick={() => toggleFeatured(t.id, t.is_featured)}
                             disabled={loadingId === t.id}
-                            className={`btn !py-1 !px-2 border-transparent disabled:opacity-50 ${
+                            className={`btn !py-1.5 !px-2.5 border-transparent disabled:opacity-50 ${
                               t.is_featured
                                 ? 'text-[var(--blue)] bg-[var(--hov)]'
                                 : 'text-[var(--mute)] hover:bg-[var(--soft)]'
@@ -290,7 +290,7 @@ export function TutorListPage() {
                           <button
                             type="button"
                             onClick={() => navigate(`/tutors/${t.id}`)}
-                            className="btn !py-1 !px-2 text-[var(--blue)] border-transparent hover:bg-[var(--hov)]"
+                            className="btn !py-1.5 !px-2.5 text-[var(--blue)] border-transparent hover:bg-[var(--hov)]"
                             title="Lihat Dokumen"
                           >
                             <Eye size={16} />
@@ -305,7 +305,7 @@ export function TutorListPage() {
                                   updateVerification(t.id, 'verified')
                                 }
                                 disabled={loadingId === t.id}
-                                className="btn !py-1 !px-2 text-[#166534] border-transparent hover:bg-[#DCFCE7] disabled:opacity-50"
+                                className="btn !py-1.5 !px-2.5 text-[#166534] border-transparent hover:bg-[#DCFCE7] disabled:opacity-50"
                                 title="Setujui"
                               >
                                 {loadingId === t.id ? (
@@ -323,7 +323,7 @@ export function TutorListPage() {
                                   updateVerification(t.id, 'rejected')
                                 }
                                 disabled={loadingId === t.id}
-                                className="btn !py-1 !px-2 text-[#991B1B] border-transparent hover:bg-[#FEE2E2] disabled:opacity-50"
+                                className="btn !py-1.5 !px-2.5 text-[#991B1B] border-transparent hover:bg-[#FEE2E2] disabled:opacity-50"
                                 title="Tolak"
                               >
                                 <XCircle size={16} />

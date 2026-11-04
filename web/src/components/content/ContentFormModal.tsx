@@ -22,14 +22,26 @@ export function ContentFormModal({ isOpen, type, editData, onClose, onSuccess }:
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    if (editData) {
-      await supabase.from(type).update(form).eq('id', editData.id);
-    } else {
-      await supabase.from(type).insert([form]);
+    try {
+      if (editData) {
+        const { error } = await supabase
+          .from(type)
+          .update(form)
+          .eq('id', editData.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from(type)
+          .insert([form]);
+        if (error) throw error;
+      }
+      onSuccess();
+      onClose();
+    } catch (err: any) {
+      await (window.alert as any)('Gagal menyimpan data: ' + (err?.message ?? err));
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    onSuccess();
-    onClose();
   };
 
   return (

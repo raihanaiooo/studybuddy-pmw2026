@@ -35,17 +35,28 @@ export function OrderFormModal({ isOpen, editData, onClose, onSuccess }: Props) 
     e.preventDefault();
     setSaving(true);
 
-    if (editData) {
-      // Mode Edit: Update data
-      await supabase.from('manual_orders').update(form).eq('id', editData.id);
-    } else {
-      // Mode Tambah: Insert data baru
-      await supabase.from('manual_orders').insert([{ ...form, status: 'pending' }]);
+    try {
+      if (editData) {
+        // Mode Edit: Update data
+        const { error } = await supabase
+          .from('manual_orders')
+          .update(form)
+          .eq('id', editData.id);
+        if (error) throw error;
+      } else {
+        // Mode Tambah: Insert data baru
+        const { error } = await supabase
+          .from('manual_orders')
+          .insert([{ ...form, status: 'pending' }]);
+        if (error) throw error;
+      }
+      onSuccess();
+      onClose();
+    } catch (err: any) {
+      await (window.alert as any)('Gagal menyimpan orderan: ' + (err?.message ?? err));
+    } finally {
+      setSaving(false);
     }
-
-    setSaving(false);
-    onSuccess();
-    onClose();
   };
 
   return (

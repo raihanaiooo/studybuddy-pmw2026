@@ -23,7 +23,7 @@ export function OrderForm() {
     setLoading(false);
 
     if (error) {
-      alert('Gagal mengirim orderan: ' + error.message);
+      await (window.alert as any)('Gagal mengirim orderan: ' + error.message);
       return;
     }
 

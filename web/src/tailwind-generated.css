@@ -428,6 +428,9 @@
   .ml-1\.5 {
     margin-left: calc(var(--spacing) * 1.5);
   }
+  .ml-3 {
+    margin-left: calc(var(--spacing) * 3);
+  }
   .ml-auto {
     margin-left: auto;
   }
@@ -1131,6 +1134,9 @@
   .\!px-2 {
     padding-inline: calc(var(--spacing) * 2) !important;
   }
+  .\!px-2\.5 {
+    padding-inline: calc(var(--spacing) * 2.5) !important;
+  }
   .\!px-6 {
     padding-inline: calc(var(--spacing) * 6) !important;
   }
@@ -1154,6 +1160,9 @@
   }
   .\!py-1 {
     padding-block: var(--spacing) !important;
+  }
+  .\!py-1\.5 {
+    padding-block: calc(var(--spacing) * 1.5) !important;
   }
   .\!py-3 {
     padding-block: calc(var(--spacing) * 3) !important;

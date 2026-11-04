@@ -42,7 +42,7 @@ export function ComplaintHandleModal({
 
   async function handleConfirm() {
     if (action === 'rejected' && !note.trim()) {
-      alert('Catatan alasan wajib diisi saat menolak');
+      await (window.alert as any)('Catatan alasan wajib diisi saat menolak');
       return;
     }
     setLoading(true);
@@ -51,7 +51,7 @@ export function ComplaintHandleModal({
       setNote('');
       onClose();
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Terjadi kesalahan');
+      await (window.alert as any)(e instanceof Error ? e.message : 'Terjadi kesalahan');
     } finally {
       setLoading(false);
     }

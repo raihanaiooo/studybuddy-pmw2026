@@ -208,14 +208,14 @@ export function OrderListPage() {
                       </select>
                     </td>
                     <td className="text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-1.5">
+                      <div className="flex items-center justify-end gap-2">
                         <a
                           href={`https://wa.me/${o.whatsapp
                             .replace(/\D/g, '')
                             .replace(/^0/, '62')}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="btn !py-1 !px-2 text-[#166534] hover:bg-[#DCFCE7] border-transparent shadow-none"
+                          className="btn !py-1.5 !px-2.5 text-[#166534] hover:bg-[#DCFCE7] border-transparent shadow-none"
                           title="Chat WA"
                         >
                           <MessageCircle size={16} />
@@ -226,7 +226,7 @@ export function OrderListPage() {
                             setEditData(o);
                             setIsModalOpen(true);
                           }}
-                          className="btn !py-1 !px-2 text-[var(--blue)] hover:bg-[var(--hov)] border-transparent shadow-none"
+                          className="btn !py-1.5 !px-2.5 text-[var(--blue)] hover:bg-[var(--hov)] border-transparent shadow-none"
                           title="Edit"
                         >
                           <Pencil size={16} />
@@ -234,7 +234,7 @@ export function OrderListPage() {
                         <button
                           type="button"
                           onClick={() => handleDelete(o.id)}
-                          className="btn !py-1 !px-2 text-[#991B1B] hover:bg-[#FEE2E2] border-transparent shadow-none"
+                          className="btn !py-1.5 !px-2.5 text-[#991B1B] hover:bg-[#FEE2E2] border-transparent shadow-none"
                           title="Hapus"
                         >
                           <Trash2 size={16} />

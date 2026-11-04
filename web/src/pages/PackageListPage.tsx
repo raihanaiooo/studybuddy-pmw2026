@@ -64,10 +64,13 @@ export function PackageListPage() {
   }
 
   async function handleToggleActive(pkg: Package) {
-    // Perbaikan: Kurung kurawal yang tadinya menutup fungsi terlalu cepat sudah dihapus
     if (!(await (window.confirm as any)(`Yakin ${pkg.is_active ? 'nonaktifkan' : 'aktifkan'} "${pkg.package_name}"?`))) return;
 
-    await toggleActive(pkg.id, !pkg.is_active);
+    try {
+      await toggleActive(pkg.id, !pkg.is_active);
+    } catch (err: any) {
+      await (window.alert as any)('Gagal mengubah status paket: ' + (err?.message ?? err));
+    }
   }
 
   const formatRupiah = (n: number) => `Rp${n.toLocaleString('id-ID')}`;

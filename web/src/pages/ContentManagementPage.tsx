@@ -61,8 +61,13 @@ export function ContentManagementPage() {
 
   const handleDelete = async (id: string) => {
     if (await (window.confirm as any)('Yakin mau hapus data ini?')) {
-      await supabase.from(activeTab).delete().eq('id', id);
-      fetchData();
+      try {
+        const { error } = await supabase.from(activeTab).delete().eq('id', id);
+        if (error) throw error;
+        fetchData();
+      } catch (err: any) {
+        await (window.alert as any)('Gagal menghapus data: ' + (err?.message ?? err));
+      }
     }
   };
 
@@ -160,10 +165,10 @@ export function ContentManagementPage() {
                     <p className="mt-3 text-[var(--mute)] text-sm leading-relaxed line-clamp-3">“{item.content}”</p>
                   )}
                   <div className="mt-auto pt-4 border-t border-[var(--line)] flex gap-2">
-                    <button onClick={() => handleEdit(item)} className="btn !py-1 text-[var(--blue)] border-none bg-blue-50 hover:bg-blue-100">
+                    <button onClick={() => handleEdit(item)} className="btn !py-1.5 text-[var(--blue)] border-none bg-blue-50 hover:bg-blue-100">
                       <Pencil size={14} /> Edit
                     </button>
-                    <button onClick={() => handleDelete(item.id)} className="btn !py-1 text-red-600 border-none bg-red-50 hover:bg-red-100">
+                    <button onClick={() => handleDelete(item.id)} className="btn !py-1.5 text-red-600 border-none bg-red-50 hover:bg-red-100">
                       <Trash2 size={14} /> Hapus
                     </button>
                   </div>

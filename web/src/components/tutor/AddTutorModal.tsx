@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { X, Save, Loader2 } from 'lucide-react';
-import { supabaseAdmin } from '../../lib/supabase';
 
 interface Props {
   isOpen: boolean;
@@ -46,48 +45,29 @@ export function AddTutorModal({ isOpen, onClose, onSuccess }: Props) {
   setSaving(true);
 
   try {
-    // 1. Buat user di sistem Auth Supabase
-    const { error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email: form.email,
-      password: 'PasswordSementara123!',
-      email_confirm: true,
-      user_metadata: { full_name: form.full_name, role: 'tutor' }
-    });
-
-    if (authError) throw new Error('Gagal membuat akun: ' + authError.message);
-
-    // 2. Ambil ID user dari tabel public.users berdasarkan email
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', form.email)
-      .single();
-
-    if (userError || !userData) {
-      throw new Error('User berhasil dibuat di Auth, tapi gagal mengambil data dari tabel users. Pastikan trigger sinkronisasi email berjalan.');
-    }
-
-    // 3. Insert ke tabel `tutors`
-    const { error: tutorError } = await supabase
-      .from('tutors')
-      .insert({
-        user_id: userData.id,
+    // Kredensial admin kini diproses di Edge Function (service role TIDAK ADA di browser)
+    const { data: result, error: fnError } = await supabase.functions.invoke('create-tutor', {
+      body: {
+        email: form.email,
         full_name: form.full_name,
+        phone: form.phone,
         university: form.university,
         bio: form.bio,
         price_per_hour: Number(form.price_per_hour),
         subjects: form.subjects,
         jenjang_diajar: form.jenjang_diajar,
-        verification_status: 'verified',
-        account_status: 'active',
-        is_featured: false,
-      });
+      },
+    });
 
-    if (tutorError) throw new Error('Gagal membuat profil tutor: ' + tutorError.message);
+    if (fnError) {
+      throw new Error('Gagal membuat tutor: ' + fnError.message);
+    }
+    if (result && !result.ok) {
+      throw new Error('Gagal membuat tutor: ' + (result.error ?? 'void'));
+    }
 
-    // TAHAN DULU DI SINI SAMPAI DIKLIK OK
-    await (window.alert as any)('Tutor berhasil ditambahkan!');
-    // BARU JALANIN INI SETELAH DIKLIK OK
+    // Toast tidak memblokir; langsung lanjut ke onSuccess
+    (window as any).showToast('Tutor berhasil ditambahkan!', 'success');
     onSuccess();
     onClose();
 

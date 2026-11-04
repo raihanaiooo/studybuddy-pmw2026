@@ -19,12 +19,13 @@ export function GeneratePayrollModal({ isOpen, onClose, onConfirm }: Props) {
     setLoading(true);
     try {
       const result = await onConfirm(month, year);
-      alert(
-        `Berhasil generate payroll!\n\nDibuat: ${result.created}\nDilewati: ${result.skipped}`
+      (window as any).showToast(
+        `Berhasil generate payroll! Dibuat: ${result.created}, Dilewati: ${result.skipped}`,
+        'success'
       );
       onClose();
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Terjadi kesalahan');
+      await (window.alert as any)(e instanceof Error ? e.message : 'Terjadi kesalahan');
     } finally {
       setLoading(false);
     }

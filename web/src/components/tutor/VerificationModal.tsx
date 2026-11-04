@@ -27,7 +27,7 @@ export function VerificationModal({
 
   async function handleConfirm() {
     if (!isApprove && !note.trim()) {
-      alert('Catatan alasan wajib diisi saat menolak');
+      await (window.alert as any)('Catatan alasan wajib diisi saat menolak');
       return;
     }
     setLoading(true);
@@ -36,7 +36,7 @@ export function VerificationModal({
       setNote('');
       onClose();
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Terjadi kesalahan');
+      await (window.alert as any)(e instanceof Error ? e.message : 'Terjadi kesalahan');
     } finally {
       setLoading(false);
     }

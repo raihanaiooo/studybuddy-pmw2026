@@ -45,9 +45,9 @@ export function OprecForm({ initialData, onSave }: { initialData: any; onSave: (
       .eq('id', form.id);
 
     setSaving(false);
-    if (error) alert(error.message);
+    if (error) await (window.alert as any)(error.message);
     else {
-      alert('Berhasil disimpan!');
+      (window as any).showToast('Data berhasil disimpan', 'success');
       onSave();
     }
   };
@@ -66,7 +66,7 @@ export function OprecForm({ initialData, onSave }: { initialData: any; onSave: (
         <textarea name="description" rows={3} value={form.description || ''} onChange={handleChange} className="inp" />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-semibold mb-1">Teks Tombol (CTA)</label>
           <input name="cta_label" value={form.cta_label || ''} onChange={handleChange} className="inp" placeholder="Daftar jadi tutor" />

@@ -25,7 +25,7 @@ export function HeroForm({ initialData, onSave }: { initialData: any; onSave: ()
     // Pastikan bucket 'public-assets' udah ada
     const { error } = await supabase.storage.from('public-assets').upload(fileName, file);
     if (error) {
-      alert('Gagal upload: ' + error.message);
+      await (window.alert as any)('Gagal upload: ' + error.message);
     } else {
       const { data } = supabase.storage.from('public-assets').getPublicUrl(fileName);
       setForm({ ...form, hero_image_url: data.publicUrl });
@@ -49,9 +49,9 @@ export function HeroForm({ initialData, onSave }: { initialData: any; onSave: ()
       .eq('id', form.id);
 
     setSaving(false);
-    if (error) alert(error.message);
+    if (error) await (window.alert as any)(error.message);
     else {
-      alert('Berhasil disimpan!');
+      (window as any).showToast('Data berhasil disimpan', 'success');
       onSave();
     }
   };
@@ -81,7 +81,7 @@ export function HeroForm({ initialData, onSave }: { initialData: any; onSave: ()
           </label>
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-semibold mb-1">Teks Stiker Kiri</label>
           <input name="sticker_1_text" value={form.sticker_1_text || ''} onChange={handleChange} className="inp" />
