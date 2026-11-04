@@ -46,7 +46,7 @@ export function OrderListPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Yakin mau hapus orderan ini?')) {
+    if (await (window.confirm as any)('Yakin mau hapus orderan ini?')) {
       await supabase.from('manual_orders').delete().eq('id', id);
       fetchOrders();
     }

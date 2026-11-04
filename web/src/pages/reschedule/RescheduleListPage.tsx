@@ -13,12 +13,12 @@ import {
   AlertCircle,
   X,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { useReschedules } from '../hooks/useReschedules';
-import { RescheduleCard } from '../components/reschedule/RescheduleCard';
-import { StatCard } from '../components/ui/StatCard';
-import { fetchRescheduleStats } from '../lib/api/reschedules';
-import type { RescheduleStatus, RescheduleStats } from '../types/reschedule';
+import { supabase } from '../../lib/supabase';
+import { useReschedules } from '../../hooks/useReschedules';
+import { RescheduleCard } from '../../components/reschedule/RescheduleCard';
+import { StatCard } from '../../components/ui/StatCard';
+import { fetchRescheduleStats } from '../../lib/api/reschedules';
+import type { RescheduleStatus, RescheduleStats } from '../../types/reschedule';
 
 type FilterStatus = RescheduleStatus | 'all';
 type ViewMode = 'grid' | 'table';
@@ -78,7 +78,7 @@ export function RescheduleListPage() {
   ) {
     let note: string | null = null;
     if (status === 'ditolak') {
-      const input = prompt('Masukkan alasan penolakan reschedule:');
+    const input = await (window.prompt as any)('Masukkan alasan penolakan reschedule:');
       if (input === null) return;
       note = input.trim() || null;
     }

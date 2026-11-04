@@ -9,10 +9,10 @@ import {
   GraduationCap,
   User as UserIcon,
 } from 'lucide-react';
-import { useTutorDetail } from '../hooks/useTutorDetail';
-import { VerificationBadge } from '../components/tutor/VerificationBadge';
-import { DocumentPreview } from '../components/tutor/DocumentPreview';
-import { VerificationModal } from '../components/tutor/VerificationModal';
+import { useTutorDetail } from '../../hooks/useTutorDetail';
+import { VerificationBadge } from '../../components/tutor/VerificationBadge';
+import { DocumentPreview } from '../../components/tutor/DocumentPreview';
+import { VerificationModal } from '../../components/tutor/VerificationModal';
 
 export function TutorDetailPage() {
   const { id } = useParams<{ id: string }>();

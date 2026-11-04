@@ -11,14 +11,14 @@ import {
   LayoutGrid,
   List,
 } from 'lucide-react';
-import { usePayrolls } from '../hooks/usePayrolls';
-import { PayrollCard } from '../components/payroll/PayrollCard';
-import { PayrollStatusBadge } from '../components/payroll/PayrollStatusBadge';
-import { GeneratePayrollModal } from '../components/payroll/GeneratePayrollModal';
-import { StatCard } from '../components/ui/StatCard';
-import { fetchPayrollStats, exportPayrollsToCSV } from '../lib/api/payroll';
-import { formatPeriod } from '../types/payroll';
-import type { PayrollStatus, PayrollStats } from '../types/payroll';
+import { usePayrolls } from '../../hooks/usePayrolls';
+import { PayrollCard } from '../../components/payroll/PayrollCard';
+import { PayrollStatusBadge } from '../../components/payroll/PayrollStatusBadge';
+import { GeneratePayrollModal } from '../../components/payroll/GeneratePayrollModal';
+import { StatCard } from '../../components/ui/StatCard';
+import { fetchPayrollStats, exportPayrollsToCSV } from '../../lib/api/payroll';
+import { formatPeriod } from '../../types/payroll';
+import type { PayrollStatus, PayrollStats } from '../../types/payroll';
 
 type FilterStatus = PayrollStatus | 'all';
 type ViewMode = 'grid' | 'table';

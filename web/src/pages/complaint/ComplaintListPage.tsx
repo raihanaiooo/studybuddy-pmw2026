@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useComplaints } from '../hooks/useComplaints';
-import { ComplaintCard } from '../components/complaint/ComplaintCard';
-import { StatCard } from '../components/ui/StatCard';
-import { fetchComplaintStats } from '../lib/api/complaints';
-import type { ComplaintStatus, ComplaintStats } from '../types/complaint';
+import { useComplaints } from '../../hooks/useComplaints';
+import { ComplaintCard } from '../../components/complaint/ComplaintCard';
+import { StatCard } from '../../components/ui/StatCard';
+import { fetchComplaintStats } from '../../lib/api/complaints';
+import type { ComplaintStatus, ComplaintStats } from '../../types/complaint';
 import { MessageSquare, Clock, Search as SearchIcon, CheckCircle, XCircle } from 'lucide-react';
 
 type FilterStatus = ComplaintStatus | 'all';

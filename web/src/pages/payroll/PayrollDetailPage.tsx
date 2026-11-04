@@ -8,9 +8,9 @@ import {
   AlertCircle,
   Loader2,
 } from 'lucide-react';
-import { usePayrollDetail } from '../hooks/usePayrollDetail';
-import { PayrollStatusBadge } from '../components/payroll/PayrollStatusBadge';
-import { formatPeriod } from '../types/payroll';
+import { usePayrollDetail } from '../../hooks/usePayrollDetail';
+import { PayrollStatusBadge } from '../../components/payroll/PayrollStatusBadge';
+import { formatPeriod } from '../../types/payroll';
 
 function formatRupiah(n: number) {
   return `Rp${n.toLocaleString('id-ID')}`;

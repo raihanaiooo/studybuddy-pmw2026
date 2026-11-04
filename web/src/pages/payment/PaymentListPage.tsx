@@ -9,11 +9,11 @@ import {
   List,
   Receipt,
 } from 'lucide-react';
-import { usePayments } from '../hooks/usePayments';
-import { PaymentCard } from '../components/payment/PaymentCard';
-import { StatCard } from '../components/ui/StatCard';
-import { fetchPaymentStats } from '../lib/api/payment';
-import type { PaymentStatus, PaymentStats } from '../types/payment';
+import { usePayments } from '../../hooks/usePayments';
+import { PaymentCard } from '../../components/payment/PaymentCard';
+import { StatCard } from '../../components/ui/StatCard';
+import { fetchPaymentStats } from '../../lib/api/payment';
+import type { PaymentStatus, PaymentStats } from '../../types/payment';
 
 type FilterStatus = PaymentStatus | 'all';
 type ViewMode = 'grid' | 'table';

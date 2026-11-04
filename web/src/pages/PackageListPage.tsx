@@ -64,13 +64,9 @@ export function PackageListPage() {
   }
 
   async function handleToggleActive(pkg: Package) {
-    if (
-      !confirm(
-        `Yakin ${pkg.is_active ? 'nonaktifkan' : 'aktifkan'} "${pkg.package_name}"?`
-      )
-    ) {
-      return;
-    }
+    // Perbaikan: Kurung kurawal yang tadinya menutup fungsi terlalu cepat sudah dihapus
+    if (!(await (window.confirm as any)(`Yakin ${pkg.is_active ? 'nonaktifkan' : 'aktifkan'} "${pkg.package_name}"?`))) return;
+
     await toggleActive(pkg.id, !pkg.is_active);
   }
 
@@ -191,8 +187,8 @@ export function PackageListPage() {
       <PackageFormModal
         isOpen={modalOpen}
         editing={editing}
-        onClose={() => setModalOpen(false)}
         onSubmit={handleSubmit}
+        onClose={() => setModalOpen(false)}
       />
     </div>
   );

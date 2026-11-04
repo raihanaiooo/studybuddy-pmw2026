@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../../lib/supabase';
 import { ArrowLeft, CreditCard, Calendar, User, Hash } from 'lucide-react';
 
 export function PaymentDetailPage() {

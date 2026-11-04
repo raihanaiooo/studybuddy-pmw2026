@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Search,
@@ -10,11 +10,14 @@ import {
   Users,
   Loader2,
   AlertCircle,
+  Star,
+  Plus
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { useTutors } from '../hooks/useTutors';
-import { TutorCard } from '../components/tutor/TutorCard';
-import type { VerificationStatus } from '../types/tutor';
+import { supabase } from '../../lib/supabase';
+import { useTutors } from '../../hooks/useTutors';
+import { TutorCard } from '../../components/tutor/TutorCard';
+import type { VerificationStatus } from '../../types/tutor';
+import { AddTutorModal } from '../../components/tutor/AddTutorModal';
 
 type FilterStatus = VerificationStatus | 'all';
 type ViewMode = 'grid' | 'table';
@@ -54,18 +57,12 @@ export function TutorListPage() {
     setSearch,
     loading,
     error,
+    reload // <--- Ambil reload dari hook
   } = useTutors();
 
   const [viewMode, setViewMode] = useState<ViewMode>('table');
   const [loadingId, setLoadingId] = useState<string | null>(null);
-  const [refetchKey, setRefetchKey] = useState(0);
-
-  // Trigger refetch di hook (kalau hook-nya reaktif ke dependency).
-  // Kalau useTutors tidak punya refetch, kita reload manual via window
-  // — tapi lebih baik hook expose refetch. Lihat catatan di bawah.
-  useEffect(() => {
-    // noop — placeholder agar refetchKey dipakai
-  }, [refetchKey]);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   async function updateVerification(
     id: string,
@@ -73,10 +70,10 @@ export function TutorListPage() {
   ) {
     let note: string | null = null;
     if (status === 'rejected') {
-      const input = prompt('Masukkan alasan penolakan (wajib):');
+      const input = await (window.prompt as any)('Masukkan alasan penolakan (wajib):');
       if (input === null) return;
       if (input.trim() === '') {
-        alert('Alasan penolakan tidak boleh kosong!');
+        await (window.alert as any)('Alasan penolakan tidak boleh kosong!');
         return;
       }
       note = input.trim();
@@ -87,36 +84,55 @@ export function TutorListPage() {
       .from('tutors')
       .update({ verification_status: status, verification_note: note })
       .eq('id', id);
-    setLoadingId(null);
 
     if (updErr) {
-      alert(updErr.message);
-      return;
+      await (window.alert as any)(updErr.message);
+    } else {
+      // Panggil reload biar tabel update
+      reload();
     }
-    setRefetchKey((k) => k + 1);
+    setLoadingId(null);
   }
 
-  // Filter tambahan by universitas (fitur lama) — karena hook kemungkinan
-  // hanya filter by nama. Kalau hook sudah handle, blok ini aman dihapus.
-  const filteredTutors = tutors.filter((t: any) => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return (
-      t.full_name?.toLowerCase().includes(q) ||
-      t.university?.toLowerCase().includes(q)
-    );
-  });
+  // Fungsi Toggle Featured untuk Landing Page
+  async function toggleFeatured(id: string, currentStatus: boolean) {
+    setLoadingId(id);
+    const { error } = await supabase
+      .from('tutors')
+      .update({ is_featured: !currentStatus })
+      .eq('id', id);
+
+    if (error) {
+      await (window.alert as any)(error.message);
+    } else {
+      // Panggil reload biar tabel update
+      reload();
+    }
+    setLoadingId(null);
+  }
+
+  // Karena hook useTutors udah nge-handle filter status & search,
+  // kita nggak perlu filter manual lagi di sini.
+  // Langsung pakai `tutors` aja.
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-extrabold text-[var(--ink)]">
-          Verifikasi Tutor
-        </h1>
-        <p className="text-sm text-[var(--mute)] mt-1">
-          Tinjau dokumen & verifikasi Tutor baru
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-extrabold text-[var(--ink)]">
+            Verifikasi Tutor
+          </h1>
+          <p className="text-sm text-[var(--mute)] mt-1">
+            Tinjau dokumen, verifikasi, & pilih tutor untuk tampil di Landing Page
+          </p>
+        </div>
+        <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="btn btn-p shrink-0"
+        >
+          <Plus size={18} /> Tambah Tutor Manual
+        </button>
       </div>
 
       {/* Filters + view toggle */}
@@ -192,7 +208,7 @@ export function TutorListPage() {
       )}
 
       {/* Empty */}
-      {!loading && !error && filteredTutors.length === 0 && (
+      {!loading && !error && tutors.length === 0 && (
         <div className="card p-12 text-center">
           <Users size={48} className="mx-auto text-[var(--mute)] mb-3" />
           <p className="font-bold text-[var(--ink)]">Tidak ada Tutor</p>
@@ -204,22 +220,22 @@ export function TutorListPage() {
         </div>
       )}
 
-      {/* Grid view (baru) */}
+      {/* Grid view */}
       {!loading &&
         !error &&
-        filteredTutors.length > 0 &&
+        tutors.length > 0 &&
         viewMode === 'grid' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {filteredTutors.map((tutor) => (
+            {tutors.map((tutor) => (
               <TutorCard key={tutor.id} tutor={tutor} />
             ))}
           </div>
         )}
 
-      {/* Table view (lama, styling baru) */}
+      {/* Table view */}
       {!loading &&
         !error &&
-        filteredTutors.length > 0 &&
+        tutors.length > 0 &&
         viewMode === 'table' && (
           <div className="card overflow-hidden">
             <div className="overflow-x-auto">
@@ -233,7 +249,7 @@ export function TutorListPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTutors.map((t: any) => (
+                  {tutors.map((t: any) => (
                     <tr key={t.id}>
                       <td>
                         <div className="flex items-center gap-3">
@@ -251,6 +267,26 @@ export function TutorListPage() {
                       <td>{renderBadge(t.verification_status)}</td>
                       <td className="text-right">
                         <div className="flex justify-end gap-2 items-center">
+
+                          {/* TOMBOL FEATURED (BINTANG) */}
+                          <button
+                            type="button"
+                            onClick={() => toggleFeatured(t.id, t.is_featured)}
+                            disabled={loadingId === t.id}
+                            className={`btn !py-1 !px-2 border-transparent disabled:opacity-50 ${
+                              t.is_featured
+                                ? 'text-[var(--blue)] bg-[var(--hov)]'
+                                : 'text-[var(--mute)] hover:bg-[var(--soft)]'
+                            }`}
+                            title={t.is_featured ? 'Hapus dari Landing Page' : 'Tampilkan di Landing Page'}
+                          >
+                            {loadingId === t.id ? (
+                               <Loader2 size={16} className="animate-spin" />
+                            ) : (
+                               <Star size={16} className={t.is_featured ? 'fill-[var(--blue)]' : ''} />
+                            )}
+                          </button>
+
                           <button
                             type="button"
                             onClick={() => navigate(`/tutors/${t.id}`)}
@@ -303,6 +339,14 @@ export function TutorListPage() {
             </div>
           </div>
         )}
+
+        <AddTutorModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onSuccess={() => {
+            reload(); // <--- Panggil reload dari hook, bukan window.location.reload()
+          }}
+        />
     </div>
   );
 }

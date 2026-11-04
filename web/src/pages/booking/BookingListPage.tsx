@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useBookings } from '../hooks/useBookings';
-import { BookingCard } from '../components/booking/BookingCard';
-import { StatCard } from '../components/ui/StatCard';
-import { fetchBookingStats } from '../lib/api/bookings';
-import type { BookingStatus, BookingStats } from '../types/booking';
+import { useBookings } from '../../hooks/useBookings';
+import { BookingCard } from '../../components/booking/BookingCard';
+import { StatCard } from '../../components/ui/StatCard';
+import { fetchBookingStats } from '../../lib/api/bookings';
+import type { BookingStatus, BookingStats } from '../../types/booking';
 import { Calendar, Clock, CheckCircle, XCircle, PlayCircle } from 'lucide-react';
 
 type FilterStatus = BookingStatus | 'all';

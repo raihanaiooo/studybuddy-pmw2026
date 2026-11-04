@@ -2,22 +2,22 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
-  Search,
   CheckCircle2,
   XCircle,
   AlertCircle,
-  MessageSquare,
-  CalendarDays,
-  ExternalLink,
+  CalendarClock,
+  CalendarPlus,
   Info,
+  CalendarDays,
+  MessageSquare,
   StickyNote,
+  ExternalLink,
 } from 'lucide-react';
-import { useComplaintDetail } from '../hooks/useComplaintDetail';
-import { ComplaintStatusBadge } from '../components/complaint/ComplaintStatusBadge';
-import { ComplaintHandleModal } from '../components/complaint/ComplaintHandleModal';
-import { CATEGORY_LABELS } from '../types/complaint';
+import { useRescheduleDetail } from '../../hooks/useRescheduleDetail';
+import { RescheduleStatusBadge } from '../../components/reschedule/RescheduleStatusBadge';
+import { RescheduleActionModal } from '../../components/reschedule/RescheduleActionModal';
 
-type ActionType = 'in_review' | 'resolved' | 'rejected';
+type ActionType = 'approve' | 'reject';
 
 function formatDateTime(iso: string) {
   const d = new Date(iso);
@@ -31,15 +31,16 @@ function formatDateTime(iso: string) {
   });
 }
 
-export function ComplaintDetailPage() {
+export function RescheduleDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { complaint, loading, updating, error, update } =
-    useComplaintDetail(id);
+  const { reschedule, loading, updating, error, approve, reject } =
+    useRescheduleDetail(id);
   const [modal, setModal] = useState<ActionType | null>(null);
 
   async function handleAction(note: string) {
     if (!modal) return;
-    await update(modal, note);
+    if (modal === 'approve') await approve(note);
+    else await reject(note);
   }
 
   if (loading) {
@@ -50,14 +51,14 @@ export function ComplaintDetailPage() {
     );
   }
 
-  if (error || !complaint) {
+  if (error || !reschedule) {
     return (
       <div className="card p-8 text-center">
         <AlertCircle size={40} className="mx-auto text-[#991B1B] mb-3" />
         <p className="text-[#991B1B] mb-4">
-          {error ?? 'Komplain tidak ditemukan'}
+          {error ?? 'Reschedule tidak ditemukan'}
         </p>
-        <Link to="/complaints" className="btn btn-p inline-flex">
+        <Link to="/reschedules" className="btn btn-p inline-flex">
           <ArrowLeft size={16} />
           Kembali
         </Link>
@@ -65,60 +66,46 @@ export function ComplaintDetailPage() {
     );
   }
 
-  const canAction =
-    complaint.status === 'pending' || complaint.status === 'in_review';
-
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
         <Link
-          to="/complaints"
+          to="/reschedules"
           className="text-sm text-[var(--blue)] hover:underline font-semibold inline-flex items-center gap-1 mb-3"
         >
           <ArrowLeft size={16} />
-          Kembali ke daftar Komplain
+          Kembali ke daftar Reschedule
         </Link>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-extrabold text-[var(--ink)]">
-              Detail Komplain
+              Detail Reschedule
             </h1>
             <p className="text-sm text-[var(--mute)] mt-1 font-mono">
-              ID: {complaint.id}
+              ID: {reschedule.id}
             </p>
           </div>
-          <ComplaintStatusBadge status={complaint.status} />
+          <RescheduleStatusBadge status={reschedule.status} />
         </div>
       </div>
 
       {/* Action buttons */}
-      {canAction && (
+      {reschedule.status === 'menunggu_admin' && (
         <div className="card p-5 flex flex-wrap gap-3">
-          {complaint.status === 'pending' && (
-            <button
-              type="button"
-              onClick={() => setModal('in_review')}
-              disabled={updating}
-              className="btn btn-p flex-1 min-w-[140px] justify-center disabled:opacity-50"
-            >
-              <Search size={18} />
-              Tandai Ditinjau
-            </button>
-          )}
           <button
             type="button"
-            onClick={() => setModal('resolved')}
+            onClick={() => setModal('approve')}
             disabled={updating}
             className="btn flex-1 min-w-[140px] justify-center text-white disabled:opacity-50"
             style={{ background: '#00C853', borderColor: '#00C853' }}
           >
             <CheckCircle2 size={18} />
-            Selesaikan
+            Setujui
           </button>
           <button
             type="button"
-            onClick={() => setModal('rejected')}
+            onClick={() => setModal('reject')}
             disabled={updating}
             className="btn flex-1 min-w-[140px] justify-center text-white disabled:opacity-50"
             style={{ background: '#E53935', borderColor: '#E53935' }}
@@ -129,72 +116,86 @@ export function ComplaintDetailPage() {
         </div>
       )}
 
-      {/* Info grid */}
+      {/* Schedule comparison */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Info Komplain */}
+        <div className="card p-5">
+          <h2 className="font-bold text-[var(--ink)] mb-2 flex items-center gap-2">
+            <CalendarClock size={18} className="text-[var(--mute)]" />
+            Jadwal Lama
+          </h2>
+          <p className="text-sm text-[var(--ink)]">
+            {formatDateTime(reschedule.original_session_time)}
+          </p>
+        </div>
+        <div className="rounded-xl p-5 text-white bg-gradient-to-br from-[var(--blue)] to-[#6BB5FF]">
+          <h2 className="font-bold mb-2 flex items-center gap-2">
+            <CalendarPlus size={18} />
+            Jadwal Baru
+          </h2>
+          <p className="text-sm">
+            {formatDateTime(reschedule.new_session_time)}
+          </p>
+        </div>
+      </div>
+
+      {/* Info */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="card p-5">
           <h2 className="font-bold text-[var(--ink)] mb-3 flex items-center gap-2">
             <Info size={18} className="text-[var(--blue)]" />
-            Informasi Komplain
+            Informasi Pengajuan
           </h2>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between gap-3">
-              <span className="text-[var(--mute)]">Kategori</span>
+              <span className="text-[var(--mute)]">Pengaju</span>
               <span className="text-[var(--ink)] font-semibold text-right">
-                {CATEGORY_LABELS[complaint.category]}
-              </span>
-            </div>
-            <div className="flex justify-between gap-3">
-              <span className="text-[var(--mute)]">Pelapor</span>
-              <span className="text-[var(--ink)] font-semibold text-right">
-                {complaint.reporter?.full_name ?? '-'}
+                {reschedule.requester?.full_name ?? '-'}
               </span>
             </div>
             <div className="flex justify-between gap-3">
               <span className="text-[var(--mute)]">Peran</span>
               <span className="text-[var(--ink)] font-semibold capitalize text-right">
-                {complaint.reporter_role}
+                {reschedule.requested_by_role}
               </span>
             </div>
             <div className="flex justify-between gap-3">
-              <span className="text-[var(--mute)]">Dilaporkan</span>
+              <span className="text-[var(--mute)]">Diajukan</span>
               <span className="text-[var(--ink)] font-semibold text-right">
-                {formatDateTime(complaint.created_at)}
+                {formatDateTime(reschedule.created_at)}
               </span>
             </div>
-            {complaint.handled_at && (
+            {reschedule.reviewed_at && (
               <div className="flex justify-between gap-3">
-                <span className="text-[var(--mute)]">Ditangani</span>
+                <span className="text-[var(--mute)]">Ditinjau</span>
                 <span className="text-[var(--ink)] font-semibold text-right">
-                  {formatDateTime(complaint.handled_at)}
+                  {formatDateTime(reschedule.reviewed_at)}
                 </span>
               </div>
             )}
           </div>
         </div>
 
-        {/* Booking Terkait */}
         <div className="card p-5">
           <h2 className="font-bold text-[var(--ink)] mb-3 flex items-center gap-2">
             <CalendarDays size={18} className="text-[var(--blue)]" />
             Booking Terkait
           </h2>
-          {complaint.booking ? (
+          {reschedule.booking ? (
             <div className="space-y-2 text-sm">
               <div className="flex justify-between gap-3">
                 <span className="text-[var(--mute)]">Mapel</span>
                 <span className="text-[var(--ink)] font-semibold text-right">
-                  {complaint.booking.subject}
+                  {reschedule.booking.subject}
                 </span>
               </div>
               <div className="flex justify-between gap-3">
                 <span className="text-[var(--mute)]">Jadwal</span>
                 <span className="text-[var(--ink)] font-semibold text-right">
-                  {formatDateTime(complaint.booking.session_time)}
+                  {formatDateTime(reschedule.booking.session_time)}
                 </span>
               </div>
               <Link
-                to={`/bookings/${complaint.booking.id}`}
+                to={`/bookings/${reschedule.booking.id}`}
                 className="inline-flex items-center gap-1 mt-3 text-sm text-[var(--blue)] hover:underline font-semibold"
               >
                 Lihat Booking
@@ -209,30 +210,30 @@ export function ComplaintDetailPage() {
         </div>
       </div>
 
-      {/* Description */}
+      {/* Reason */}
       <div className="card p-5">
         <h2 className="font-bold text-[var(--ink)] mb-2 flex items-center gap-2">
           <MessageSquare size={18} className="text-[var(--blue)]" />
-          Deskripsi
+          Alasan Reschedule
         </h2>
         <p className="text-sm text-[var(--ink)] whitespace-pre-wrap">
-          {complaint.description}
+          {reschedule.reason}
         </p>
       </div>
 
       {/* Admin Note */}
-      {complaint.admin_note && (
+      {reschedule.admin_note && (
         <div className="bg-[var(--blue)]/10 border border-[var(--blue)]/30 rounded-2xl p-5">
           <h2 className="font-bold text-[var(--blue)] mb-2 flex items-center gap-2">
             <StickyNote size={18} />
             Catatan Admin
           </h2>
           <p className="text-sm text-[var(--ink)] whitespace-pre-wrap">
-            {complaint.admin_note}
+            {reschedule.admin_note}
           </p>
-          {complaint.handler && (
+          {reschedule.reviewer && (
             <p className="text-xs text-[var(--mute)] mt-2">
-              Oleh: {complaint.handler.full_name}
+              Oleh: {reschedule.reviewer.full_name}
             </p>
           )}
         </div>
@@ -240,7 +241,7 @@ export function ComplaintDetailPage() {
 
       {/* Modal */}
       {modal && (
-        <ComplaintHandleModal
+        <RescheduleActionModal
           isOpen={true}
           action={modal}
           onClose={() => setModal(null)}

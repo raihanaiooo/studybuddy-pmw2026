@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
-import { PageHeader } from '../components/ui/PageHeader';
+import { supabase } from '../../lib/supabase';
+import { PageHeader } from '../../components/ui/PageHeader';
 import { ArrowLeft, User, GraduationCap, Calendar, Clock, FileText } from 'lucide-react';
 
 export function BookingDetailPage() {

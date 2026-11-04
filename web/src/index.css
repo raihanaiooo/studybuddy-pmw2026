@@ -10,6 +10,10 @@
   --line: #E5E7EB;
   --soft: #F7F9FF;
   --hov: #EEF3FF;
+
+  --bdark: #1A5EAA;
+  --yel: #F4A200;
+  --white: #FFFFFF;
 }
 
 html, body, #root {
@@ -106,4 +110,31 @@ tbody tr:last-child td { border-bottom: 0; }
 .seg[aria-pressed="true"] {
   background: var(--card); color: var(--ink);
   box-shadow: 0 1px 2px rgba(0,0,0,0.08), 0 0 0 1px var(--line);
+}
+
+/* Tambahan untuk Landing Page */
+@keyframes slide {
+  to { transform: translateX(-50%); }
+}
+@keyframes bob {
+  50% { transform: translateY(-10px) rotate(var(--r, 0deg)); }
+}
+.animate-marquee {
+  display: flex;
+  gap: 1rem;
+  width: max-content;
+  animation: slide 32s linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+.animate-float {
+  animation: bob 5s ease-in-out infinite;
+}
+.lift {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.lift:hover {
+  transform: translateY(-6px) rotate(-0.6deg);
+  box-shadow: 0 18px 0 -8px var(--line), 0 24px 40px -18px rgba(26, 94, 170, 0.35);
 }
