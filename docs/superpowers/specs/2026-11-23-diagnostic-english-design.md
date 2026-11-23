@@ -82,7 +82,7 @@ Hasil tampil tanpa data diri. Nama dan WhatsApp baru diisi saat "Pesan paket ini
 - RLS aktif di semua tabel baru.
 - Pengunjung anonim hanya boleh membaca soal aktif lewat **view** tanpa `correct_index` dan `explanation`. Tabel `diagnostic_questions` sendiri tidak terbuka untuk `anon`.
 - Pengunjung tidak menulis langsung ke `diagnostic_attempts`. Semua lewat fungsi RPC.
-- Admin (role `management`) boleh membaca attempts dan statistik.
+- Admin (`users.role` bernilai `admin` atau `management`) boleh membaca attempts dan statistik. Web admin hanya meloloskan role `admin` (`ProtectedRoute`), sedangkan migration awal mengenal `management`; keduanya diterima. Nilai sebenarnya di database nyata perlu dicek.
 
 ### 6.3 Fungsi RPC `submit_diagnostic_attempt(test_code, client_session_id, answers)`
 
@@ -127,6 +127,13 @@ Aul membagikan bahan UTBK 2026 (soal latihan PU/PM/PK dari pihak lain dan bank s
 - **Paket mana untuk tiap level.** Katalog `packages` di database nyata belum saya lihat. Aul dan Dhimas yang menentukan pemetaan level → paket. Sampai itu terjawab, `diagnostic_rules` diisi data contoh.
 - **Akses Supabase dan `.env`** dari Rifky atau Rai untuk menjalankan migration dan menguji RLS. Tanpa itu, fitur diuji di proyek Supabase lokal/terpisah.
 - **Reviewer soal.** Tutor English mana yang me-review.
+
+## 8b. Catatan implementasi (23 Nov 2026)
+
+- Batas laju: 5 attempt per jam per `client_session_id` (konstanta `c_max_per_hour` di RPC).
+- Ambang level: 4 benar dari 6 per level (`c_threshold` di RPC dan default `diagnostic_level`).
+- Uji SQL dijalankan pada PostgreSQL 17 sementara dengan stub (`supabase/tests/00_stubs.sql`, `run.sh`), bukan Supabase CLI. Perilaku `auth.uid()`, hak default role, dan RLS di Supabase nyata harus diverifikasi ulang setelah migration diterapkan.
+- Logika murni diekstrak ke `web/src/lib/diagnostic/` (`session`, `progress`, `order`, `levels`, `stats`) dan diuji dengan Vitest.
 
 ## 9. Kriteria selesai
 

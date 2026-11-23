@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import { Link } from 'react-router-dom';
 import { Loader2, Star } from 'lucide-react';
 
 const MAPEL_LABELS: Record<string, string> = {
@@ -80,6 +81,16 @@ export function TutorFinder() {
           <p className="md:col-span-4 md:col-start-9 text-[var(--mute)] leading-relaxed self-end">
             Isi tiga hal saja. Study Buddy mencocokkan gaya mengajar, jadwal, dan harga, lalu mengurutkan tutor dari yang paling pas.
           </p>
+        </div>
+
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border-2 border-[var(--line)] bg-[var(--bg)] p-4 md:p-5">
+          <p className="font-bold text-[var(--ink)]">Belum tahu level bahasa Inggrismu?</p>
+          <Link
+            to="/tes-english"
+            className="inline-flex items-center justify-center font-extrabold rounded-2xl py-2 px-5 text-sm bg-[var(--blue)] text-white shadow-[0_4px_0_var(--bdark)] hover:-translate-y-0.5 hover:shadow-[0_6px_0_var(--bdark)] active:translate-y-1 active:shadow-none transition-all"
+          >
+            Cek level English kamu
+          </Link>
         </div>
 
         <div className="rounded-[2rem] border-2 border-[var(--line)] p-5 md:p-8 bg-[var(--bg)]">
