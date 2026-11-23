@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { CheckCircle2, MessageCircle } from 'lucide-react';
 import { parseOrderParams } from '../../lib/diagnostic/order';
+import { buildAdminWaUrl } from '../../lib/whatsapp';
 
 export function OrderForm() {
   const [loading, setLoading] = useState(false);
@@ -38,8 +39,7 @@ export function OrderForm() {
 
   function handleWA() {
     if (!successData) return;
-    const text = `Halo admin, saya ${successData.nama} ingin les ${successData.mapel} jenjang ${successData.jenjang}.`;
-    window.open(`https://wa.me/6281200000000?text=${encodeURIComponent(text)}`, '_blank');
+    window.open(buildAdminWaUrl(successData, Boolean(fromTest.attemptId)), '_blank');
   }
 
   return (
