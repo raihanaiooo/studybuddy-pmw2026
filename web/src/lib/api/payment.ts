@@ -1,6 +1,5 @@
 import { supabase } from '../supabase';
 import type {
-  Payment,
   PaymentWithRelations,
   PaymentStatus,
   PaymentStats,

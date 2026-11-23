@@ -1,6 +1,5 @@
 import { supabase } from '../supabase';
 import type {
-  Booking,
   BookingWithRelations,
   BookingStatus,
   BookingStats,

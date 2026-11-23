@@ -29,14 +29,14 @@ export function GlobalUIManager() {
     }) as any;
 
     window.confirm = (async (message: string) => {
-      setModal({ type: 'confirm', title: 'Konfirmasi', message, onResult: (val) => {} });
+      setModal({ type: 'confirm', title: 'Konfirmasi', message, onResult: () => {} });
       const result = await waitForResult(); // TAHAN DI SINI
       return result;
     }) as any;
 
     window.prompt = (async (message: string, defaultValue?: string) => {
       setInputValue(defaultValue || '');
-      setModal({ type: 'prompt', title: 'Input Data', message, onResult: (val) => {} });
+      setModal({ type: 'prompt', title: 'Input Data', message, onResult: () => {} });
       const result = await waitForResult(); // TAHAN DI SINI
       return result;
     }) as any;
