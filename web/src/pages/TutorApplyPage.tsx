@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { PublicLayout } from '../components/layout/PublicLayout';
 import { fetchLatestOprec, submitTutorApplication } from '../lib/api/tutorApplications';
+import { CAMPUS_SUGGESTIONS } from '../lib/campuses';
+import { DOCUMENT_SLOTS, missingRequiredDocuments, validateDocumentFile } from '../lib/applicationDocuments';
+import type { DocumentType } from '../types/tutor';
 import {
   emptyApplicationForm,
   JENJANG_OPTIONS,
@@ -26,6 +29,8 @@ export function TutorApplyPage() {
   const [form, setForm] = useState<ApplicationForm>(emptyApplicationForm());
   const [errors, setErrors] = useState<ApplicationErrors>({});
   const [submitError, setSubmitError] = useState('');
+  const [files, setFiles] = useState<Partial<Record<DocumentType, File>>>({});
+  const [fileErrors, setFileErrors] = useState<Partial<Record<DocumentType, string>>>({});
   const sending = useRef(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -54,18 +59,35 @@ export function TutorApplyPage() {
     setField(key, form[key].includes(value) ? form[key].filter((v) => v !== value) : [...form[key], value]);
   }
 
+  function pickFile(type: DocumentType, file: File | undefined) {
+    const problem = file ? validateDocumentFile(file) : null;
+    setFileErrors((prev) => ({ ...prev, [type]: problem ?? undefined }));
+    setFiles((prev) => {
+      const next = { ...prev };
+      if (file && !problem) next[type] = file;
+      else delete next[type];
+      return next;
+    });
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (sending.current) return;
     const found = validateApplication(form);
     setErrors(found);
-    if (Object.keys(found).length > 0) return;
+    const missing = missingRequiredDocuments(files);
+    const nextFileErrors: Partial<Record<DocumentType, string>> = { ...fileErrors };
+    for (const slot of DOCUMENT_SLOTS) {
+      if (slot.required && !files[slot.type] && !nextFileErrors[slot.type]) nextFileErrors[slot.type] = `${slot.label} wajib diunggah.`;
+    }
+    setFileErrors(nextFileErrors);
+    if (Object.keys(found).length > 0 || missing.length > 0) return;
 
     sending.current = true;
     setSubmitting(true);
     setSubmitError('');
     try {
-      await submitTutorApplication(form);
+      await submitTutorApplication(form, files);
       setPhase('done');
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Pendaftaran belum bisa dikirim.');
@@ -117,8 +139,7 @@ export function TutorApplyPage() {
             <CheckCircle2 className="mx-auto text-[var(--blue)]" size={48} />
             <h1 className="mt-4 text-3xl font-extrabold text-[var(--ink)]">Pendaftaran terkirim.</h1>
             <p className="mt-3 text-[var(--mute)] leading-relaxed">
-              Terima kasih sudah mendaftar jadi Buddy. Admin akan meninjau datamu dan menghubungi lewat WhatsApp untuk langkah selanjutnya,
-              termasuk dokumen yang perlu disiapkan.
+              Terima kasih sudah mendaftar jadi Buddy. Admin akan memeriksa data dan dokumenmu, lalu menghubungi lewat WhatsApp. Akun Buddy dibuat setelah dokumenmu lolos pemeriksaan.
             </p>
             <Link to="/" className={`${primaryButton} mt-6`}>
               Kembali ke beranda
@@ -131,7 +152,7 @@ export function TutorApplyPage() {
             <div>
               <h1 className="text-3xl md:text-5xl font-extrabold leading-[1.05] text-[var(--ink)]">Daftar jadi Buddy.</h1>
               <p className="mt-4 text-[var(--mute)] leading-relaxed">
-                Isi data singkat di bawah. Belum perlu unggah dokumen: admin akan menghubungimu setelah datamu ditinjau.
+                Isi data di bawah dan unggah dokumenmu. Dokumen hanya dilihat admin Study Buddy untuk verifikasi.
               </p>
             </div>
 
@@ -156,8 +177,13 @@ export function TutorApplyPage() {
               </label>
               <label className="block font-bold text-[var(--ink)]">
                 Kampus
-                <input className={inputClass} value={form.university} onChange={(e) => setField('university', e.target.value)} placeholder="ITB"
+                <input className={inputClass} list="daftar-kampus" value={form.university} onChange={(e) => setField('university', e.target.value)} placeholder="Ketik, lalu pilih atau isi sendiri"
                   aria-invalid={!!errors.university} aria-describedby={errors.university ? 'err-university' : undefined} maxLength={100} />
+                <datalist id="daftar-kampus">
+                  {CAMPUS_SUGGESTIONS.map((c) => (
+                    <option key={c} value={c} />
+                  ))}
+                </datalist>
                 {fieldError('university')}
               </label>
               <div className="grid grid-cols-3 gap-3">
@@ -207,6 +233,29 @@ export function TutorApplyPage() {
                 placeholder="Mis. privat 2 tahun, asisten praktikum, juara olimpiade" />
               {fieldError('experience')}
             </label>
+
+            <fieldset className="grid gap-4">
+              <legend className="font-bold text-[var(--ink)]">Dokumen</legend>
+              <p className="text-sm text-[var(--mute)]">Format JPG, PNG, atau PDF, maksimal 3 MB per berkas.</p>
+              {DOCUMENT_SLOTS.map((slot) => (
+                <label key={slot.type} className="block font-bold text-[var(--ink)]">
+                  {slot.label}{' '}
+                  <span className="font-medium text-[var(--mute)]">{slot.required ? '(wajib)' : '(opsional)'}</span>
+                  <input
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                    onChange={(e) => pickFile(slot.type, e.target.files?.[0])}
+                    aria-invalid={!!fileErrors[slot.type]}
+                    aria-describedby={fileErrors[slot.type] ? `err-${slot.type}` : undefined}
+                    className="mt-2 block w-full text-sm font-semibold text-[var(--ink)] file:mr-3 file:rounded-xl file:border-0 file:bg-[var(--hov)] file:px-4 file:py-2 file:font-bold file:text-[var(--blue)]"
+                  />
+                  {files[slot.type] && <span className="mt-1 block text-sm font-medium text-[var(--mute)]">{files[slot.type]?.name}</span>}
+                  {fileErrors[slot.type] && (
+                    <p id={`err-${slot.type}`} role="alert" className="mt-1 text-sm font-semibold text-red-700">{fileErrors[slot.type]}</p>
+                  )}
+                </label>
+              ))}
+            </fieldset>
 
             {submitError && (
               <p role="alert" className="rounded-2xl border-2 border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">

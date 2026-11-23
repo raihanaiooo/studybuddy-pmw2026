@@ -1,16 +1,19 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Loader2, MessageCircle } from 'lucide-react';
+import { FileText, Loader2, MessageCircle } from 'lucide-react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { AddTutorModal } from '../../components/tutor/AddTutorModal';
 import { useAuth } from '../../hooks/useAuth';
 import { showAlert, showPrompt } from '../../lib/dialogs';
 import {
+  deleteApplicationDocuments,
   fetchApplications,
+  signedDocumentUrl,
   updateApplication,
   type ApplicationStatus,
   type TutorApplication,
 } from '../../lib/api/tutorApplications';
 import { JENJANG_OPTIONS, SUBJECT_OPTIONS } from '../../lib/tutorApplication';
+import { DOCUMENT_SLOTS } from '../../lib/applicationDocuments';
 
 type Filter = ApplicationStatus | 'all';
 
@@ -84,11 +87,29 @@ export function TutorApplicationsPage() {
     setBusyId(app.id);
     try {
       await updateApplication(app.id, 'ditolak', user.id, input.trim());
+      // Pelamar yang ditolak tidak perlu disimpan dokumen pribadinya.
+      try {
+        await deleteApplicationDocuments(app);
+      } catch (e) {
+        await showAlert('Pelamar ditolak, tetapi dokumennya belum terhapus: ' + (e instanceof Error ? e.message : ''));
+      }
       reload();
     } catch (e) {
       await showAlert(e instanceof Error ? e.message : 'Gagal menyimpan.');
     } finally {
       setBusyId(null);
+    }
+  }
+
+  async function openDocument(path: string) {
+    const tab = window.open('', '_blank');
+    try {
+      const url = await signedDocumentUrl(path);
+      if (tab) tab.location.href = url;
+      else window.location.href = url;
+    } catch (e) {
+      tab?.close();
+      await showAlert('Dokumen tidak bisa dibuka: ' + (e instanceof Error ? e.message : ''));
     }
   }
 
@@ -104,7 +125,7 @@ export function TutorApplicationsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Pelamar Tutor" subtitle="Pendaftaran dari landing page. Terima untuk membuat akun tutor, dokumen dilengkapi setelahnya." />
+      <PageHeader title="Pelamar Tutor" subtitle="Pendaftaran dari landing page. Periksa data dan dokumen dulu; akun tutor dibuat setelah pelamar lolos." />
 
       <div className="flex flex-wrap gap-2">
         {TABS.map((t) => (
@@ -163,6 +184,19 @@ export function TutorApplicationsPage() {
                 )}
               </dl>
 
+              {DOCUMENT_SLOTS.some((s) => app.documents?.[s.type]) && (
+                <div className="mt-4">
+                  <p className="text-sm font-semibold text-[var(--mute)]">Dokumen</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {DOCUMENT_SLOTS.filter((s) => app.documents?.[s.type]).map((s) => (
+                      <button key={s.type} type="button" className="btn" onClick={() => openDocument(app.documents[s.type] as string)}>
+                        <FileText size={16} /> {s.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="mt-4 flex flex-wrap items-center gap-2 pt-4 border-t border-[var(--line)]">
                 <p className="text-xs text-[var(--mute)] mr-auto">Masuk {formatDate(app.created_at)}</p>
                 <a
@@ -179,7 +213,7 @@ export function TutorApplicationsPage() {
                       Tolak
                     </button>
                     <button type="button" className="btn btn-p" disabled={busyId === app.id} onClick={() => setAccepting(app)}>
-                      Terima dan buat akun
+                      Verifikasi dan buat akun
                     </button>
                   </>
                 )}
@@ -193,7 +227,8 @@ export function TutorApplicationsPage() {
         <AddTutorModal
           key={accepting.id}
           isOpen
-          verificationStatus="pending"
+          verificationStatus="verified"
+          applicationId={accepting.id}
           initial={{
             full_name: accepting.full_name,
             email: accepting.email,

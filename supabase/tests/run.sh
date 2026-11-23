@@ -13,7 +13,7 @@ DB="diag_test_$$"
 psql -d postgres -q -v ON_ERROR_STOP=1 -c "create database $DB"
 trap 'psql -d postgres -q -c "drop database if exists $DB" >/dev/null' EXIT
 
-ARGS=(-d "$DB" -q -v ON_ERROR_STOP=1 -f 00_stubs.sql)
+ARGS=(-d "$DB" -q -v ON_ERROR_STOP=1 -f 00_stubs.sql -f 00_storage_stub.sql)
 if [[ $WITH_MIGRATION -eq 1 ]]; then ARGS+=(-f ../migration/002_diagnostic.sql -f ../migration/003_diagnostic_utbk.sql); fi
 for f in "$@"; do ARGS+=(-f "$f"); done
 psql "${ARGS[@]}"
