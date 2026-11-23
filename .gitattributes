@@ -1,0 +1,2 @@
+# Skrip shell harus selalu LF; dengan core.autocrlf=true di Windows, CRLF merusak bash.
+*.sh text eol=lf
