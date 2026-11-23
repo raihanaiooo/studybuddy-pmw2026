@@ -21,7 +21,7 @@ alter default privileges in schema public grant execute on functions to anon, au
 
 create table public.users (
   id   uuid primary key,
-  role text not null check (role in ('customer', 'tutor', 'management'))
+  role text not null check (role in ('customer', 'tutor', 'management', 'admin'))
 );
 
 create table public.tutors (

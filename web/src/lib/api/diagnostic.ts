@@ -25,7 +25,7 @@ export async function fetchQuestions(testCode: string): Promise<DiagnosticQuesti
     .eq('test_code', testCode)
     .order('position', { ascending: true });
 
-  if (error) throw error;
+  if (error) throw new Error(error.message);
   return (data ?? []) as DiagnosticQuestion[];
 }
 
@@ -46,6 +46,6 @@ export async function submitAttempt(
 
 export async function fetchDiagnosticStats(): Promise<DiagnosticStats> {
   const { data, error } = await supabase.rpc('diagnostic_stats');
-  if (error) throw error;
+  if (error) throw new Error(error.message);
   return data as DiagnosticStats;
 }

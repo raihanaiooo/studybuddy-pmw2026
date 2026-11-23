@@ -24,6 +24,7 @@ import { ContentManagementPage } from './pages/ContentManagementPage';
 import { LandingPage } from './pages/LandingPage';
 import { LandingPreviewPage } from './pages/LandingPagePreview';
 import { DiagnosticTestPage } from './pages/DiagnosticTestPage';
+import { DiagnosticAdminPage } from './pages/DiagnosticAdminPage';
 import { GlobalUIManager } from './components/ui/GlobalUiManager';
 
 function App() {
@@ -64,6 +65,7 @@ function App() {
           <Route path="/tokens" element={<TokenListPage />} />
           <Route path="/orders" element={<OrderListPage />} />
           <Route path="/content" element={<ContentManagementPage />} />
+          <Route path="/diagnostics" element={<DiagnosticAdminPage />} />
         </Route>
 
         {/* Fallback */}

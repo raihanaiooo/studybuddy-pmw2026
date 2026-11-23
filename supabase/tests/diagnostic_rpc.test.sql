@@ -47,7 +47,8 @@ insert into tutors (id, full_name, subjects, verification_status, is_featured, r
 
 insert into users (id, role) values
   ('00000000-0000-0000-0000-00000000d001', 'management'),
-  ('00000000-0000-0000-0000-00000000d002', 'customer');
+  ('00000000-0000-0000-0000-00000000d002', 'customer'),
+  ('00000000-0000-0000-0000-00000000d003', 'admin');
 
 -- ===== Penilaian, level, kebocoran, hak anon =====
 do $$
@@ -193,6 +194,19 @@ begin
   perform pg_temp.assert_eq('stats recent ada', (jsonb_array_length(s->'recent') > 0)::text, 'true');
   perform pg_temp.assert_eq('stats recent ordered', (select (r->>'ordered') from jsonb_array_elements(s->'recent') r
                               where r->>'id' = (select id::text from diagnostic_attempts where client_session_id = 'sess-b1')), 'true');
+end $$;
+
+-- Web admin memakai role 'admin' (ProtectedRoute), migration awal memakai 'management': keduanya diterima.
+do $$
+declare s jsonb; n int;
+begin
+  perform set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000d003', true);
+  set local role authenticated;
+  s := diagnostic_stats();
+  select count(*) into n from diagnostic_attempts;   -- policy RLS membaca attempts untuk admin
+  reset role;
+  perform pg_temp.assert_eq('stats oleh role admin', s->>'total_attempts', (select count(*)::text from diagnostic_attempts));
+  if n = 0 then raise exception 'GAGAL [RLS admin]: role admin tidak bisa membaca diagnostic_attempts'; end if;
 end $$;
 
 select 'OK: diagnostic_rpc.test.sql (Task 2)' as hasil;

@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, ShoppingCart, GraduationCap, CalendarDays,
-  FileText, Wallet, RefreshCw, AlertTriangle, Package, Ticket, Settings
+  FileText, Wallet, RefreshCw, AlertTriangle, Package, Ticket, Settings, ClipboardCheck
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -15,6 +15,7 @@ const menuItems = [
   { path: '/tutors', label: 'Verifikasi Tutor', icon: <GraduationCap size={18} /> },
   { path: '/bookings', label: 'Bookings', icon: <CalendarDays size={18} /> },
   { path: '/content', label: 'Manajemen Konten', icon: <FileText size={18} /> },
+  { path: '/diagnostics', label: 'Diagnostic English', icon: <ClipboardCheck size={18} /> },
   { path: '/payments', label: 'Transaksi', icon: <Wallet size={18} /> },
   { path: '/reschedules', label: 'Reschedule', icon: <RefreshCw size={18} /> },
   { path: '/complaints', label: 'Komplain', icon: <AlertTriangle size={18} /> },

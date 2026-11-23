@@ -78,11 +78,11 @@ alter table public.diagnostic_attempts  enable row level security;
 revoke all on public.diagnostic_passages, public.diagnostic_questions,
               public.diagnostic_rules, public.diagnostic_attempts from anon, authenticated;
 
--- Admin (users.role = 'management') boleh membaca attempts.
+-- Admin (users.role 'admin' dipakai web admin, 'management' ada di migration 001) boleh membaca attempts.
 grant select on public.diagnostic_attempts to authenticated;
 create policy diagnostic_attempts_admin_read on public.diagnostic_attempts
   for select to authenticated
-  using (exists (select 1 from public.users u where u.id = auth.uid() and u.role = 'management'));
+  using (exists (select 1 from public.users u where u.id = auth.uid() and u.role in ('admin', 'management')));
 
 -- View publik: hanya soal aktif, tanpa correct_index dan explanation.
 -- Berjalan dengan hak pemilik (security_invoker = false) agar bisa membaca tabel yang tertutup.
@@ -194,13 +194,13 @@ end $$;
 revoke all on function public.submit_diagnostic_attempt(text, text, jsonb) from public;
 grant execute on function public.submit_diagnostic_attempt(text, text, jsonb) to anon, authenticated;
 
--- ---------- RPC: diagnostic_stats (hanya management) ----------
+-- ---------- RPC: diagnostic_stats (hanya admin/management) ----------
 create or replace function public.diagnostic_stats() returns jsonb
 language plpgsql security definer
 set search_path = public
 as $$
 begin
-  if not exists (select 1 from users where id = auth.uid() and role = 'management') then
+  if not exists (select 1 from users where id = auth.uid() and role in ('admin', 'management')) then
     raise exception 'forbidden';
   end if;
 
