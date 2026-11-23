@@ -1,11 +1,11 @@
 import { DOCUMENT_LABELS, type DocumentType } from '../types/tutor';
 
 /** Dokumen pelamar: Transkrip dan KTM wajib, dua sertifikat opsional. */
-export const DOCUMENT_SLOTS: ReadonlyArray<{ type: DocumentType; label: string; required: boolean }> = [
-  { type: 'transkrip', label: DOCUMENT_LABELS.transkrip, required: true },
-  { type: 'kartu_identitas_pelajar', label: DOCUMENT_LABELS.kartu_identitas_pelajar, required: true },
-  { type: 'sertifikat_prestasi', label: DOCUMENT_LABELS.sertifikat_prestasi, required: false },
-  { type: 'sertifikat_bahasa', label: DOCUMENT_LABELS.sertifikat_bahasa, required: false },
+export const DOCUMENT_SLOTS: ReadonlyArray<{ type: DocumentType; label: string; required: boolean; hint: string }> = [
+  { type: 'transkrip', label: DOCUMENT_LABELS.transkrip, required: true, hint: 'PDF dari portal akademik atau foto yang jelas. Nama dan IPK harus terbaca.' },
+  { type: 'kartu_identitas_pelajar', label: DOCUMENT_LABELS.kartu_identitas_pelajar, required: true, hint: 'Foto bagian depan KTM. Semua tulisan harus terbaca, tidak terpotong.' },
+  { type: 'sertifikat_prestasi', label: DOCUMENT_LABELS.sertifikat_prestasi, required: false, hint: 'Contoh: juara olimpiade atau lomba karya tulis. Boleh dilewati.' },
+  { type: 'sertifikat_bahasa', label: DOCUMENT_LABELS.sertifikat_bahasa, required: false, hint: 'Contoh: TOEFL, IELTS, atau JLPT. Boleh dilewati.' },
 ];
 
 export const MAX_DOCUMENT_BYTES = 3 * 1024 * 1024;
