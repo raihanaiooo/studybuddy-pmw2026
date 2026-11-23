@@ -139,7 +139,7 @@ revoke all on function public.submit_utbk_attempt(text, jsonb) from public;
 grant execute on function public.submit_utbk_attempt(text, jsonb) to anon, authenticated;
 
 -- ---------- Statistik admin ----------
--- diagnostic_stats() hanya menghitung tes English agar tidak bercampur dengan UTBK.
+-- diagnostic_stats() menghitung semua tes selain UTBK (tes bertingkat CEFR) agar tidak bercampur dengan UTBK.
 create or replace function public.diagnostic_stats() returns jsonb
 language plpgsql security definer
 set search_path = public
@@ -150,22 +150,22 @@ begin
   end if;
 
   return jsonb_build_object(
-    'total_attempts', (select count(*) from diagnostic_attempts where test_code = 'english'),
+    'total_attempts', (select count(*) from diagnostic_attempts where test_code <> 'utbk'),
     'by_level', (select jsonb_build_object(
         'PRE_A1', count(*) filter (where level = 'PRE_A1'),
         'A1',     count(*) filter (where level = 'A1'),
         'A2',     count(*) filter (where level = 'A2'),
         'B1',     count(*) filter (where level = 'B1'),
         'B2',     count(*) filter (where level = 'B2'))
-      from diagnostic_attempts where test_code = 'english'),
+      from diagnostic_attempts where test_code <> 'utbk'),
     'orders_from_tests', (select count(*) from manual_orders o
                            join diagnostic_attempts a on a.id = o.diagnostic_attempt_id
-                          where a.test_code = 'english'),
+                          where a.test_code <> 'utbk'),
     'recent', (select coalesce(jsonb_agg(x order by x_created desc), '[]'::jsonb) from (
         select jsonb_build_object('id', a.id, 'level', a.level, 'score', a.score, 'created_at', a.created_at,
                  'ordered', exists (select 1 from manual_orders o where o.diagnostic_attempt_id = a.id)) as x,
                a.created_at as x_created
-        from diagnostic_attempts a where a.test_code = 'english' order by a.created_at desc limit 20) r)
+        from diagnostic_attempts a where a.test_code <> 'utbk' order by a.created_at desc limit 20) r)
   );
 end $$;
 
