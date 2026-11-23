@@ -163,11 +163,11 @@ begin
   where r.test_code = p_test_code and r.level = v_level;
 
   select coalesce(jsonb_agg(jsonb_build_object('id', t.id, 'full_name', t.full_name,
-                                               'university', t.university, 'avatar_url', t.avatar_url)
+                                               'university', t.university)
                             order by t.is_featured desc nulls last, t.rating desc nulls last, t.full_name), '[]'::jsonb)
     into v_tutors
   from (
-    select id, full_name, university, avatar_url, is_featured, rating
+    select id, full_name, university, is_featured, rating
     from tutors
     where verification_status = 'verified'
       and exists (select 1 from unnest(coalesce(subjects, '{}')) s

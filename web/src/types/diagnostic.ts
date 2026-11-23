@@ -24,7 +24,6 @@ export interface DiagnosticTutor {
   id: string;
   full_name: string;
   university: string | null;
-  avatar_url: string | null;
 }
 
 /** Hasil RPC submit_diagnostic_attempt. */

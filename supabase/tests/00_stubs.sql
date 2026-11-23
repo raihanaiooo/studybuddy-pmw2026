@@ -31,9 +31,8 @@ create table public.tutors (
   verification_status text not null default 'pending',
   is_featured         boolean default false,
   rating              numeric(3,1) default 0,
-  university          text,
-  avatar_url          text
-);
+  university          text
+);  -- sengaja tanpa avatar_url: tabel tutors di Supabase nyata tidak punya kolom itu
 
 create table public.packages (
   id           uuid primary key default gen_random_uuid(),
