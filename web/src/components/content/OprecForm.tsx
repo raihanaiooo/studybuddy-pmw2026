@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Save, Loader2, Plus, X } from 'lucide-react';
 
+const PLACEHOLDER_ID = '00000000-0000-0000-0000-000000000000';
+
 export function OprecForm({ initialData, onSave }: { initialData: any; onSave: () => void }) {
   const [form, setForm] = useState({
     ...initialData,
@@ -31,18 +33,26 @@ export function OprecForm({ initialData, onSave }: { initialData: any; onSave: (
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (form.start_date && form.end_date && form.end_date < form.start_date) {
+      await (window.alert as any)('Tanggal ditutup tidak boleh sebelum tanggal dibuka.');
+      return;
+    }
     setSaving(true);
-    const { error } = await supabase
-      .from('oprec_info')
-      .update({
-        title: form.title,
-        description: form.description,
-        benefits: form.benefits,
-        cta_label: form.cta_label,
-        cta_link: form.cta_link,
-        is_active: form.is_active,
-      })
-      .eq('id', form.id);
+    const values = {
+      title: form.title,
+      description: form.description,
+      benefits: form.benefits,
+      cta_label: form.cta_label,
+      cta_link: form.cta_link,
+      is_active: form.is_active,
+      start_date: form.start_date || null,
+      end_date: form.end_date || null,
+    };
+    // Tabel oprec_info bisa masih kosong: form memakai baris tiruan berid nol, jadi baris pertama dibuat (bukan di-update).
+    const isPlaceholder = form.id === PLACEHOLDER_ID;
+    const { error } = isPlaceholder
+      ? await supabase.from('oprec_info').insert(values)
+      : await supabase.from('oprec_info').update(values).eq('id', form.id);
 
     setSaving(false);
     if (error) await (window.alert as any)(error.message);
@@ -59,6 +69,17 @@ export function OprecForm({ initialData, onSave }: { initialData: any; onSave: (
       <div>
         <label className="block text-sm font-semibold mb-1">Judul Oprec</label>
         <input name="title" value={form.title || ''} onChange={handleChange} className="inp" />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-semibold mb-1">Mulai Dibuka <span className="font-normal text-[var(--mute)]">(opsional)</span></label>
+          <input type="date" name="start_date" value={form.start_date || ''} onChange={handleChange} className="inp" />
+        </div>
+        <div>
+          <label className="block text-sm font-semibold mb-1">Ditutup Pada <span className="font-normal text-[var(--mute)]">(opsional)</span></label>
+          <input type="date" name="end_date" value={form.end_date || ''} onChange={handleChange} className="inp" />
+        </div>
       </div>
 
       <div>

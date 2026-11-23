@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildOrderPath, parseOrderParams, UTBK_SUBJECT } from './order';
+import { buildOrderPath, buildTutorOrderPath, parseOrderParams, UTBK_SUBJECT } from './order';
 import { LEVEL_INFO } from './levels';
 
 const ATTEMPT = '0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d';
@@ -49,5 +49,20 @@ describe('LEVEL_INFO', () => {
       expect(LEVEL_INFO[level].title.length).toBeGreaterThan(3);
       expect(LEVEL_INFO[level].can.length).toBeGreaterThan(15);
     }
+  });
+});
+
+describe('tutor pilihan', () => {
+  it('buildTutorOrderPath membawa nama tutor ke form order', () => {
+    expect(buildTutorOrderPath('Alya Rahma')).toBe('/?tutor=Alya%20Rahma#order');
+  });
+
+  it('parseOrderParams membaca nama tutor dan merapikannya', () => {
+    expect(parseOrderParams('?tutor=%20Alya%20Rahma%20').tutor).toBe('Alya Rahma');
+  });
+
+  it('nama tutor kosong atau terlalu panjang dibuang', () => {
+    expect(parseOrderParams('?tutor=%20%20').tutor).toBeUndefined();
+    expect(parseOrderParams(`?tutor=${'x'.repeat(101)}`).tutor).toBeUndefined();
   });
 });

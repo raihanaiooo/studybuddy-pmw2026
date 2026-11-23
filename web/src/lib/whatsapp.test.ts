@@ -33,4 +33,10 @@ describe('buildAdminWaUrl', () => {
     expect(messageFor('english')).not.toContain('try out UTBK');
     expect(messageFor(null)).not.toContain('try out UTBK');
   });
+
+  it('menyebut tutor pilihan bila ada', () => {
+    const url = buildAdminWaUrl({ nama: 'Rani', mapel: 'Fisika', jenjang: 'SMA', tutor: 'Alya Rahma' }, null);
+    expect(decodeURIComponent(url)).toContain('tutor Alya Rahma');
+    expect(decodeURIComponent(buildAdminWaUrl({ nama: 'Rani', mapel: 'Fisika', jenjang: 'SMA' }, null))).not.toContain('tutor ');
+  });
 });

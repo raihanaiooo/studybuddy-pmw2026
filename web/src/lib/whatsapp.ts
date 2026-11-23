@@ -5,6 +5,7 @@ interface OrderSummary {
   nama: string;
   mapel: string;
   jenjang: string;
+  tutor?: string;
 }
 
 export type TestOrigin = 'english' | 'utbk' | null;
@@ -18,6 +19,7 @@ const ORIGIN_NOTE: Record<'english' | 'utbk', string> = {
 export function buildAdminWaUrl(order: OrderSummary, tes: TestOrigin): string {
   const text =
     `Halo admin Study Buddy, saya ${order.nama} ingin les ${order.mapel} jenjang ${order.jenjang}.` +
+    (order.tutor ? ` Saya tertarik dengan tutor ${order.tutor}.` : '') +
     (tes ? ORIGIN_NOTE[tes] : '') +
     ' Mohon info langkah selanjutnya, ya. Terima kasih!';
   return `https://wa.me/${ADMIN_WA_NUMBER}?text=${encodeURIComponent(text)}`;

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Link } from 'react-router-dom';
 import { Loader2, Star } from 'lucide-react';
+import { buildTutorOrderPath } from '../../lib/diagnostic/order';
 
 const MAPEL_LABELS: Record<string, string> = {
   mtk: 'Matematika',
@@ -198,6 +199,12 @@ export function TutorFinder() {
                         <Star size={14} className="fill-[var(--yel)] text-[var(--yel)]" /> {t.rating}
                       </span>
                     </div>
+                    <Link
+                      to={buildTutorOrderPath(t.name)}
+                      className="mt-5 inline-flex w-full items-center justify-center font-extrabold rounded-2xl py-2.5 px-5 text-sm bg-[var(--yel)] text-[var(--ink)] shadow-[0_4px_0_#B87A00] hover:-translate-y-0.5 active:translate-y-1 active:shadow-none transition-all"
+                    >
+                      Pilih tutor ini
+                    </Link>
                   </article>
                 );
               })}

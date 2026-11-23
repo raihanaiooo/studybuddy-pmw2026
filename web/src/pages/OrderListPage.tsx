@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { OrderFormModal } from '../components/order/OrderFormModal';
+import { describeOrderOrigin } from '../lib/orderOrigin';
 import {
   MessageCircle,
   Pencil,
@@ -29,10 +30,16 @@ export function OrderListPage() {
   const [search, setSearch] = useState('');
 
   const fetchOrders = async () => {
-    const { data } = await supabase
+    // Sertakan hasil tes dan paket yang disarankan; bila relasi tidak terbaca, jatuh ke daftar polos.
+    const withOrigin = await supabase
       .from('manual_orders')
-      .select('*')
+      .select('*, attempt:diagnostic_attempts(test_code, level, score, result), package:packages(package_name)')
       .order('created_at', { ascending: false });
+    if (!withOrigin.error && withOrigin.data) {
+      setOrders(withOrigin.data);
+      return;
+    }
+    const { data } = await supabase.from('manual_orders').select('*').order('created_at', { ascending: false });
     if (data) setOrders(data);
   };
 
@@ -194,6 +201,15 @@ export function OrderListPage() {
                       <span className="text-[var(--mute)] text-xs block">
                         {o.jenjang}
                       </span>
+                      {(() => {
+                        const origin = describeOrderOrigin(o);
+                        return origin ? (
+                          <span className="block text-xs font-bold text-[var(--blue)] mt-1">
+                            {[origin.test, origin.packageName && `Saran: ${origin.packageName}`].filter(Boolean).join(' → ')}
+                          </span>
+                        ) : null;
+                      })()}
+                      {o.notes && <span className="block text-xs text-[var(--mute)] mt-0.5">{o.notes}</span>}
                     </td>
                     <td>
                       <select

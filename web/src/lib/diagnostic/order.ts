@@ -10,6 +10,7 @@ export interface OrderParams {
   attemptId: string | undefined;
   packageId: string | undefined;
   subject: string | undefined;
+  tutor: string | undefined;
 }
 
 /** Tautan dari hasil tes ke form order di landing page. */
@@ -20,15 +21,22 @@ export function buildOrderPath(attemptId: string, packageId: string | null, subj
   return `/?${query.join('&')}#order`;
 }
 
+/** Tautan dari kartu tutor di landing ke form order dengan tutor pilihan. */
+export function buildTutorOrderPath(tutorName: string): string {
+  return `/?tutor=${encodeURIComponent(tutorName)}#order`;
+}
+
 /** Membaca parameter order dari URL; nilai yang tidak valid dibuang. */
 export function parseOrderParams(search: string): OrderParams {
   const params = new URLSearchParams(search);
   const attempt = params.get('attempt');
   const pkg = params.get('package');
   const subject = params.get('subject');
+  const tutor = params.get('tutor')?.trim();
   return {
     attemptId: attempt && UUID.test(attempt) ? attempt : undefined,
     packageId: pkg && UUID.test(pkg) ? pkg : undefined,
     subject: subject && KNOWN_SUBJECTS.includes(subject) ? subject : undefined,
+    tutor: tutor && tutor.length <= 100 ? tutor : undefined,
   };
 }

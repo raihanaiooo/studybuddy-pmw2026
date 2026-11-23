@@ -33,7 +33,7 @@ export function ContentManagementPage() {
     }
 
     if (activeTab === 'oprec_info') {
-      const { data: res } = await supabase.from('oprec_info').select('*').limit(1).maybeSingle();
+      const { data: res } = await supabase.from('oprec_info').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle();
       const fallback = {
         id: '00000000-0000-0000-0000-000000000000',
         title: 'Mahasiswa? Jadi Buddy, dibayar buat berbagi ilmu.',

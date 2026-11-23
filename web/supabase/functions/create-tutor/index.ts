@@ -4,6 +4,7 @@
 // fungsi ini yang memegangnya via Deno.env.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { buildTutorRow, resolveVerificationStatus } from './tutorRow.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -75,6 +76,7 @@ Deno.serve(async (req) => {
     const university = typeof body.university === 'string' ? body.university.trim() : null;
     const bio = typeof body.bio === 'string' ? body.bio.trim() : null;
     const pricePerHour = Number(body.price_per_hour);
+    const verificationStatus = resolveVerificationStatus(body.verification_status);
     const subjects = Array.isArray(body.subjects)
       ? (body.subjects as unknown[]).filter((s) => typeof s === 'string')
       : [];
@@ -82,6 +84,9 @@ Deno.serve(async (req) => {
       ? (body.jenjang_diajar as unknown[]).filter((s) => typeof s === 'string')
       : [];
 
+    if (verificationStatus === null) {
+      return json(400, { error: "verification_status harus 'pending' atau 'verified'" });
+    }
     if (!email || !EMAIL_RE.test(email)) {
       return json(400, { error: 'Format email tidak valid' });
     }
@@ -118,21 +123,18 @@ Deno.serve(async (req) => {
       return json(400, { error: 'Gagal sinkronisasi tabel users; akun di-rollback' });
     }
 
+    // Nomor telepon disimpan di users.phone (tabel tutors tidak punya kolom phone).
+    if (phone) {
+      const { error: phoneErr } = await supabase.from('users').update({ phone }).eq('id', userRow.id);
+      if (phoneErr) {
+        await supabase.auth.admin.deleteUser(newUser.user.id);
+        return json(400, { error: 'Gagal menyimpan nomor telepon: ' + phoneErr.message });
+      }
+    }
+
     const { error: insertErr } = await supabase
       .from('tutors')
-      .insert({
-        user_id: userRow.id,
-        full_name: fullName,
-        university,
-        bio,
-        phone,
-        price_per_hour: pricePerHour,
-        subjects,
-        jenjang_diajar: jenjangDiajar,
-        verification_status: 'verified',
-        account_status: 'active',
-        is_featured: false,
-      });
+      .insert(buildTutorRow(userRow.id, { fullName, university, bio, pricePerHour, subjects, jenjangDiajar }, verificationStatus));
     if (insertErr) {
       await supabase.auth.admin.deleteUser(newUser.user.id);
       return json(400, { error: 'Gagal membuat profil tutor: ' + insertErr.message });
