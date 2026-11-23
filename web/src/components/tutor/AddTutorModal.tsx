@@ -1,3 +1,4 @@
+import { functionErrorMessage } from '../../lib/functionError';
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { X, Save, Loader2 } from 'lucide-react';
@@ -65,7 +66,7 @@ export function AddTutorModal({ isOpen, onClose, onSuccess, initial, verificatio
     });
 
     if (fnError) {
-      throw new Error('Gagal membuat tutor: ' + fnError.message);
+      throw new Error('Gagal membuat tutor: ' + (await functionErrorMessage(fnError)));
     }
     if (result && !result.ok) {
       throw new Error('Gagal membuat tutor: ' + (result.error ?? 'void'));
