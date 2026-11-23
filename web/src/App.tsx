@@ -25,6 +25,7 @@ import { LandingPage } from './pages/LandingPage';
 import { LandingPreviewPage } from './pages/LandingPagePreview';
 import { DiagnosticTestPage } from './pages/DiagnosticTestPage';
 import { DiagnosticAdminPage } from './pages/DiagnosticAdminPage';
+import { UtbkTestPage } from './pages/UtbkTestPage';
 import { GlobalUIManager } from './components/ui/GlobalUiManager';
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/preview" element={<LandingPreviewPage />} /> {/* <--- Pindah ke sini */}
         <Route path="/tes-english" element={<DiagnosticTestPage />} />
+        <Route path="/tes-utbk" element={<UtbkTestPage />} />
         <Route path="/login" element={<LoginPage />} />
 
         {/* ADMIN ROUTES (Pakai Sidebar Admin) */}

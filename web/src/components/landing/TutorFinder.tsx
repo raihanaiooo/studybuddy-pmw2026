@@ -84,13 +84,21 @@ export function TutorFinder() {
         </div>
 
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border-2 border-[var(--line)] bg-[var(--bg)] p-4 md:p-5">
-          <p className="font-bold text-[var(--ink)]">Belum tahu level bahasa Inggrismu?</p>
-          <Link
-            to="/tes-english"
-            className="inline-flex items-center justify-center font-extrabold rounded-2xl py-2 px-5 text-sm bg-[var(--blue)] text-white shadow-[0_4px_0_var(--bdark)] hover:-translate-y-0.5 hover:shadow-[0_6px_0_var(--bdark)] active:translate-y-1 active:shadow-none transition-all"
-          >
-            Cek level English kamu
-          </Link>
+          <p className="font-bold text-[var(--ink)]">Belum tahu harus mulai dari mana?</p>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              to="/tes-english"
+              className="inline-flex items-center justify-center font-extrabold rounded-2xl py-2 px-5 text-sm bg-[var(--blue)] text-white shadow-[0_4px_0_var(--bdark)] hover:-translate-y-0.5 hover:shadow-[0_6px_0_var(--bdark)] active:translate-y-1 active:shadow-none transition-all"
+            >
+              Cek level English kamu
+            </Link>
+            <Link
+              to="/tes-utbk"
+              className="inline-flex items-center justify-center font-extrabold rounded-2xl py-2 px-5 text-sm bg-[var(--blue)] text-white shadow-[0_4px_0_var(--bdark)] hover:-translate-y-0.5 hover:shadow-[0_6px_0_var(--bdark)] active:translate-y-1 active:shadow-none transition-all"
+            >
+              Cek kesiapan UTBK kamu
+            </Link>
+          </div>
         </div>
 
         <div className="rounded-[2rem] border-2 border-[var(--line)] p-5 md:p-8 bg-[var(--bg)]">

@@ -3,14 +3,19 @@ import type { DiagnosticQuestion } from '../../types/diagnostic';
 interface QuestionCardProps {
   question: DiagnosticQuestion;
   selected: number | undefined;
+  /** Label kecil di atas soal (mis. nama subtes). */
+  badge?: string;
   onSelect: (optionIndex: number) => void;
 }
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
-export function QuestionCard({ question, selected, onSelect }: QuestionCardProps) {
+export function QuestionCard({ question, selected, badge, onSelect }: QuestionCardProps) {
   return (
     <div className="rounded-[2rem] border-2 border-[var(--line)] bg-[var(--card)] p-6 md:p-9">
+      {badge && (
+        <p className="mb-4 inline-block rounded-full bg-[var(--hov)] px-3 py-1 text-xs font-extrabold text-[var(--blue)]">{badge}</p>
+      )}
       {question.passage && (
         <blockquote className="mb-6 whitespace-pre-line rounded-2xl border-2 border-[var(--line)] bg-[var(--bg)] p-4 md:p-5 text-[var(--ink)] leading-relaxed">
           {question.passage}
