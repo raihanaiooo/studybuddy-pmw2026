@@ -20,11 +20,10 @@ export function TutorFinder() {
   useEffect(() => {
     const fetchTutors = async () => {
       setLoading(true);
-      // Ambil tutor yang di-featured di landing page
+      // View tutors_public hanya memuat tutor verified dan featured, dengan kolom yang ditampilkan saja
       const { data, error } = await supabase
-        .from('tutors')
-        .select('*')
-        .eq('is_featured', true)
+        .from('tutors_public')
+        .select('id, full_name, university, bio, subjects, jenjang_diajar, price_per_hour, rating, featured_match_percent, featured_reason')
         .limit(3);
 
       if (data && !error) {

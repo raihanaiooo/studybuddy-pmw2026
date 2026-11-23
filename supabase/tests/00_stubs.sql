@@ -31,7 +31,17 @@ create table public.tutors (
   verification_status text not null default 'pending',
   is_featured         boolean default false,
   rating              numeric(3,1) default 0,
-  university          text
+  university          text,
+  user_id             uuid,
+  bio                 text,
+  jenjang_diajar      text[] default '{}',
+  price_per_hour      numeric default 50000,
+  featured_match_percent int,
+  featured_reason     text,
+  gmeet_link          text,
+  verification_note   text,
+  account_status      text default 'active',
+  gpa                 numeric(3,2)
 );  -- sengaja tanpa avatar_url: tabel tutors di Supabase nyata tidak punya kolom itu
 
 create table public.packages (
@@ -48,4 +58,12 @@ create table public.manual_orders (
   subject  text,
   jenjang  text,
   status   text default 'pending'
+);
+
+create table public.reviews (
+  id          uuid primary key default gen_random_uuid(),
+  customer_id uuid,
+  tutor_id    uuid,
+  rating      int,
+  comment     text
 );

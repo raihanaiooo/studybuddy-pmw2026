@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { resolveOprecLink } from '../../lib/oprec';
 
 const defaultOprec = {
   title: 'Mahasiswa? Jadi Buddy, dibayar buat berbagi ilmu.',
   description: 'Open recruitment tutor batch baru dibuka. Atur jadwal sendiri, tentukan mapel, dan dapat murid yang sudah dicocokkan sistem.',
   benefits: ['Jadwal fleksibel', 'Pembayaran tiap pekan', 'Pelatihan mengajar', 'Sertifikat pengalaman'],
   cta_label: 'Daftar jadi tutor',
-  cta_link: '#order',
+  cta_link: '',
   is_active: true,
 };
 
@@ -36,7 +37,7 @@ export function Oprec({ previewData }: { previewData?: any }) {
 
   if (!data.is_active) return null; // Sembunyikan section kalau dimatikan
 
-  const ctaLink = data.cta_link?.trim() || '#order'; // Fallback ke #order jika kosong
+  const ctaLink = resolveOprecLink(data.cta_link); // Kosong, '#', atau '#order' -> WhatsApp admin
   const benefits = Array.isArray(data.benefits) ? data.benefits : [];
 
   return (
