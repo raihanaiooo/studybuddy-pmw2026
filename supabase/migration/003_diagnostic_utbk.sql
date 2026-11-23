@@ -137,3 +137,76 @@ end $$;
 
 revoke all on function public.submit_utbk_attempt(text, jsonb) from public;
 grant execute on function public.submit_utbk_attempt(text, jsonb) to anon, authenticated;
+
+-- ---------- Statistik admin ----------
+-- diagnostic_stats() hanya menghitung tes English agar tidak bercampur dengan UTBK.
+create or replace function public.diagnostic_stats() returns jsonb
+language plpgsql security definer
+set search_path = public
+as $$
+begin
+  if not exists (select 1 from users where id = auth.uid() and role in ('admin', 'management')) then
+    raise exception 'forbidden';
+  end if;
+
+  return jsonb_build_object(
+    'total_attempts', (select count(*) from diagnostic_attempts where test_code = 'english'),
+    'by_level', (select jsonb_build_object(
+        'PRE_A1', count(*) filter (where level = 'PRE_A1'),
+        'A1',     count(*) filter (where level = 'A1'),
+        'A2',     count(*) filter (where level = 'A2'),
+        'B1',     count(*) filter (where level = 'B1'),
+        'B2',     count(*) filter (where level = 'B2'))
+      from diagnostic_attempts where test_code = 'english'),
+    'orders_from_tests', (select count(*) from manual_orders o
+                           join diagnostic_attempts a on a.id = o.diagnostic_attempt_id
+                          where a.test_code = 'english'),
+    'recent', (select coalesce(jsonb_agg(x order by x_created desc), '[]'::jsonb) from (
+        select jsonb_build_object('id', a.id, 'level', a.level, 'score', a.score, 'created_at', a.created_at,
+                 'ordered', exists (select 1 from manual_orders o where o.diagnostic_attempt_id = a.id)) as x,
+               a.created_at as x_created
+        from diagnostic_attempts a where a.test_code = 'english' order by a.created_at desc limit 20) r)
+  );
+end $$;
+
+revoke all on function public.diagnostic_stats() from public;
+grant execute on function public.diagnostic_stats() to authenticated;
+
+create or replace function public.diagnostic_stats_utbk() returns jsonb
+language plpgsql security definer
+set search_path = public
+as $$
+declare v_total int;
+begin
+  if not exists (select 1 from users where id = auth.uid() and role in ('admin', 'management')) then
+    raise exception 'forbidden';
+  end if;
+
+  select count(*) into v_total from diagnostic_attempts where test_code = 'utbk';
+
+  return jsonb_build_object(
+    'total_attempts', v_total,
+    'by_band', (select jsonb_build_object(
+        'UTBK_RENDAH', count(*) filter (where result->>'band' = 'UTBK_RENDAH'),
+        'UTBK_SEDANG', count(*) filter (where result->>'band' = 'UTBK_SEDANG'),
+        'UTBK_TINGGI', count(*) filter (where result->>'band' = 'UTBK_TINGGI'))
+      from diagnostic_attempts where test_code = 'utbk'),
+    -- rata-rata persen benar per subtes = jumlah benar / jumlah soal; null bila belum ada attempt
+    'avg_percent', (select jsonb_build_object(
+        'pu',  round(100.0 * sum((result->'per_subtest'->'pu'->>'correct')::int)  / nullif(sum((result->'per_subtest'->'pu'->>'total')::int), 0)),
+        'pk',  round(100.0 * sum((result->'per_subtest'->'pk'->>'correct')::int)  / nullif(sum((result->'per_subtest'->'pk'->>'total')::int), 0)),
+        'lbi', round(100.0 * sum((result->'per_subtest'->'lbi'->>'correct')::int) / nullif(sum((result->'per_subtest'->'lbi'->>'total')::int), 0)))
+      from diagnostic_attempts where test_code = 'utbk'),
+    'orders_from_tests', (select count(*) from manual_orders o
+                           join diagnostic_attempts a on a.id = o.diagnostic_attempt_id
+                          where a.test_code = 'utbk'),
+    'recent', (select coalesce(jsonb_agg(x order by x_created desc), '[]'::jsonb) from (
+        select jsonb_build_object('id', a.id, 'band', a.result->>'band', 'score', a.score, 'created_at', a.created_at,
+                 'ordered', exists (select 1 from manual_orders o where o.diagnostic_attempt_id = a.id)) as x,
+               a.created_at as x_created
+        from diagnostic_attempts a where a.test_code = 'utbk' order by a.created_at desc limit 20) r)
+  );
+end $$;
+
+revoke all on function public.diagnostic_stats_utbk() from public;
+grant execute on function public.diagnostic_stats_utbk() to authenticated;
