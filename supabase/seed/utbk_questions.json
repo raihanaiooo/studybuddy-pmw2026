@@ -1,0 +1,402 @@
+{
+  "passages": [
+    {
+      "id": "00000000-0000-0000-0000-00000000b001",
+      "text": "Warga RW 05 mulai mengelola bank sampah sejak awal tahun lalu. Setiap Minggu pagi, warga membawa sampah anorganik yang sudah dipilah, seperti botol plastik, kardus, dan kaleng. Petugas menimbang sampah itu lalu mencatat nilainya dalam buku tabungan masing-masing warga. Hasil penjualan sampah kepada pengepul dibagi sebagai tabungan, sehingga warga dapat mengambilnya menjelang hari raya. Selain menambah penghasilan, kegiatan ini membuat lingkungan lebih bersih karena sampah tidak lagi dibuang sembarangan ke saluran air. Namun, pengurus mengeluhkan masih banyak warga yang mencampur sampah basah dengan sampah kering sehingga petugas harus memilahnya ulang."
+    },
+    {
+      "id": "00000000-0000-0000-0000-00000000b002",
+      "text": "Sebagian orang menilai membaca di layar sama baiknya dengan membaca buku cetak. Memang, perangkat digital memudahkan kita membawa ratusan buku sekaligus. Akan tetapi, sejumlah penelitian kecil menunjukkan bahwa pembaca di layar cenderung membaca sekilas dan lebih mudah teralihkan oleh notifikasi. Akibatnya, pemahaman terhadap teks yang panjang sering kali menurun. Hal ini tidak berarti buku digital harus ditinggalkan; pembaca hanya perlu menyiapkan kebiasaan yang tepat, misalnya mematikan notifikasi dan membaca dalam waktu yang terjadwal."
+    },
+    {
+      "id": "00000000-0000-0000-0000-00000000b003",
+      "text": "Pemerintah kota menambah jumlah bus listrik di jalur utama mulai bulan depan. Penambahan ini bertujuan mengurangi kemacetan dan emisi kendaraan pribadi. Meski begitu, sejumlah penumpang berharap jadwal kedatangan bus lebih tepat waktu dan halte diperbanyak. Dinas perhubungan menyatakan akan mengevaluasi layanan setiap tiga bulan berdasarkan masukan penumpang."
+    }
+  ],
+  "questions": [
+    {
+      "position": 1,
+      "skill": "pu",
+      "stem": "Semua pelari di klub atletik itu rajin berlatih. Dimas adalah pelari di klub atletik itu. Kesimpulan yang pasti benar adalah ...",
+      "passage_id": null,
+      "options": [
+        "Semua orang yang rajin berlatih adalah pelari.",
+        "Dimas pelari tercepat di klub itu.",
+        "Dimas rajin berlatih.",
+        "Dimas tidak rajin berlatih.",
+        "Tidak ada pelari di luar klub itu yang rajin berlatih."
+      ],
+      "correct_index": 2,
+      "explanation": "Dimas termasuk pelari di klub itu, dan semua pelari di klub itu rajin berlatih, jadi Dimas rajin berlatih. Pilihan lain tidak dapat ditarik dari kedua pernyataan.",
+      "verify": null
+    },
+    {
+      "position": 2,
+      "skill": "pu",
+      "stem": "Perhatikan barisan 3, 6, 12, 24, ... Bilangan berikutnya adalah ...",
+      "passage_id": null,
+      "options": [
+        "27",
+        "36",
+        "42",
+        "48",
+        "96"
+      ],
+      "correct_index": 3,
+      "explanation": "Setiap suku dua kali suku sebelumnya, sehingga setelah 24 adalah 48.",
+      "verify": null
+    },
+    {
+      "position": 3,
+      "skill": "pu",
+      "stem": "Sepatu : kaki = topi : ...",
+      "passage_id": null,
+      "options": [
+        "tangan",
+        "mata",
+        "perut",
+        "kaki",
+        "kepala"
+      ],
+      "correct_index": 4,
+      "explanation": "Sepatu dipakai di kaki; dengan hubungan yang sama, topi dipakai di kepala.",
+      "verify": null
+    },
+    {
+      "position": 4,
+      "skill": "pu",
+      "stem": "Jika hujan turun, maka jalan menjadi basah. Pagi ini jalan tidak basah. Kesimpulan yang sah adalah ...",
+      "passage_id": null,
+      "options": [
+        "Hujan turun deras.",
+        "Hujan tidak turun.",
+        "Jalan basah karena banjir.",
+        "Mungkin hujan turun, mungkin tidak.",
+        "Hujan turun tetapi jalan tidak basah."
+      ],
+      "correct_index": 1,
+      "explanation": "Bila hujan turun pasti jalan basah. Jalan tidak basah, sehingga hujan tidak mungkin turun (kontraposisi).",
+      "verify": null
+    },
+    {
+      "position": 5,
+      "skill": "pu",
+      "stem": "Lima orang, yaitu A, B, C, D, dan E, mengantre. A berada di depan B. C berada di belakang B tetapi di depan D. E berada paling depan. Siapa yang berada di urutan keempat?",
+      "passage_id": null,
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correct_index": 2,
+      "explanation": "Urutan yang memenuhi semua syarat hanya E, A, B, C, D. Urutan keempat adalah C.",
+      "verify": null
+    },
+    {
+      "position": 6,
+      "skill": "pu",
+      "stem": "Ani, Budi, Cici, dan Dedi masing-masing membawa satu buah yang berbeda: apel, jeruk, mangga, atau pisang. Ani tidak membawa apel maupun jeruk. Budi membawa jeruk. Cici tidak membawa mangga maupun pisang. Dedi tidak membawa pisang. Buah yang dibawa Ani adalah ...",
+      "passage_id": null,
+      "options": [
+        "Apel",
+        "Jeruk",
+        "Mangga",
+        "Pisang",
+        "Tidak dapat ditentukan"
+      ],
+      "correct_index": 3,
+      "explanation": "Budi membawa jeruk, sehingga Cici membawa apel. Tersisa mangga dan pisang untuk Ani dan Dedi. Dedi tidak membawa pisang, jadi Dedi membawa mangga dan Ani membawa pisang.",
+      "verify": null
+    },
+    {
+      "position": 7,
+      "skill": "pu",
+      "stem": "Semua anggota tim debat mengikuti pelatihan. Sebagian anggota tim debat adalah mahasiswa semester akhir. Pernyataan yang pasti benar adalah ...",
+      "passage_id": null,
+      "options": [
+        "Sebagian mahasiswa semester akhir mengikuti pelatihan.",
+        "Semua mahasiswa semester akhir adalah anggota tim debat.",
+        "Semua yang mengikuti pelatihan adalah anggota tim debat.",
+        "Tidak ada mahasiswa semester akhir yang mengikuti pelatihan.",
+        "Sebagian anggota tim debat tidak mengikuti pelatihan."
+      ],
+      "correct_index": 0,
+      "explanation": "Anggota tim debat yang berstatus mahasiswa semester akhir pasti mengikuti pelatihan, jadi ada mahasiswa semester akhir yang mengikuti pelatihan.",
+      "verify": null
+    },
+    {
+      "position": 8,
+      "skill": "pu",
+      "stem": "Perhatikan barisan 2, 3, 5, 8, 12, 17, ... Bilangan berikutnya adalah ...",
+      "passage_id": null,
+      "options": [
+        "21",
+        "22",
+        "23",
+        "24",
+        "25"
+      ],
+      "correct_index": 2,
+      "explanation": "Selisih antarsuku berturut-turut 1, 2, 3, 4, 5, sehingga selisih berikutnya 6 dan sukunya 17 + 6 = 23.",
+      "verify": null
+    },
+    {
+      "position": 9,
+      "skill": "pk",
+      "stem": "Harga sebuah buku tulis adalah Rp12.000. Harga 8 buku tulis seperti itu adalah ...",
+      "passage_id": null,
+      "options": [
+        "Rp96.000",
+        "Rp100.000",
+        "Rp104.000",
+        "Rp108.000",
+        "Rp120.000"
+      ],
+      "correct_index": 0,
+      "explanation": "12.000 x 8 = 96.000.",
+      "verify": "\"Rp\" + str(12000*8//1000) + \".000\""
+    },
+    {
+      "position": 10,
+      "skill": "pk",
+      "stem": "Sebuah tas berharga Rp150.000 dan mendapat diskon 20%. Harga yang harus dibayar adalah ...",
+      "passage_id": null,
+      "options": [
+        "Rp30.000",
+        "Rp100.000",
+        "Rp110.000",
+        "Rp120.000",
+        "Rp130.000"
+      ],
+      "correct_index": 3,
+      "explanation": "Diskon 20% berarti membayar 80% dari Rp150.000, yaitu Rp120.000.",
+      "verify": "\"Rp\" + str(150000*80//100//1000) + \".000\""
+    },
+    {
+      "position": 11,
+      "skill": "pk",
+      "stem": "Perbandingan banyak kelereng Adi dan Budi adalah 3 : 5. Jika jumlah kelereng keduanya 48, banyak kelereng Budi adalah ...",
+      "passage_id": null,
+      "options": [
+        "18",
+        "24",
+        "30",
+        "32",
+        "36"
+      ],
+      "correct_index": 2,
+      "explanation": "Budi memiliki 5/8 dari 48 kelereng, yaitu 30.",
+      "verify": "str(48*5//8)"
+    },
+    {
+      "position": 12,
+      "skill": "pk",
+      "stem": "Rata-rata nilai 5 siswa adalah 80. Setelah seorang siswa bernilai 50 bergabung, rata-rata nilai 6 siswa tersebut menjadi ...",
+      "passage_id": null,
+      "options": [
+        "70",
+        "72",
+        "73",
+        "74",
+        "75"
+      ],
+      "correct_index": 4,
+      "explanation": "Jumlah nilai awal 5 x 80 = 400. Ditambah 50 menjadi 450. Rata-ratanya 450 : 6 = 75.",
+      "verify": "str(Fraction(5*80+50, 6))"
+    },
+    {
+      "position": 13,
+      "skill": "pk",
+      "stem": "Jika 3x - 7 = 2x + 5, maka nilai 2x + 1 adalah ...",
+      "passage_id": null,
+      "options": [
+        "12",
+        "25",
+        "26",
+        "27",
+        "30"
+      ],
+      "correct_index": 1,
+      "explanation": "Dari 3x - 7 = 2x + 5 diperoleh x = 12, sehingga 2x + 1 = 25.",
+      "verify": "str(2*Fraction(5+7, 3-2)+1)"
+    },
+    {
+      "position": 14,
+      "skill": "pk",
+      "stem": "Keliling sebuah persegi panjang 36 cm dan lebarnya 7 cm. Luasnya, dalam cm persegi, adalah ...",
+      "passage_id": null,
+      "options": [
+        "77",
+        "79",
+        "81",
+        "84",
+        "90"
+      ],
+      "correct_index": 0,
+      "explanation": "Setengah keliling 18 cm, sehingga panjangnya 18 - 7 = 11 cm. Luas = 11 x 7 = 77.",
+      "verify": "str((36//2-7)*7)"
+    },
+    {
+      "position": 15,
+      "skill": "pk",
+      "stem": "Sebuah kantong berisi 4 bola merah dan 6 bola biru. Dua bola diambil sekaligus secara acak. Peluang kedua bola berwarna merah adalah ...",
+      "passage_id": null,
+      "options": [
+        "1/15",
+        "2/15",
+        "4/25",
+        "1/5",
+        "2/5"
+      ],
+      "correct_index": 1,
+      "explanation": "Banyak cara memilih 2 merah dari 4 adalah 6, dan 2 bola dari 10 adalah 45. Peluangnya 6/45 = 2/15.",
+      "verify": "str(Fraction(math.comb(4, 2), math.comb(10, 2)))"
+    },
+    {
+      "position": 16,
+      "skill": "pk",
+      "stem": "Mobil A berangkat dari kota P ke kota Q pukul 06.00 dengan kecepatan 60 km/jam. Mobil B berangkat dari P ke Q pada rute yang sama pukul 07.00 dengan kecepatan 80 km/jam. Mobil B menyusul mobil A pada pukul ...",
+      "passage_id": null,
+      "options": [
+        "Pukul 09.00",
+        "Pukul 09.30",
+        "Pukul 10.00",
+        "Pukul 10.30",
+        "Pukul 11.00"
+      ],
+      "correct_index": 2,
+      "explanation": "Pukul 07.00 mobil A sudah 60 km di depan. B lebih cepat 20 km/jam, sehingga menyusul setelah 60 : 20 = 3 jam, yaitu pukul 10.00.",
+      "verify": "\"Pukul \" + str(7+Fraction(60, 80-60)) + \".00\""
+    },
+    {
+      "position": 17,
+      "skill": "lbi",
+      "stem": "Gagasan utama teks tersebut adalah ...",
+      "passage_id": "00000000-0000-0000-0000-00000000b001",
+      "options": [
+        "Warga RW 05 selalu membuang sampah ke saluran air.",
+        "Pengepul membeli sampah dengan harga yang sangat tinggi.",
+        "Bank sampah hanya menerima sampah basah.",
+        "Bank sampah di RW 05 memberi manfaat ekonomi dan lingkungan, meskipun pemilahan sampah belum tertib.",
+        "Petugas bank sampah bekerja setiap hari."
+      ],
+      "correct_index": 3,
+      "explanation": "Teks menjelaskan cara kerja bank sampah, manfaatnya bagi penghasilan dan kebersihan, serta kendala pemilahan.",
+      "verify": null
+    },
+    {
+      "position": 18,
+      "skill": "lbi",
+      "stem": "Apa yang dilakukan petugas setelah menimbang sampah warga?",
+      "passage_id": "00000000-0000-0000-0000-00000000b001",
+      "options": [
+        "Menjual sampah itu langsung kepada warga lain.",
+        "Mencatat nilainya dalam buku tabungan masing-masing warga.",
+        "Membuang sampah ke saluran air.",
+        "Membagikan uang tunai saat itu juga.",
+        "Menolak sampah yang belum dipilah."
+      ],
+      "correct_index": 1,
+      "explanation": "Teks menyebut petugas menimbang sampah lalu mencatat nilainya dalam buku tabungan.",
+      "verify": null
+    },
+    {
+      "position": 19,
+      "skill": "lbi",
+      "stem": "Simpulan yang paling tepat berdasarkan teks adalah ...",
+      "passage_id": "00000000-0000-0000-0000-00000000b001",
+      "options": [
+        "Warga lebih suka menabung uang di bank biasa.",
+        "Sampah basah memiliki nilai jual paling tinggi.",
+        "Kegiatan bank sampah sebaiknya dihentikan.",
+        "Penghasilan warga hanya berasal dari bank sampah.",
+        "Kebiasaan memilah sampah dari rumah akan meringankan pekerjaan petugas."
+      ],
+      "correct_index": 4,
+      "explanation": "Pengurus mengeluh petugas harus memilah ulang karena warga mencampur sampah, sehingga memilah dari rumah akan meringankan petugas.",
+      "verify": null
+    },
+    {
+      "position": 20,
+      "skill": "lbi",
+      "stem": "Makna kata \"teralihkan\" dalam teks adalah ...",
+      "passage_id": "00000000-0000-0000-0000-00000000b002",
+      "options": [
+        "berpindah perhatiannya",
+        "terhapus ingatannya",
+        "terkirim pesannya",
+        "tertunda pekerjaannya",
+        "terbawa langkahnya"
+      ],
+      "correct_index": 0,
+      "explanation": "Dalam konteks notifikasi, pembaca yang teralihkan berarti perhatiannya berpindah dari bacaan.",
+      "verify": null
+    },
+    {
+      "position": 21,
+      "skill": "lbi",
+      "stem": "Sikap penulis terhadap buku digital adalah ...",
+      "passage_id": "00000000-0000-0000-0000-00000000b002",
+      "options": [
+        "menolak sepenuhnya karena menurunkan pemahaman",
+        "menganggapnya selalu lebih baik daripada buku cetak",
+        "menerima dengan syarat pembaca membangun kebiasaan membaca yang tepat",
+        "tidak peduli terhadap perbedaan keduanya",
+        "meminta penelitian lanjutan sebelum membaca di layar"
+      ],
+      "correct_index": 2,
+      "explanation": "Penulis menyebut buku digital tidak perlu ditinggalkan asalkan pembaca menyiapkan kebiasaan yang tepat.",
+      "verify": null
+    },
+    {
+      "position": 22,
+      "skill": "lbi",
+      "stem": "Pernyataan yang paling sesuai dengan teks adalah ...",
+      "passage_id": "00000000-0000-0000-0000-00000000b002",
+      "options": [
+        "Penelitian menyimpulkan buku cetak pasti menghasilkan pemahaman lebih baik.",
+        "Perangkat digital hanya cocok untuk teks yang pendek.",
+        "Notifikasi hanya mengganggu pembaca buku cetak.",
+        "Membaca terjadwal tidak berpengaruh pada pemahaman.",
+        "Menurunnya pemahaman pada teks panjang berkaitan dengan membaca sekilas dan gangguan notifikasi."
+      ],
+      "correct_index": 4,
+      "explanation": "Teks menghubungkan kebiasaan membaca sekilas dan notifikasi dengan menurunnya pemahaman teks panjang. Pilihan lain melebihkan atau membalik isi teks.",
+      "verify": null
+    },
+    {
+      "position": 23,
+      "skill": "lbi",
+      "stem": "Tujuan penambahan bus listrik menurut teks adalah ...",
+      "passage_id": "00000000-0000-0000-0000-00000000b003",
+      "options": [
+        "menambah pendapatan dinas perhubungan",
+        "menggantikan seluruh angkutan umum lama",
+        "memperbanyak halte di seluruh kota",
+        "mengurangi kemacetan dan emisi kendaraan pribadi",
+        "menaikkan tarif angkutan"
+      ],
+      "correct_index": 3,
+      "explanation": "Kalimat kedua menyebut tujuannya: mengurangi kemacetan dan emisi kendaraan pribadi.",
+      "verify": null
+    },
+    {
+      "position": 24,
+      "skill": "lbi",
+      "stem": "Pernyataan yang tidak sesuai dengan teks adalah ...",
+      "passage_id": "00000000-0000-0000-0000-00000000b003",
+      "options": [
+        "Dinas perhubungan sudah menambah halte sesuai harapan penumpang.",
+        "Penumpang mengharapkan jadwal bus lebih tepat waktu.",
+        "Layanan akan dievaluasi setiap tiga bulan.",
+        "Bus listrik ditambah di jalur utama.",
+        "Masukan penumpang menjadi dasar evaluasi."
+      ],
+      "correct_index": 0,
+      "explanation": "Teks hanya menyebut penumpang berharap halte diperbanyak; tidak ada pernyataan bahwa halte sudah ditambah.",
+      "verify": null
+    }
+  ]
+}
