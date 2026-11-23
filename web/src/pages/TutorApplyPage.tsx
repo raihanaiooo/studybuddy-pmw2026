@@ -110,6 +110,12 @@ export function TutorApplyPage() {
     setErrors((prev) => ({ ...prev, [key]: undefined }));
   }
 
+  /** Periksa satu kolom saat pengguna meninggalkannya, supaya salah isi langsung ketahuan (bukan baru setelah Kirim). */
+  function checkField(key: keyof ApplicationForm, value?: string) {
+    const found = validateApplication({ ...form, [key]: value ?? form[key] });
+    setErrors((prev) => ({ ...prev, [key]: found[key] }));
+  }
+
   function toggle(key: 'subjects' | 'jenjang', value: string) {
     setField(key, form[key].includes(value) ? form[key].filter((v) => v !== value) : [...form[key], value]);
   }
@@ -210,18 +216,18 @@ export function TutorApplyPage() {
 
             <Section step={1} title="Data diri" note="Admin menghubungimu lewat nomor dan email ini.">
               <Field id="full_name" label="Nama lengkap" hint="Tulis sesuai KTM supaya cocok dengan dokumenmu." error={errors.full_name}>
-                <input id="full_name" className={inputClass} value={form.full_name} onChange={(e) => setField('full_name', e.target.value)}
+                <input id="full_name" className={inputClass} value={form.full_name} onChange={(e) => setField('full_name', e.target.value)} onBlur={() => checkField('full_name')}
                   placeholder="Alya Rahma Putri" autoComplete="name" maxLength={100}
                   aria-invalid={!!errors.full_name} aria-describedby={describedBy('full_name', true, !!errors.full_name)} />
               </Field>
               <div className="grid gap-5 sm:grid-cols-2">
                 <Field id="whatsapp" label="Nomor WhatsApp" hint="Nomor aktif. Awalan 08 atau +62 sama saja." error={errors.whatsapp}>
-                  <input id="whatsapp" className={inputClass} inputMode="tel" value={form.whatsapp} onChange={(e) => setField('whatsapp', e.target.value)}
+                  <input id="whatsapp" className={inputClass} inputMode="tel" value={form.whatsapp} onChange={(e) => setField('whatsapp', e.target.value)} onBlur={() => checkField('whatsapp')}
                     placeholder="0812 3456 7890" autoComplete="tel"
                     aria-invalid={!!errors.whatsapp} aria-describedby={describedBy('whatsapp', true, !!errors.whatsapp)} />
                 </Field>
                 <Field id="email" label="Email" hint="Dipakai untuk akun Buddy-mu." error={errors.email}>
-                  <input id="email" className={inputClass} type="email" value={form.email} onChange={(e) => setField('email', e.target.value)}
+                  <input id="email" className={inputClass} type="email" value={form.email} onChange={(e) => setField('email', e.target.value)} onBlur={() => checkField('email')}
                     placeholder="alya.rahma@gmail.com" autoComplete="email" maxLength={150}
                     aria-invalid={!!errors.email} aria-describedby={describedBy('email', true, !!errors.email)} />
                 </Field>
@@ -234,6 +240,7 @@ export function TutorApplyPage() {
                   id="university"
                   value={form.university}
                   onChange={(v) => setField('university', v)}
+                  onCommit={(v) => checkField('university', v)}
                   inputClassName={inputClass}
                   invalid={!!errors.university}
                   describedBy={describedBy('university', true, !!errors.university)}
@@ -244,9 +251,9 @@ export function TutorApplyPage() {
                   <input id="major" className={inputClass} value={form.major} onChange={(e) => setField('major', e.target.value)} placeholder="Teknik Fisika" maxLength={100}
                     aria-invalid={!!errors.major} aria-describedby={describedBy('major', false, !!errors.major)} />
                 </Field>
-                <Field id="semester" label="Semester" optional error={errors.semester}>
-                  <input id="semester" className={inputClass} inputMode="numeric" value={form.semester} onChange={(e) => setField('semester', e.target.value)} placeholder="5" maxLength={2}
-                    aria-invalid={!!errors.semester} aria-describedby={describedBy('semester', false, !!errors.semester)} />
+                <Field id="semester" label="Semester" optional hint="Angka 1–14." error={errors.semester}>
+                  <input id="semester" className={inputClass} inputMode="numeric" value={form.semester} onChange={(e) => setField('semester', e.target.value.replace(/\D/g, ''))} onBlur={() => checkField('semester')} placeholder="5" maxLength={2}
+                    aria-invalid={!!errors.semester} aria-describedby={describedBy('semester', true, !!errors.semester)} />
                 </Field>
               </div>
             </Section>
@@ -275,7 +282,7 @@ export function TutorApplyPage() {
                 {errors.jenjang && <p role="alert" className="mt-2 text-sm font-semibold text-red-700">{errors.jenjang}</p>}
               </fieldset>
               <Field id="experience" label="Pengalaman mengajar" optional hint="Ceritakan singkat: berapa lama, jenjang apa, atau prestasi yang relevan." error={errors.experience}>
-                <textarea id="experience" className={`${inputClass} resize-none`} rows={4} value={form.experience} onChange={(e) => setField('experience', e.target.value)} maxLength={1000}
+                <textarea id="experience" className={`${inputClass} resize-none`} rows={4} value={form.experience} onChange={(e) => setField('experience', e.target.value)} onBlur={() => checkField('experience')} maxLength={1000}
                   placeholder="Contoh: Privat Matematika SMA selama 2 tahun (sekitar 5 murid), asisten praktikum Fisika Dasar, juara 2 OSN tingkat kabupaten."
                   aria-invalid={!!errors.experience} aria-describedby={describedBy('experience', true, !!errors.experience)} />
               </Field>

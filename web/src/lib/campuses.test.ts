@@ -29,4 +29,8 @@ describe('filterCampuses', () => {
     expect(filterCampuses('universitas', 4)).toHaveLength(4);
     expect(filterCampuses('kampus yang tidak ada')).toEqual([]);
   });
+
+  it('batas besar menampilkan semua kampus yang cocok, bukan hanya 8', () => {
+    expect(filterCampuses('universitas', 100).length).toBeGreaterThan(8);
+  });
 });

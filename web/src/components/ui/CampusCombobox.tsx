@@ -1,10 +1,12 @@
 import { useId, useMemo, useState } from 'react';
-import { filterCampuses } from '../../lib/campuses';
+import { CAMPUS_SUGGESTIONS, filterCampuses } from '../../lib/campuses';
 
 interface Props {
   id: string;
   value: string;
   onChange: (value: string) => void;
+  /** Dipanggil saat pengguna selesai mengisi (pilih dari daftar atau pindah kolom). */
+  onCommit?: (value: string) => void;
   inputClassName: string;
   invalid?: boolean;
   describedBy?: string;
@@ -14,14 +16,17 @@ interface Props {
  * Kolom kampus dengan daftar saran bergaya aplikasi. Isian tetap bebas: yang diketik pelamar
  * adalah nilainya, daftar hanya membantu memilih.
  */
-export function CampusCombobox({ id, value, onChange, inputClassName, invalid, describedBy }: Props) {
+export function CampusCombobox({ id, value, onChange, onCommit, inputClassName, invalid, describedBy }: Props) {
   const listId = useId();
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
-  const results = useMemo(() => filterCampuses(value), [value]);
+  const searching = value.trim() !== '';
+  // Tanpa ketikan: 8 kampus pertama. Mengetik: semua yang cocok, daftar bisa digulir.
+  const results = useMemo(() => filterCampuses(value, searching ? CAMPUS_SUGGESTIONS.length : 8), [value, searching]);
 
   function choose(campus: string) {
     onChange(campus);
+    onCommit?.(campus);
     setOpen(false);
     setActive(-1);
   }
@@ -72,6 +77,7 @@ export function CampusCombobox({ id, value, onChange, inputClassName, invalid, d
         onBlur={() => {
           setOpen(false);
           setActive(-1);
+          onCommit?.(value);
         }}
         onKeyDown={onKeyDown}
       />
@@ -99,6 +105,11 @@ export function CampusCombobox({ id, value, onChange, inputClassName, invalid, d
               {campus}
             </li>
           ))}
+          {results.length > 0 && (
+            <li role="presentation" className="sticky bottom-0 border-t border-[var(--line)] bg-[var(--card)] px-3 py-2 text-xs text-[var(--mute)]">
+              {searching ? `${results.length} kampus cocok` : `Menampilkan 8 dari ${CAMPUS_SUGGESTIONS.length} kampus. Ketik untuk mencari.`}
+            </li>
+          )}
           {results.length === 0 && (
             <li role="presentation" className="px-3 py-2.5 text-sm text-[var(--mute)]">
               Tidak ada di daftar. Tulis nama kampusmu sendiri, tidak masalah.
