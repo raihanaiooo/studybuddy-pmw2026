@@ -1,0 +1,9 @@
+# Netlify: situs ada di folder web/. Variabel VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY diisi di
+# Site configuration > Environment variables (jangan ditulis di berkas ini).
+[build]
+  base = "web"
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"

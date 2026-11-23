@@ -1,0 +1,2 @@
+# Halaman React (SPA): semua alamat dilayani index.html agar /daftar-tutor dll. tidak 404 saat dibuka langsung.
+/*  /index.html  200
