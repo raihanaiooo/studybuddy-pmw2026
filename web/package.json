@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run css\" \"vite\"",
-    "build": "tsc -b && vite build",
+    "css:build": "npx @tailwindcss/cli -i ./src/index.css -o ./src/tailwind-generated.css",
+    "build": "npm run css:build && tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "css": "npx @tailwindcss/cli -i ./src/index.css -o ./src/tailwind-generated.css --watch",
