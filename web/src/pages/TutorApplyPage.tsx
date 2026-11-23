@@ -29,7 +29,7 @@ function formatSize(bytes: number): string {
 
 function Section({ step, title, note, children }: { step: number; title: string; note?: string; children: ReactNode }) {
   return (
-    <section className="rounded-[1.75rem] border-2 border-[var(--line)] bg-[var(--card)] p-5 md:p-8">
+    <section className="min-w-0 rounded-[1.75rem] border-2 border-[var(--line)] bg-[var(--card)] p-5 md:p-8">
       <div className="flex items-start gap-4">
         <span aria-hidden="true" className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--blue)] text-sm font-extrabold text-white">
           {step}
@@ -39,7 +39,7 @@ function Section({ step, title, note, children }: { step: number; title: string;
           {note && <p className="mt-1 text-sm text-[var(--mute)]">{note}</p>}
         </div>
       </div>
-      <div className="mt-6 grid gap-5">{children}</div>
+      <div className="mt-6 grid grid-cols-1 gap-5">{children}</div>
     </section>
   );
 }
@@ -56,7 +56,7 @@ interface FieldProps {
 
 function Field({ id, label, hint, optional, error, children, className = '' }: FieldProps) {
   return (
-    <div className={className}>
+    <div className={`min-w-0 ${className}`}>
       <label htmlFor={id} className="block font-bold text-[var(--ink)]">
         {label} {optional && <span className="font-medium text-[var(--mute)]">(opsional)</span>}
       </label>
@@ -205,7 +205,7 @@ export function TutorApplyPage() {
         )}
 
         {phase === 'form' && (
-          <form onSubmit={handleSubmit} noValidate className="grid gap-6">
+          <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 gap-6">
             <div>
               <h1 className="text-3xl md:text-5xl font-extrabold leading-[1.05] text-[var(--ink)]">Daftar jadi Buddy.</h1>
               <p className="mt-4 text-[var(--mute)] leading-relaxed">
@@ -294,7 +294,7 @@ export function TutorApplyPage() {
                 const error = fileErrors[slot.type];
                 const id = `doc-${slot.type}`;
                 return (
-                  <div key={slot.type}>
+                  <div key={slot.type} className="min-w-0">
                     <p className="font-bold text-[var(--ink)]">
                       {slot.label}{' '}
                       <span className={`text-sm font-semibold ${slot.required ? 'text-[var(--blue)]' : 'font-medium text-[var(--mute)]'}`}>
