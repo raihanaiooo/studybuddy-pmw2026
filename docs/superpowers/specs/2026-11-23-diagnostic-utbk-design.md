@@ -1,7 +1,7 @@
 # Diagnostic UTBK mini (try out singkat) — Design
 
 **Tanggal:** 23 Nov 2026
-**Status:** Draf menunggu persetujuan. Belum ada kode yang ditulis.
+**Status:** Disetujui dan diimplementasikan di branch `feat/diagnostic-utbk`. Soal nonaktif sampai dibaca manusia; paket tempel Supabase ada di folder supabase-apply (utbk-1-apply, utbk-2-verify, utbk-3-rollback).
 **Pemilik:** Tim IT (Rifky, Raihana)
 **Lanjutan dari:** `2026-11-23-diagnostic-english-design.md` (bagian 6.8)
 

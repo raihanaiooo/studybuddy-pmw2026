@@ -48,9 +48,9 @@ Pertanyaan: siapa orangnya?
 
 ### D. UTBK masuk demo monev atau tidak (Aul)
 
-Skemanya sudah siap menampung tes kedua. Yang belum ada: 24 sampai 30 soal UTBK orisinal. Bahan dari Aul hanya boleh jadi acuan format, tidak boleh disalin karena hak cipta pihak lain. Soal UTBK juga lebih berisiko salah kunci kalau tanpa tinjauan tutor.
+Update: UTBK mini sudah dibuat di kode (24 soal orisinal: Penalaran Umum, Pengetahuan Kuantitatif, Literasi Bahasa Indonesia, masing-masing 8). Hasilnya skor total, skor per subtes, subtes terlemah, satu paket SNBT, dan catatan bahwa ini gambaran awal, bukan prediksi kelulusan. Soal masih nonaktif sampai ada yang membaca dan memeriksa kuncinya, terutama soal Literasi Bahasa Indonesia dan Penalaran Umum.
 
-Rekomendasi saya: untuk monev cukup English. UTBK mini dikerjakan setelahnya, dengan tutor UTBK sebagai peninjau.
+Perlu keputusan Aul dan Dhimas: (1) batas pita skor (0-9 benar = SKS, 10-16 = Juara, 17-24 = Satset) setuju atau diubah; (2) siapa pembaca soal UTBK; (3) UTBK ikut demo monev atau tidak. Soal contoh dari Aul hanya dipakai sebagai acuan format, tidak disalin.
 
 ## 3. Hosting
 
@@ -91,5 +91,5 @@ Pertanyaan untuk Dhimas:
 | A | Pemetaan level ke paket | Aul/Dhimas | Pakai usulan di tabel di atas |
 | B | Tutor English terverifikasi | Aul/Dhimas | Hasil tes tanpa bagian tutor |
 | C | Pembaca soal | Aul | Soal tetap aktif dengan tinjauan AI |
-| D | UTBK di demo atau tidak | Aul | Tidak, English saja |
+| D | UTBK di demo, pita skor, dan pembaca soal | Aul | Siap dicoba setelah soal dibaca; butuh persetujuan pita |
 | E | Hosting: opsi 1 atau 2, domain, biaya | Dhimas | Opsi 1 |
