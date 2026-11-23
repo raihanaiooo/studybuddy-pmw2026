@@ -23,6 +23,7 @@ import { OrderListPage } from './pages/OrderListPage';
 import { ContentManagementPage } from './pages/ContentManagementPage';
 import { LandingPage } from './pages/LandingPage';
 import { LandingPreviewPage } from './pages/LandingPagePreview';
+import { DiagnosticTestPage } from './pages/DiagnosticTestPage';
 import { GlobalUIManager } from './components/ui/GlobalUiManager';
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
         {/* PUBLIC ROUTES (Tanpa Sidebar Admin) */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/preview" element={<LandingPreviewPage />} /> {/* <--- Pindah ke sini */}
+        <Route path="/tes-english" element={<DiagnosticTestPage />} />
         <Route path="/login" element={<LoginPage />} />
 
         {/* ADMIN ROUTES (Pakai Sidebar Admin) */}
