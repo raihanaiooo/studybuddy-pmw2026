@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildTutorRow, resolveVerificationStatus } from './tutorRow';
+import { buildDocumentCopies, buildTutorRow, resolveVerificationStatus } from './tutorRow';
 
 const input = {
   fullName: 'Alya Rahma',
@@ -43,5 +43,33 @@ describe('buildTutorRow', () => {
       account_status: 'active',
       is_featured: false,
     });
+  });
+});
+
+describe('buildDocumentCopies', () => {
+  const APP = '0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d';
+  const docs = { transkrip: `${APP}/transkrip.pdf`, kartu_identitas_pelajar: `${APP}/kartu_identitas_pelajar.jpg` };
+
+  it('memindahkan tiap dokumen ke jalur tutor dan membuat baris tutor_documents terverifikasi', () => {
+    const copies = buildDocumentCopies('tutor-9', docs, '2026-11-23T00:00:00.000Z');
+    expect(copies).toEqual([
+      {
+        from: `${APP}/transkrip.pdf`,
+        to: 'tutor-9/transkrip.pdf',
+        contentType: 'application/pdf',
+        row: { tutor_id: 'tutor-9', jenis_dokumen: 'transkrip', label: 'Transkrip Nilai', file_url: 'tutor-9/transkrip.pdf', status: 'terverifikasi', uploaded_at: '2026-11-23T00:00:00.000Z' },
+      },
+      {
+        from: `${APP}/kartu_identitas_pelajar.jpg`,
+        to: 'tutor-9/kartu_identitas_pelajar.jpg',
+        contentType: 'image/jpeg',
+        row: { tutor_id: 'tutor-9', jenis_dokumen: 'kartu_identitas_pelajar', label: 'KTM / Kartu Tanda Pelajar', file_url: 'tutor-9/kartu_identitas_pelajar.jpg', status: 'terverifikasi', uploaded_at: '2026-11-23T00:00:00.000Z' },
+      },
+    ]);
+  });
+
+  it('mengabaikan jenis dokumen yang tidak dikenal dan nilai bukan teks', () => {
+    expect(buildDocumentCopies('t', { ktp: 'x/ktp.pdf', transkrip: 5 }, 'now')).toEqual([]);
+    expect(buildDocumentCopies('t', null, 'now')).toEqual([]);
   });
 });

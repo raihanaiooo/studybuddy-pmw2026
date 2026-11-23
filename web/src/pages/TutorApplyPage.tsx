@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, Loader2 } from 'lucide-react';
+import { CheckCircle2, FileText, Loader2 } from 'lucide-react';
 import { PublicLayout } from '../components/layout/PublicLayout';
 import { fetchLatestOprec, submitTutorApplication } from '../lib/api/tutorApplications';
+import { CampusCombobox } from '../components/ui/CampusCombobox';
+import { DOCUMENT_SLOTS, missingRequiredDocuments, validateDocumentFile } from '../lib/applicationDocuments';
 import {
   emptyApplicationForm,
   JENJANG_OPTIONS,
@@ -12,13 +14,69 @@ import {
   type ApplicationErrors,
   type ApplicationForm,
 } from '../lib/tutorApplication';
+import type { DocumentType } from '../types/tutor';
 
 const inputClass =
-  'w-full mt-2 bg-[var(--bg)] border-2 border-[var(--line)] rounded-2xl px-4 py-3 font-semibold text-[var(--ink)] placeholder:text-[var(--mute)] focus:outline-none focus:border-[var(--blue)]';
+  'w-full bg-[var(--bg)] border-2 border-[var(--line)] rounded-2xl px-4 py-3 font-semibold text-[var(--ink)] placeholder:font-medium placeholder:text-[var(--mute)]/70 focus:outline-none focus:border-[var(--blue)] aria-[invalid=true]:border-red-400';
 const primaryButton =
   'inline-flex items-center justify-center gap-2 font-extrabold rounded-2xl py-3 px-6 bg-[var(--blue)] text-white shadow-[0_5px_0_var(--bdark)] hover:-translate-y-0.5 hover:shadow-[0_7px_0_var(--bdark)] active:translate-y-1 active:shadow-none transition-all disabled:opacity-50 disabled:pointer-events-none';
 
 type Phase = 'loading' | 'closed' | 'form' | 'done';
+
+function formatSize(bytes: number): string {
+  return bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+function Section({ step, title, note, children }: { step: number; title: string; note?: string; children: ReactNode }) {
+  return (
+    <section className="min-w-0 rounded-[1.75rem] border-2 border-[var(--line)] bg-[var(--card)] p-5 md:p-8">
+      <div className="flex items-start gap-4">
+        <span aria-hidden="true" className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--blue)] text-sm font-extrabold text-white">
+          {step}
+        </span>
+        <div>
+          <h2 className="text-xl md:text-2xl font-extrabold text-[var(--ink)]">{title}</h2>
+          {note && <p className="mt-1 text-sm text-[var(--mute)]">{note}</p>}
+        </div>
+      </div>
+      <div className="mt-6 grid grid-cols-1 gap-5">{children}</div>
+    </section>
+  );
+}
+
+interface FieldProps {
+  id: string;
+  label: string;
+  hint?: string;
+  optional?: boolean;
+  error?: string;
+  children: ReactNode;
+  className?: string;
+}
+
+function Field({ id, label, hint, optional, error, children, className = '' }: FieldProps) {
+  return (
+    <div className={`min-w-0 ${className}`}>
+      <label htmlFor={id} className="block font-bold text-[var(--ink)]">
+        {label} {optional && <span className="font-medium text-[var(--mute)]">(opsional)</span>}
+      </label>
+      {hint && (
+        <p id={`hint-${id}`} className="mt-1 text-sm text-[var(--mute)]">
+          {hint}
+        </p>
+      )}
+      <div className="mt-2">{children}</div>
+      {error && (
+        <p id={`err-${id}`} role="alert" className="mt-1 text-sm font-semibold text-red-700">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+const describedBy = (id: string, hasHint: boolean, hasError: boolean) =>
+  [hasHint ? `hint-${id}` : '', hasError ? `err-${id}` : ''].filter(Boolean).join(' ') || undefined;
 
 export function TutorApplyPage() {
   const [phase, setPhase] = useState<Phase>('loading');
@@ -26,6 +84,8 @@ export function TutorApplyPage() {
   const [form, setForm] = useState<ApplicationForm>(emptyApplicationForm());
   const [errors, setErrors] = useState<ApplicationErrors>({});
   const [submitError, setSubmitError] = useState('');
+  const [files, setFiles] = useState<Partial<Record<DocumentType, File>>>({});
+  const [fileErrors, setFileErrors] = useState<Partial<Record<DocumentType, string>>>({});
   const sending = useRef(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -50,8 +110,25 @@ export function TutorApplyPage() {
     setErrors((prev) => ({ ...prev, [key]: undefined }));
   }
 
+  /** Periksa satu kolom saat pengguna meninggalkannya, supaya salah isi langsung ketahuan (bukan baru setelah Kirim). */
+  function checkField(key: keyof ApplicationForm, value?: string) {
+    const found = validateApplication({ ...form, [key]: value ?? form[key] });
+    setErrors((prev) => ({ ...prev, [key]: found[key] }));
+  }
+
   function toggle(key: 'subjects' | 'jenjang', value: string) {
     setField(key, form[key].includes(value) ? form[key].filter((v) => v !== value) : [...form[key], value]);
+  }
+
+  function pickFile(type: DocumentType, file: File | undefined) {
+    const problem = file ? validateDocumentFile(file) : null;
+    setFileErrors((prev) => ({ ...prev, [type]: problem ?? undefined }));
+    setFiles((prev) => {
+      const next = { ...prev };
+      if (file && !problem) next[type] = file;
+      else delete next[type];
+      return next;
+    });
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -59,13 +136,19 @@ export function TutorApplyPage() {
     if (sending.current) return;
     const found = validateApplication(form);
     setErrors(found);
-    if (Object.keys(found).length > 0) return;
+    const missing = missingRequiredDocuments(files);
+    const nextFileErrors: Partial<Record<DocumentType, string>> = { ...fileErrors };
+    for (const slot of DOCUMENT_SLOTS) {
+      if (slot.required && !files[slot.type] && !nextFileErrors[slot.type]) nextFileErrors[slot.type] = `${slot.label} wajib diunggah.`;
+    }
+    setFileErrors(nextFileErrors);
+    if (Object.keys(found).length > 0 || missing.length > 0) return;
 
     sending.current = true;
     setSubmitting(true);
     setSubmitError('');
     try {
-      await submitTutorApplication(form);
+      await submitTutorApplication(form, files);
       setPhase('done');
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Pendaftaran belum bisa dikirim.');
@@ -75,12 +158,8 @@ export function TutorApplyPage() {
     }
   }
 
-  const fieldError = (key: keyof ApplicationForm) =>
-    errors[key] ? (
-      <p id={`err-${key}`} role="alert" className="mt-1 text-sm font-semibold text-red-700">
-        {errors[key]}
-      </p>
-    ) : null;
+  const chip = (selected: boolean) =>
+    `px-4 py-2.5 rounded-full border-2 font-bold text-sm transition-colors ${selected ? 'bg-[var(--blue)] border-[var(--blue)] text-white' : 'border-[var(--line)] bg-[var(--bg)] text-[var(--ink)] hover:border-[var(--blue)]'}`;
 
   return (
     <PublicLayout>
@@ -117,8 +196,7 @@ export function TutorApplyPage() {
             <CheckCircle2 className="mx-auto text-[var(--blue)]" size={48} />
             <h1 className="mt-4 text-3xl font-extrabold text-[var(--ink)]">Pendaftaran terkirim.</h1>
             <p className="mt-3 text-[var(--mute)] leading-relaxed">
-              Terima kasih sudah mendaftar jadi Buddy. Admin akan meninjau datamu dan menghubungi lewat WhatsApp untuk langkah selanjutnya,
-              termasuk dokumen yang perlu disiapkan.
+              Admin akan memeriksa data dan dokumenmu, lalu menghubungi lewat WhatsApp. Akun Buddy dibuat setelah dokumenmu lolos pemeriksaan.
             </p>
             <Link to="/" className={`${primaryButton} mt-6`}>
               Kembali ke beranda
@@ -127,86 +205,130 @@ export function TutorApplyPage() {
         )}
 
         {phase === 'form' && (
-          <form onSubmit={handleSubmit} noValidate className="rounded-[2rem] border-2 border-[var(--line)] bg-[var(--card)] p-6 md:p-10 grid gap-6">
+          <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 gap-6">
             <div>
               <h1 className="text-3xl md:text-5xl font-extrabold leading-[1.05] text-[var(--ink)]">Daftar jadi Buddy.</h1>
               <p className="mt-4 text-[var(--mute)] leading-relaxed">
-                Isi data singkat di bawah. Belum perlu unggah dokumen: admin akan menghubungimu setelah datamu ditinjau.
+                Ada empat bagian dan butuh sekitar 5 menit. Siapkan dua dokumen: <strong className="text-[var(--ink)]">transkrip nilai</strong> dan{' '}
+                <strong className="text-[var(--ink)]">KTM</strong>. Dokumen hanya dilihat admin Study Buddy untuk verifikasi.
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-5">
-              <label className="block font-bold text-[var(--ink)]">
-                Nama lengkap
-                <input className={inputClass} value={form.full_name} onChange={(e) => setField('full_name', e.target.value)} autoComplete="name"
-                  aria-invalid={!!errors.full_name} aria-describedby={errors.full_name ? 'err-full_name' : undefined} maxLength={100} />
-                {fieldError('full_name')}
-              </label>
-              <label className="block font-bold text-[var(--ink)]">
-                Nomor WhatsApp
-                <input className={inputClass} inputMode="tel" value={form.whatsapp} onChange={(e) => setField('whatsapp', e.target.value)} placeholder="08xxxxxxxxxx" autoComplete="tel"
-                  aria-invalid={!!errors.whatsapp} aria-describedby={errors.whatsapp ? 'err-whatsapp' : undefined} />
-                {fieldError('whatsapp')}
-              </label>
-              <label className="block font-bold text-[var(--ink)] sm:col-span-2">
-                Email
-                <input className={inputClass} type="email" value={form.email} onChange={(e) => setField('email', e.target.value)} placeholder="nama@email.com" autoComplete="email"
-                  aria-invalid={!!errors.email} aria-describedby={errors.email ? 'err-email' : undefined} maxLength={150} />
-                {fieldError('email')}
-              </label>
-              <label className="block font-bold text-[var(--ink)]">
-                Kampus
-                <input className={inputClass} value={form.university} onChange={(e) => setField('university', e.target.value)} placeholder="ITB"
-                  aria-invalid={!!errors.university} aria-describedby={errors.university ? 'err-university' : undefined} maxLength={100} />
-                {fieldError('university')}
-              </label>
-              <div className="grid grid-cols-3 gap-3">
-                <label className="block font-bold text-[var(--ink)] col-span-2">
-                  Jurusan <span className="font-medium text-[var(--mute)]">(opsional)</span>
-                  <input className={inputClass} value={form.major} onChange={(e) => setField('major', e.target.value)} maxLength={100} />
-                  {fieldError('major')}
-                </label>
-                <label className="block font-bold text-[var(--ink)]">
-                  Semester
-                  <input className={inputClass} inputMode="numeric" value={form.semester} onChange={(e) => setField('semester', e.target.value)} maxLength={2}
-                    aria-invalid={!!errors.semester} aria-describedby={errors.semester ? 'err-semester' : undefined} />
-                  {fieldError('semester')}
-                </label>
+            <Section step={1} title="Data diri" note="Admin menghubungimu lewat nomor dan email ini.">
+              <Field id="full_name" label="Nama lengkap" hint="Tulis sesuai KTM supaya cocok dengan dokumenmu." error={errors.full_name}>
+                <input id="full_name" className={inputClass} value={form.full_name} onChange={(e) => setField('full_name', e.target.value)} onBlur={() => checkField('full_name')}
+                  placeholder="Alya Rahma Putri" autoComplete="name" maxLength={100}
+                  aria-invalid={!!errors.full_name} aria-describedby={describedBy('full_name', true, !!errors.full_name)} />
+              </Field>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <Field id="whatsapp" label="Nomor WhatsApp" hint="Nomor aktif. Awalan 08 atau +62 sama saja." error={errors.whatsapp}>
+                  <input id="whatsapp" className={inputClass} inputMode="tel" value={form.whatsapp} onChange={(e) => setField('whatsapp', e.target.value)} onBlur={() => checkField('whatsapp')}
+                    placeholder="0812 3456 7890" autoComplete="tel"
+                    aria-invalid={!!errors.whatsapp} aria-describedby={describedBy('whatsapp', true, !!errors.whatsapp)} />
+                </Field>
+                <Field id="email" label="Email" hint="Dipakai untuk akun Buddy-mu." error={errors.email}>
+                  <input id="email" className={inputClass} type="email" value={form.email} onChange={(e) => setField('email', e.target.value)} onBlur={() => checkField('email')}
+                    placeholder="alya.rahma@gmail.com" autoComplete="email" maxLength={150}
+                    aria-invalid={!!errors.email} aria-describedby={describedBy('email', true, !!errors.email)} />
+                </Field>
               </div>
-            </div>
+            </Section>
 
-            <fieldset>
-              <legend className="font-bold text-[var(--ink)]">Mata pelajaran yang diajar</legend>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {SUBJECT_OPTIONS.map((o) => (
-                  <button key={o.value} type="button" aria-pressed={form.subjects.includes(o.value)} onClick={() => toggle('subjects', o.value)}
-                    className={`px-4 py-2 rounded-full border-2 font-bold text-sm transition-colors ${form.subjects.includes(o.value) ? 'bg-[var(--blue)] border-[var(--blue)] text-white' : 'border-[var(--line)] text-[var(--ink)] hover:border-[var(--blue)]'}`}>
-                    {o.label}
-                  </button>
-                ))}
+            <Section step={2} title="Kampus" note="Dicocokkan dengan transkrip dan KTM yang kamu unggah.">
+              <Field id="university" label="Nama kampus" hint="Ketik beberapa huruf lalu pilih dari daftar. Kalau kampusmu tidak ada, tulis sendiri." error={errors.university}>
+                <CampusCombobox
+                  id="university"
+                  value={form.university}
+                  onChange={(v) => setField('university', v)}
+                  onCommit={(v) => checkField('university', v)}
+                  inputClassName={inputClass}
+                  invalid={!!errors.university}
+                  describedBy={describedBy('university', true, !!errors.university)}
+                />
+              </Field>
+              <div className="grid gap-5 sm:grid-cols-[1fr_9rem]">
+                <Field id="major" label="Jurusan" optional error={errors.major}>
+                  <input id="major" className={inputClass} value={form.major} onChange={(e) => setField('major', e.target.value)} placeholder="Teknik Fisika" maxLength={100}
+                    aria-invalid={!!errors.major} aria-describedby={describedBy('major', false, !!errors.major)} />
+                </Field>
+                <Field id="semester" label="Semester" optional hint="Angka 1–14." error={errors.semester}>
+                  <input id="semester" className={inputClass} inputMode="numeric" value={form.semester} onChange={(e) => setField('semester', e.target.value.replace(/\D/g, ''))} onBlur={() => checkField('semester')} placeholder="5" maxLength={2}
+                    aria-invalid={!!errors.semester} aria-describedby={describedBy('semester', true, !!errors.semester)} />
+                </Field>
               </div>
-              {fieldError('subjects')}
-            </fieldset>
+            </Section>
 
-            <fieldset>
-              <legend className="font-bold text-[var(--ink)]">Jenjang yang diajar</legend>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {JENJANG_OPTIONS.map((o) => (
-                  <button key={o.value} type="button" aria-pressed={form.jenjang.includes(o.value)} onClick={() => toggle('jenjang', o.value)}
-                    className={`px-4 py-2 rounded-full border-2 font-bold text-sm transition-colors ${form.jenjang.includes(o.value) ? 'bg-[var(--blue)] border-[var(--blue)] text-white' : 'border-[var(--line)] text-[var(--ink)] hover:border-[var(--blue)]'}`}>
-                    {o.label}
-                  </button>
-                ))}
-              </div>
-              {fieldError('jenjang')}
-            </fieldset>
+            <Section step={3} title="Yang ingin kamu ajarkan" note="Pilih yang kamu kuasai. Boleh lebih dari satu. Contoh: Matematika dan Fisika untuk SMA.">
+              <fieldset>
+                <legend className="font-bold text-[var(--ink)]">Mata pelajaran</legend>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {SUBJECT_OPTIONS.map((o) => (
+                    <button key={o.value} type="button" aria-pressed={form.subjects.includes(o.value)} onClick={() => toggle('subjects', o.value)} className={chip(form.subjects.includes(o.value))}>
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+                {errors.subjects && <p role="alert" className="mt-2 text-sm font-semibold text-red-700">{errors.subjects}</p>}
+              </fieldset>
+              <fieldset>
+                <legend className="font-bold text-[var(--ink)]">Jenjang murid</legend>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {JENJANG_OPTIONS.map((o) => (
+                    <button key={o.value} type="button" aria-pressed={form.jenjang.includes(o.value)} onClick={() => toggle('jenjang', o.value)} className={chip(form.jenjang.includes(o.value))}>
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+                {errors.jenjang && <p role="alert" className="mt-2 text-sm font-semibold text-red-700">{errors.jenjang}</p>}
+              </fieldset>
+              <Field id="experience" label="Pengalaman mengajar" optional hint="Ceritakan singkat: berapa lama, jenjang apa, atau prestasi yang relevan." error={errors.experience}>
+                <textarea id="experience" className={`${inputClass} resize-none`} rows={4} value={form.experience} onChange={(e) => setField('experience', e.target.value)} onBlur={() => checkField('experience')} maxLength={1000}
+                  placeholder="Contoh: Privat Matematika SMA selama 2 tahun (sekitar 5 murid), asisten praktikum Fisika Dasar, juara 2 OSN tingkat kabupaten."
+                  aria-invalid={!!errors.experience} aria-describedby={describedBy('experience', true, !!errors.experience)} />
+              </Field>
+            </Section>
 
-            <label className="block font-bold text-[var(--ink)]">
-              Pengalaman mengajar <span className="font-medium text-[var(--mute)]">(opsional)</span>
-              <textarea className={`${inputClass} resize-none`} rows={3} value={form.experience} onChange={(e) => setField('experience', e.target.value)} maxLength={1000}
-                placeholder="Mis. privat 2 tahun, asisten praktikum, juara olimpiade" />
-              {fieldError('experience')}
-            </label>
+            <Section step={4} title="Dokumen" note="JPG, PNG, atau PDF, maksimal 3 MB per berkas.">
+              {DOCUMENT_SLOTS.map((slot) => {
+                const file = files[slot.type];
+                const error = fileErrors[slot.type];
+                const id = `doc-${slot.type}`;
+                return (
+                  <div key={slot.type} className="min-w-0">
+                    <p className="font-bold text-[var(--ink)]">
+                      {slot.label}{' '}
+                      <span className={`text-sm font-semibold ${slot.required ? 'text-[var(--blue)]' : 'font-medium text-[var(--mute)]'}`}>
+                        {slot.required ? '(wajib)' : '(opsional)'}
+                      </span>
+                    </p>
+                    <p id={`hint-${id}`} className="mt-1 text-sm text-[var(--mute)]">{slot.hint}</p>
+                    <label
+                      htmlFor={id}
+                      className={`mt-2 flex cursor-pointer items-center gap-3 rounded-2xl border-2 border-dashed px-4 py-4 transition-colors focus-within:border-[var(--blue)] hover:border-[var(--blue)] ${error ? 'border-red-400 bg-red-50' : file ? 'border-[var(--blue)] bg-[var(--hov)]' : 'border-[var(--line)] bg-[var(--bg)]'}`}
+                    >
+                      <FileText size={22} className={file ? 'text-[var(--blue)]' : 'text-[var(--mute)]'} aria-hidden="true" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-bold text-[var(--ink)]">{file ? file.name : 'Pilih berkas'}</span>
+                        <span className="block text-sm text-[var(--mute)]">{file ? formatSize(file.size) : 'Ketuk untuk memilih dari perangkatmu'}</span>
+                      </span>
+                      <span className="shrink-0 rounded-xl bg-[var(--card)] border-2 border-[var(--line)] px-3 py-1.5 text-sm font-bold text-[var(--blue)]">
+                        {file ? 'Ganti' : 'Pilih'}
+                      </span>
+                      <input
+                        id={id}
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                        onChange={(e) => pickFile(slot.type, e.target.files?.[0])}
+                        aria-invalid={!!error}
+                        aria-describedby={describedBy(id, true, !!error)}
+                        className="sr-only"
+                      />
+                    </label>
+                    {error && <p id={`err-${id}`} role="alert" className="mt-1 text-sm font-semibold text-red-700">{error}</p>}
+                  </div>
+                );
+              })}
+            </Section>
 
             {submitError && (
               <p role="alert" className="rounded-2xl border-2 border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
@@ -214,9 +336,12 @@ export function TutorApplyPage() {
               </p>
             )}
 
-            <button type="submit" disabled={submitting} className={`${primaryButton} justify-self-start`}>
-              {submitting ? 'Mengirim...' : 'Kirim pendaftaran'}
-            </button>
+            <div className="flex flex-wrap items-center gap-4">
+              <button type="submit" disabled={submitting} className={primaryButton}>
+                {submitting ? 'Mengirim dan mengunggah...' : 'Kirim pendaftaran'}
+              </button>
+              <p className="text-sm text-[var(--mute)]">Setelah dikirim, admin menghubungimu lewat WhatsApp.</p>
+            </div>
           </form>
         )}
       </main>

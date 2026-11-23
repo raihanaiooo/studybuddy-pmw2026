@@ -4,7 +4,7 @@
 // fungsi ini yang memegangnya via Deno.env.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { buildTutorRow, resolveVerificationStatus } from './tutorRow.ts';
+import { buildDocumentCopies, buildTutorRow, resolveVerificationStatus } from './tutorRow.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -77,6 +77,7 @@ Deno.serve(async (req) => {
     const bio = typeof body.bio === 'string' ? body.bio.trim() : null;
     const pricePerHour = Number(body.price_per_hour);
     const verificationStatus = resolveVerificationStatus(body.verification_status);
+    const applicationId = typeof body.application_id === 'string' ? body.application_id : null;
     const subjects = Array.isArray(body.subjects)
       ? (body.subjects as unknown[]).filter((s) => typeof s === 'string')
       : [];
@@ -132,12 +133,39 @@ Deno.serve(async (req) => {
       }
     }
 
-    const { error: insertErr } = await supabase
+    const { data: tutorRow, error: insertErr } = await supabase
       .from('tutors')
-      .insert(buildTutorRow(userRow.id, { fullName, university, bio, pricePerHour, subjects, jenjangDiajar }, verificationStatus));
-    if (insertErr) {
+      .insert(buildTutorRow(userRow.id, { fullName, university, bio, pricePerHour, subjects, jenjangDiajar }, verificationStatus))
+      .select('id')
+      .single();
+    if (insertErr || !tutorRow) {
       await supabase.auth.admin.deleteUser(newUser.user.id);
-      return json(400, { error: 'Gagal membuat profil tutor: ' + insertErr.message });
+      return json(400, { error: 'Gagal membuat profil tutor: ' + (insertErr?.message ?? 'tidak diketahui') });
+    }
+
+    // Dokumen pelamar (sudah diperiksa admin) dipindahkan ke dokumen tutor. Bila gagal, semuanya dibatalkan.
+    if (applicationId) {
+      const { data: app } = await supabase.from('tutor_applications').select('documents').eq('id', applicationId).maybeSingle();
+      const copies = buildDocumentCopies(tutorRow.id, app?.documents, new Date().toISOString());
+      const copied: string[] = [];
+      let failure: string | null = null;
+      for (const c of copies) {
+        const { data: blob, error: dlErr } = await supabase.storage.from('tutor-applications').download(c.from);
+        if (dlErr || !blob) { failure = 'Dokumen pelamar tidak terbaca: ' + c.from; break; }
+        const { error: upErr } = await supabase.storage.from('documents').upload(c.to, blob, { contentType: c.contentType, upsert: true });
+        if (upErr) { failure = 'Gagal memindahkan dokumen: ' + upErr.message; break; }
+        copied.push(c.to);
+      }
+      if (!failure && copies.length > 0) {
+        const { error: rowsErr } = await supabase.from('tutor_documents').insert(copies.map((c) => c.row));
+        if (rowsErr) failure = 'Gagal menyimpan data dokumen: ' + rowsErr.message;
+      }
+      if (failure) {
+        if (copied.length > 0) await supabase.storage.from('documents').remove(copied);
+        await supabase.from('tutors').delete().eq('id', tutorRow.id);
+        await supabase.auth.admin.deleteUser(newUser.user.id);
+        return json(400, { error: failure + '; akun dibatalkan' });
+      }
     }
 
     return json(200, { ok: true, user_id: userRow.id });
