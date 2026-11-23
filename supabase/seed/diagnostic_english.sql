@@ -1,6 +1,7 @@
 -- Seed: 24 soal English orisinal (6 per level A1-B2) + aturan level -> paket.
 -- Semua soal ditulis sendiri oleh tim; acuan tingkat kesulitan: deskriptor CEFR Companion Volume (Council of Europe).
--- Soal masuk NONAKTIF. Aktifkan hanya setelah tutor English meninjau kunci dan tingkat kesulitan:
+-- Soal masuk NONAKTIF. Peninjauan: docs/superpowers/reviews/2026-11-23-diagnostic-english-soal-review.md
+-- (ditinjau model AI, belum oleh manusia). Aktifkan setelah tim menerima hasil tinjauan itu:
 --   update diagnostic_questions set is_active = true where test_code = 'english';
 -- Aman dijalankan ulang (on conflict do nothing).
 
