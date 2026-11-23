@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { CheckCircle2, FileText, Loader2 } from 'lucide-react';
 import { PublicLayout } from '../components/layout/PublicLayout';
 import { fetchLatestOprec, submitTutorApplication } from '../lib/api/tutorApplications';
-import { CAMPUS_SUGGESTIONS } from '../lib/campuses';
+import { CampusCombobox } from '../components/ui/CampusCombobox';
 import { DOCUMENT_SLOTS, missingRequiredDocuments, validateDocumentFile } from '../lib/applicationDocuments';
 import {
   emptyApplicationForm,
@@ -230,14 +230,14 @@ export function TutorApplyPage() {
 
             <Section step={2} title="Kampus" note="Dicocokkan dengan transkrip dan KTM yang kamu unggah.">
               <Field id="university" label="Nama kampus" hint="Ketik beberapa huruf lalu pilih dari daftar. Kalau kampusmu tidak ada, tulis sendiri." error={errors.university}>
-                <input id="university" className={inputClass} list="daftar-kampus" value={form.university} onChange={(e) => setField('university', e.target.value)}
-                  placeholder="Institut Teknologi Bandung (ITB)" maxLength={100}
-                  aria-invalid={!!errors.university} aria-describedby={describedBy('university', true, !!errors.university)} />
-                <datalist id="daftar-kampus">
-                  {CAMPUS_SUGGESTIONS.map((c) => (
-                    <option key={c} value={c} />
-                  ))}
-                </datalist>
+                <CampusCombobox
+                  id="university"
+                  value={form.university}
+                  onChange={(v) => setField('university', v)}
+                  inputClassName={inputClass}
+                  invalid={!!errors.university}
+                  describedBy={describedBy('university', true, !!errors.university)}
+                />
               </Field>
               <div className="grid gap-5 sm:grid-cols-[1fr_9rem]">
                 <Field id="major" label="Jurusan" optional error={errors.major}>

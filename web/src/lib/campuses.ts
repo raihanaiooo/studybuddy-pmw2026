@@ -116,3 +116,17 @@ export const CAMPUS_SUGGESTIONS: readonly string[] = [
   'STMIK LIKMI',
   'Sekolah Tinggi Ilmu Ekonomi Indonesia',
 ];
+
+/** Kampus yang cocok dengan ketikan (nama atau singkatan); yang diawali ketikan didahulukan. */
+export function filterCampuses(query: string, limit = 8): string[] {
+  const q = query.trim().toLowerCase();
+  if (q === '') return CAMPUS_SUGGESTIONS.slice(0, limit);
+  const diawali: string[] = [];
+  const memuat: string[] = [];
+  for (const campus of CAMPUS_SUGGESTIONS) {
+    const name = campus.toLowerCase();
+    if (name.startsWith(q)) diawali.push(campus);
+    else if (name.includes(q)) memuat.push(campus);
+  }
+  return [...diawali, ...memuat].slice(0, limit);
+}
