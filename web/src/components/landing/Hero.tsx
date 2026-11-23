@@ -1,13 +1,42 @@
+import { useEffect, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
 export function Hero({ previewData }: { previewData?: any }) {
-  // Ambil data dari props (preview), kalau kosong pakai default
-  const data = previewData || {
+  const [dbHero, setDbHero] = useState<any>(null);
+
+  useEffect(() => {
+    // Mode preview CMS memakai data langsung dari props; selain itu ambil dari Manajemen Konten
+    if (previewData) return;
+    let active = true;
+    supabase
+      .from('landing_hero')
+      .select('headline, subheadline, hero_image_url, sticker_1_text, sticker_2_text')
+      .limit(1)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (active && !error && data) setDbHero(data);
+      });
+    return () => {
+      active = false;
+    };
+  }, [previewData]);
+
+  // Urutan prioritas: preview CMS, data dari database, lalu teks bawaan. Kolom kosong jatuh ke bawaan.
+  const fallback = {
     headline: 'Belajar sama kakak kampus yang benar-benar paham.',
     subheadline: 'Pilih tutor privat dari UI, ITB, UGM dan kampus top lainnya. Cocok dengan mapel, jenjang, dan budget kamu — bukan sekadar yang kosong jadwalnya.',
     sticker_1_text: '🎯 Cocok 98%',
     sticker_2_text: 'Trial dulu, gratis!',
     hero_image_url: ''
+  };
+  const source = previewData || dbHero || {};
+  const data = {
+    headline: source.headline || fallback.headline,
+    subheadline: source.subheadline || fallback.subheadline,
+    sticker_1_text: source.sticker_1_text || fallback.sticker_1_text,
+    sticker_2_text: source.sticker_2_text || fallback.sticker_2_text,
+    hero_image_url: source.hero_image_url || fallback.hero_image_url,
   };
 
   return (

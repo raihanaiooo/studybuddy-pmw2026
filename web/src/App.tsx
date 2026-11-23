@@ -26,6 +26,8 @@ import { LandingPreviewPage } from './pages/LandingPagePreview';
 import { DiagnosticTestPage } from './pages/DiagnosticTestPage';
 import { DiagnosticAdminPage } from './pages/DiagnosticAdminPage';
 import { UtbkTestPage } from './pages/UtbkTestPage';
+import { TutorApplyPage } from './pages/TutorApplyPage';
+import { TutorApplicationsPage } from './pages/tutor/TutorApplicationsPage';
 import { GlobalUIManager } from './components/ui/GlobalUiManager';
 
 function App() {
@@ -39,6 +41,7 @@ function App() {
         <Route path="/preview" element={<LandingPreviewPage />} /> {/* <--- Pindah ke sini */}
         <Route path="/tes-english" element={<DiagnosticTestPage />} />
         <Route path="/tes-utbk" element={<UtbkTestPage />} />
+        <Route path="/daftar-tutor" element={<TutorApplyPage />} />
         <Route path="/login" element={<LoginPage />} />
 
         {/* ADMIN ROUTES (Pakai Sidebar Admin) */}
@@ -52,6 +55,7 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/tutors" element={<TutorListPage />} />
           <Route path="/tutors/:id" element={<TutorDetailPage />} />
+          <Route path="/tutor-applications" element={<TutorApplicationsPage />} />
           <Route path="/performance" element={<PerformancePage />} />
           <Route path="/bookings" element={<BookingListPage />} />
           <Route path="/bookings/:id" element={<BookingDetailPage />} />

@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { Link } from 'react-router-dom';
 import { resolveOprecLink } from '../../lib/oprec';
+import { oprecState } from '../../lib/tutorApplication';
 
 const defaultOprec = {
   title: 'Mahasiswa? Jadi Buddy, dibayar buat berbagi ilmu.',
@@ -23,6 +25,7 @@ export function Oprec({ previewData }: { previewData?: any }) {
         const { data } = await supabase
           .from('oprec_info')
           .select('*')
+          .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
         if (data) setDbData(data);
@@ -39,6 +42,8 @@ export function Oprec({ previewData }: { previewData?: any }) {
 
   const ctaLink = resolveOprecLink(data.cta_link); // Kosong, '#', atau '#order' -> WhatsApp admin
   const benefits = Array.isArray(data.benefits) ? data.benefits : [];
+  const state = previewData ? { open: true } : oprecState(data, new Date()); // jadwal oprec dari Manajemen Konten
+  const isInternal = ctaLink.startsWith('/');
 
   return (
     <section id="oprec" className="max-w-6xl mx-auto px-5 py-20 md:py-28">
@@ -56,14 +61,25 @@ export function Oprec({ previewData }: { previewData?: any }) {
             ))}
           </ul>
 
-          <a
-            href={ctaLink}
-            target={ctaLink.startsWith('http') ? '_blank' : '_self'}
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 mt-8 font-extrabold rounded-2xl py-3 px-6 bg-[#1A1F3C] text-white shadow-[0_5px_0_#000] hover:-translate-y-0.5 hover:shadow-[0_7px_0_#000] active:translate-y-1 active:shadow-none transition-all"
-          >
-            {data.cta_label} <ArrowRight size={18} />
-          </a>
+          {!state.open ? (
+            <p className="mt-8 inline-block rounded-2xl bg-[#1A1F3C] text-white font-bold px-5 py-3">{state.message}</p>
+          ) : isInternal ? (
+            <Link
+              to={ctaLink}
+              className="inline-flex items-center justify-center gap-2 mt-8 font-extrabold rounded-2xl py-3 px-6 bg-[#1A1F3C] text-white shadow-[0_5px_0_#000] hover:-translate-y-0.5 hover:shadow-[0_7px_0_#000] active:translate-y-1 active:shadow-none transition-all"
+            >
+              {data.cta_label} <ArrowRight size={18} />
+            </Link>
+          ) : (
+            <a
+              href={ctaLink}
+              target={ctaLink.startsWith('http') ? '_blank' : '_self'}
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 mt-8 font-extrabold rounded-2xl py-3 px-6 bg-[#1A1F3C] text-white shadow-[0_5px_0_#000] hover:-translate-y-0.5 hover:shadow-[0_7px_0_#000] active:translate-y-1 active:shadow-none transition-all"
+            >
+              {data.cta_label} <ArrowRight size={18} />
+            </a>
+          )}
         </div>
       </div>
     </section>

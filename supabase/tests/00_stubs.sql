@@ -67,3 +67,12 @@ create table public.reviews (
   rating      int,
   comment     text
 );
+
+create table public.oprec_info (
+  id         uuid primary key default gen_random_uuid(),
+  title      text,
+  is_active  boolean not null default true,
+  start_date date,
+  end_date   date,
+  created_at timestamptz default now()
+);
