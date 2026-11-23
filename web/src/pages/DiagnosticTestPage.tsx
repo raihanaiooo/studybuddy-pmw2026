@@ -3,6 +3,7 @@ import { Loader2 } from 'lucide-react';
 import { PublicLayout } from '../components/layout/PublicLayout';
 import { ProgressBar } from '../components/diagnostic/ProgressBar';
 import { QuestionCard } from '../components/diagnostic/QuestionCard';
+import { ResultCard } from '../components/diagnostic/ResultCard';
 import { useDiagnosticTest } from '../hooks/useDiagnosticTest';
 import { answeredCount, isComplete } from '../lib/diagnostic/progress';
 
@@ -112,15 +113,7 @@ export function DiagnosticTestPage() {
           </div>
         )}
 
-        {status === 'done' && test.result && (
-          <div className="rounded-[2rem] border-2 border-[var(--line)] bg-[var(--card)] p-8 md:p-10 text-center">
-            <p className="text-sm font-bold text-[var(--mute)]">Level kamu</p>
-            <h1 className="mt-2 text-5xl font-extrabold text-[var(--blue)]">{test.result.level.replace('_', '-')}</h1>
-            <p className="mt-3 text-[var(--mute)]">
-              Skor {test.result.score} dari {test.result.total}
-            </p>
-          </div>
-        )}
+        {status === 'done' && test.result && <ResultCard result={test.result} onRestart={test.restart} />}
       </main>
     </PublicLayout>
   );

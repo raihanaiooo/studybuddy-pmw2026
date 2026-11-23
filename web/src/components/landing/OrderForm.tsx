@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { CheckCircle2, MessageCircle } from 'lucide-react';
+import { parseOrderParams } from '../../lib/diagnostic/order';
 
 export function OrderForm() {
   const [loading, setLoading] = useState(false);
+  // Parameter dari hasil tes diagnostic (kosong bila order dibuka biasa).
+  const [fromTest] = useState(() => parseOrderParams(window.location.search));
   const [successData, setSuccessData] = useState<{ nama: string; wa: string; mapel: string; jenjang: string } | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -18,6 +21,9 @@ export function OrderForm() {
       subject: data.mapel,
       jenjang: data.jenjang,
       status: 'pending',
+      // Hanya dikirim bila ada, agar order biasa tidak bergantung pada kolom baru.
+      ...(fromTest.attemptId && { diagnostic_attempt_id: fromTest.attemptId }),
+      ...(fromTest.packageId && { package_id: fromTest.packageId }),
     });
 
     setLoading(false);
@@ -64,7 +70,7 @@ export function OrderForm() {
               <input required name="wa" inputMode="tel" className="w-full mt-2 bg-[var(--card)] border-2 border-[var(--line)] rounded-2xl px-4 py-3 font-semibold text-[var(--ink)] outline-none focus:border-[var(--blue)] transition-colors" placeholder="08xxxxxxxxxx" />
             </label>
             <label className="font-bold text-sm text-[var(--ink)]">Mapel
-              <select name="mapel" className="w-full mt-2 bg-[var(--card)] border-2 border-[var(--line)] rounded-2xl px-4 py-3 font-semibold text-[var(--ink)] outline-none focus:border-[var(--blue)] transition-colors">
+              <select name="mapel" defaultValue={fromTest.subject} className="w-full mt-2 bg-[var(--card)] border-2 border-[var(--line)] rounded-2xl px-4 py-3 font-semibold text-[var(--ink)] outline-none focus:border-[var(--blue)] transition-colors">
                 <option>Matematika</option><option>Fisika</option><option>Kimia</option><option>Biologi</option><option>Bahasa Inggris</option><option>Lainnya</option>
               </select>
             </label>
