@@ -193,6 +193,7 @@ export function TutorApplicationsPage() {
         <AddTutorModal
           key={accepting.id}
           isOpen
+          verificationStatus="pending"
           initial={{
             full_name: accepting.full_name,
             email: accepting.email,

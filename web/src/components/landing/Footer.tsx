@@ -12,7 +12,7 @@ export function Footer() {
           <a className="block transition hover:opacity-70" href="#testimoni">Testimoni</a>
         </div>
         <div className="md:col-span-3 font-semibold space-y-2 text-[#9AA3BD]">
-          <p>admin@studybuddy.id</p><p>WhatsApp: 0899-9303-251</p><p>Senin–Sabtu, 08.00–20.00</p>
+          <p>friendlystudybuddy@gmail.com</p><p>WhatsApp: 0899-9303-251</p><p>Senin–Sabtu, 08.00–20.00</p>
         </div>
       </div>
       <p className="text-center text-sm pb-8 text-[#9AA3BD]">© 2026 Study Buddy.</p>

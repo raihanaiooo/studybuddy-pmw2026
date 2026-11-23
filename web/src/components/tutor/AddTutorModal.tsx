@@ -7,13 +7,15 @@ interface Props {
   onClose: () => void;
   onSuccess: () => void;
   /** Data awal (mis. dari pelamar). Pasang `key` berbeda agar formulir diisi ulang. */
+  /** 'pending' untuk pelamar (dokumen diverifikasi dulu); bawaan 'verified' untuk tambah manual. */
+  verificationStatus?: 'pending' | 'verified';
   initial?: Partial<{ full_name: string; email: string; phone: string; university: string; bio: string; subjects: string[]; jenjang_diajar: string[] }>;
 }
 
 const SUBJECTS = ['mtk', 'fis', 'kim', 'bio', 'ing'];
 const JENJANG = ['sd', 'smp', 'sma', 'kuliah'];
 
-export function AddTutorModal({ isOpen, onClose, onSuccess, initial }: Props) {
+export function AddTutorModal({ isOpen, onClose, onSuccess, initial, verificationStatus }: Props) {
   const [form, setForm] = useState({
     full_name: initial?.full_name ?? '',
     email: initial?.email ?? '',
@@ -58,6 +60,7 @@ export function AddTutorModal({ isOpen, onClose, onSuccess, initial }: Props) {
         price_per_hour: Number(form.price_per_hour),
         subjects: form.subjects,
         jenjang_diajar: form.jenjang_diajar,
+        ...(verificationStatus && { verification_status: verificationStatus }),
       },
     });
 

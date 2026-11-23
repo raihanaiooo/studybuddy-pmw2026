@@ -57,7 +57,9 @@ create table public.manual_orders (
   whatsapp text,
   subject  text,
   jenjang  text,
-  status   text default 'pending'
+  notes    text,
+  status   text default 'pending',
+  created_at timestamptz default now()
 );
 
 create table public.reviews (

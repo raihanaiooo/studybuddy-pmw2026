@@ -1,40 +1,57 @@
-import { useState } from 'react';
-import { supabase } from '../../lib/supabase';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { submitOrder } from '../../lib/api/orders';
+import { validateOrder } from '../../lib/orderForm';
 import { CheckCircle2, MessageCircle } from 'lucide-react';
 import { parseOrderParams, UTBK_SUBJECT } from '../../lib/diagnostic/order';
 import { buildAdminWaUrl } from '../../lib/whatsapp';
 
 export function OrderForm() {
   const [loading, setLoading] = useState(false);
-  // Parameter dari hasil tes diagnostic (kosong bila order dibuka biasa).
-  const [fromTest] = useState(() => parseOrderParams(window.location.search));
-  const [successData, setSuccessData] = useState<{ nama: string; wa: string; mapel: string; jenjang: string } | null>(null);
+  const [error, setError] = useState('');
+  const sending = useRef(false);
+  const location = useLocation();
+  // Parameter dari hasil tes diagnostic atau kartu tutor (kosong bila order dibuka biasa).
+  const fromTest = useMemo(() => parseOrderParams(location.search), [location.search]);
+  const [successData, setSuccessData] = useState<{ nama: string; wa: string; mapel: string; jenjang: string; tutor?: string } | null>(null);
+
+  // Tautan seperti /?tutor=...#order dari dalam halaman yang sama tidak menggulir otomatis.
+  useEffect(() => {
+    if (location.hash === '#order') document.getElementById('order')?.scrollIntoView({ behavior: 'smooth' });
+  }, [location.hash, location.search]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setLoading(true);
+    if (sending.current) return;
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries()) as Record<string, string>;
-
-    const { error } = await supabase.from('manual_orders').insert({
-      name: data.nama,
-      whatsapp: data.wa,
-      subject: data.mapel,
-      jenjang: data.jenjang,
-      status: 'pending',
-      // Hanya dikirim bila ada, agar order biasa tidak bergantung pada kolom baru.
-      ...(fromTest.attemptId && { diagnostic_attempt_id: fromTest.attemptId }),
-      ...(fromTest.packageId && { package_id: fromTest.packageId }),
-    });
-
-    setLoading(false);
-
-    if (error) {
-      await (window.alert as any)('Gagal mengirim orderan: ' + error.message);
+    const input = {
+      nama: data.nama ?? '',
+      wa: data.wa ?? '',
+      mapel: data.mapel ?? '',
+      jenjang: data.jenjang ?? '',
+      attemptId: fromTest.attemptId,
+      packageId: fromTest.packageId,
+      tutor: fromTest.tutor,
+    };
+    const found = validateOrder(input);
+    if (Object.keys(found).length > 0) {
+      setError(Object.values(found)[0] ?? 'Periksa lagi isianmu.');
       return;
     }
 
-    setSuccessData({ nama: data.nama, wa: data.wa, mapel: data.mapel, jenjang: data.jenjang });
+    sending.current = true;
+    setLoading(true);
+    setError('');
+    try {
+      await submitOrder(input);
+      setSuccessData({ nama: input.nama.trim(), wa: input.wa.trim(), mapel: input.mapel, jenjang: input.jenjang, tutor: fromTest.tutor });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Orderan belum bisa dikirim.');
+    } finally {
+      sending.current = false;
+      setLoading(false);
+    }
   }
 
   function handleWA() {
@@ -79,6 +96,15 @@ export function OrderForm() {
                 <option>SD</option><option>SMP</option><option>SMA</option><option>Kuliah</option>
               </select>
             </label>
+
+            {fromTest.tutor && (
+              <p className="sm:col-span-2 rounded-2xl bg-[var(--card)] border-2 border-[var(--line)] px-4 py-3 text-sm font-bold text-[var(--ink)]">
+                Tutor pilihan: {fromTest.tutor}
+              </p>
+            )}
+            {error && (
+              <p role="alert" className="sm:col-span-2 rounded-2xl border-2 border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</p>
+            )}
 
             <div className="sm:col-span-2 flex flex-wrap items-center gap-4 mt-2">
               <button
