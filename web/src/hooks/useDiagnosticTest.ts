@@ -1,17 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchQuestions, submitAttempt } from '../lib/api/diagnostic';
+import { fetchQuestions } from '../lib/api/diagnostic';
 import { clearDraft, loadDraft, saveDraft } from '../lib/diagnostic/session';
 import { firstUnansweredIndex, isComplete, pruneAnswers } from '../lib/diagnostic/progress';
-import type { DiagnosticQuestion, DiagnosticResult } from '../types/diagnostic';
+import type { DiagnosticQuestion } from '../types/diagnostic';
 
 export type DiagnosticStatus = 'loading' | 'intro' | 'in_progress' | 'submitting' | 'done' | 'error';
 
-export function useDiagnosticTest(testCode: string) {
+/**
+ * Alur tes bersama English dan UTBK. `submitFn` mengirim jawaban ke RPC tes yang sesuai dan
+ * mengembalikan hasilnya (bentuk hasil berbeda per tes, jadi tipenya generik).
+ */
+export function useDiagnosticTest<R>(
+  testCode: string,
+  submitFn: (answers: Record<string, number>) => Promise<R>
+) {
   const [status, setStatus] = useState<DiagnosticStatus>('loading');
   const [questions, setQuestions] = useState<DiagnosticQuestion[]>([]);
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
-  const [result, setResult] = useState<DiagnosticResult | null>(null);
+  const [result, setResult] = useState<R | null>(null);
   const [error, setError] = useState<string | null>(null);
   const submittingRef = useRef(false);
 
@@ -26,7 +33,7 @@ export function useDiagnosticTest(testCode: string) {
           return;
         }
         // Pulihkan draft (mis. setelah refresh di tengah tes).
-        const draft = pruneAnswers(loaded, loadDraft());
+        const draft = pruneAnswers(loaded, loadDraft(testCode));
         const hasDraft = Object.keys(draft).length > 0;
         setQuestions(loaded);
         setAnswers(draft);
@@ -48,10 +55,10 @@ export function useDiagnosticTest(testCode: string) {
   const answer = useCallback((questionId: string, optionIndex: number) => {
     setAnswers((prev) => {
       const next = { ...prev, [questionId]: optionIndex };
-      saveDraft(next);
+      saveDraft(testCode, next);
       return next;
     });
-  }, []);
+  }, [testCode]);
 
   const next = useCallback(() => setIndex((i) => Math.min(i + 1, questions.length - 1)), [questions.length]);
   const prev = useCallback(() => setIndex((i) => Math.max(i - 1, 0)), []);
@@ -62,8 +69,8 @@ export function useDiagnosticTest(testCode: string) {
     setError(null);
     setStatus('submitting');
     try {
-      const res = await submitAttempt(testCode, answers);
-      clearDraft();
+      const res = await submitFn(answers);
+      clearDraft(testCode);
       setResult(res);
       setStatus('done');
     } catch (e) {
@@ -72,16 +79,16 @@ export function useDiagnosticTest(testCode: string) {
     } finally {
       submittingRef.current = false;
     }
-  }, [questions, answers, testCode]);
+  }, [questions, answers, testCode, submitFn]);
 
   const restart = useCallback(() => {
-    clearDraft();
+    clearDraft(testCode);
     setAnswers({});
     setIndex(0);
     setResult(null);
     setError(null);
     setStatus('intro');
-  }, []);
+  }, [testCode]);
 
   return { status, questions, index, answers, result, error, start, answer, next, prev, submit, restart };
 }

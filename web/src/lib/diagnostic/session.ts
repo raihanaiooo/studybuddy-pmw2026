@@ -1,5 +1,5 @@
 const SESSION_KEY = 'sb_diag_session';
-const DRAFT_KEY = 'sb_diag_draft';
+const draftKey = (testCode: string) => `sb_diag_draft_${testCode}`;
 
 let memorySessionId: string | null = null;
 
@@ -33,17 +33,17 @@ export function getClientSessionId(): string {
 
 export type Draft = Record<string, number>;
 
-export function saveDraft(answers: Draft): void {
+export function saveDraft(testCode: string, answers: Draft): void {
   try {
-    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(answers));
+    sessionStorage.setItem(draftKey(testCode), JSON.stringify(answers));
   } catch {
     // storage diblokir: draft tidak tersimpan, tes tetap jalan
   }
 }
 
-export function loadDraft(): Draft {
+export function loadDraft(testCode: string): Draft {
   try {
-    const raw = sessionStorage.getItem(DRAFT_KEY);
+    const raw = sessionStorage.getItem(draftKey(testCode));
     if (!raw) return {};
     const parsed: unknown = JSON.parse(raw);
     if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {};
@@ -57,9 +57,9 @@ export function loadDraft(): Draft {
   }
 }
 
-export function clearDraft(): void {
+export function clearDraft(testCode: string): void {
   try {
-    sessionStorage.removeItem(DRAFT_KEY);
+    sessionStorage.removeItem(draftKey(testCode));
   } catch {
     // diabaikan
   }

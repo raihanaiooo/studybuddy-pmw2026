@@ -1,4 +1,4 @@
-export type DiagnosticSkill = 'grammar' | 'vocabulary' | 'reading';
+export type DiagnosticSkill = 'grammar' | 'vocabulary' | 'reading' | 'pu' | 'pk' | 'lbi';
 export type DiagnosticQuestionLevel = 'A1' | 'A2' | 'B1' | 'B2';
 export type DiagnosticLevel = 'PRE_A1' | DiagnosticQuestionLevel;
 
@@ -7,7 +7,8 @@ export interface DiagnosticQuestion {
   id: string;
   position: number;
   skill: DiagnosticSkill;
-  level: DiagnosticQuestionLevel;
+  /** Null untuk soal UTBK (tanpa level CEFR). */
+  level: DiagnosticQuestionLevel | null;
   stem: string;
   passage: string | null;
   options: string[];
@@ -51,4 +52,42 @@ export interface DiagnosticStats {
   by_level: Record<DiagnosticLevel, number>;
   orders_from_tests: number;
   recent: DiagnosticRecentAttempt[];
+}
+
+export type UtbkSubtest = 'pu' | 'pk' | 'lbi';
+export type UtbkBand = 'UTBK_RENDAH' | 'UTBK_SEDANG' | 'UTBK_TINGGI';
+
+export interface UtbkSubtestScore {
+  correct: number;
+  total: number;
+}
+
+/** Hasil RPC submit_utbk_attempt. */
+export interface UtbkResult {
+  attempt_id: string;
+  score: number;
+  total: number;
+  band: UtbkBand;
+  per_subtest: Record<UtbkSubtest, UtbkSubtestScore>;
+  /** Subtes dengan benar paling sedikit; kosong bila ketiganya sama. */
+  weakest: UtbkSubtest[];
+  package: DiagnosticPackage | null;
+}
+
+export interface UtbkRecentAttempt {
+  id: string;
+  band: UtbkBand;
+  score: number;
+  created_at: string;
+  ordered: boolean;
+}
+
+/** Hasil RPC diagnostic_stats_utbk (khusus admin). */
+export interface UtbkStats {
+  total_attempts: number;
+  by_band: Record<UtbkBand, number>;
+  /** Persen benar rata-rata per subtes; null bila belum ada attempt. */
+  avg_percent: Record<UtbkSubtest, number | null>;
+  orders_from_tests: number;
+  recent: UtbkRecentAttempt[];
 }

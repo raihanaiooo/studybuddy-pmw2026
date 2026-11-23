@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildOrderPath, parseOrderParams } from './order';
+import { buildOrderPath, parseOrderParams, UTBK_SUBJECT } from './order';
 import { LEVEL_INFO } from './levels';
 
 const ATTEMPT = '0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d';
@@ -10,6 +10,11 @@ describe('buildOrderPath', () => {
     expect(buildOrderPath(ATTEMPT, PACKAGE)).toBe(
       `/?attempt=${ATTEMPT}&package=${PACKAGE}&subject=Bahasa%20Inggris#order`
     );
+  });
+  it('mapel UTBK: subject di-encode dan bisa dibaca kembali', () => {
+    const path = buildOrderPath(ATTEMPT, PACKAGE, UTBK_SUBJECT);
+    expect(path).toBe(`/?attempt=${ATTEMPT}&package=${PACKAGE}&subject=UTBK%20%2F%20SNBT#order`);
+    expect(parseOrderParams(path.slice(1, path.indexOf('#'))).subject).toBe('UTBK / SNBT');
   });
   it('tanpa paket: parameter package dihilangkan (Review Focus 3)', () => {
     expect(buildOrderPath(ATTEMPT, null)).toBe(`/?attempt=${ATTEMPT}&subject=Bahasa%20Inggris#order`);

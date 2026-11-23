@@ -4,6 +4,8 @@ import type {
   DiagnosticQuestion,
   DiagnosticResult,
   DiagnosticStats,
+  UtbkResult,
+  UtbkStats,
 } from '../../types/diagnostic';
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -48,4 +50,21 @@ export async function fetchDiagnosticStats(): Promise<DiagnosticStats> {
   const { data, error } = await supabase.rpc('diagnostic_stats');
   if (error) throw new Error(error.message);
   return data as DiagnosticStats;
+}
+
+/** Try out UTBK: kode tes tetap 'utbk' di server, jadi hanya jawaban yang dikirim. */
+export async function submitUtbkAttempt(answers: Record<string, number>): Promise<UtbkResult> {
+  const { data, error } = await supabase.rpc('submit_utbk_attempt', {
+    p_client_session_id: getClientSessionId(),
+    p_answers: answers,
+  });
+
+  if (error) throw new Error(friendlyMessage(error.message));
+  return data as UtbkResult;
+}
+
+export async function fetchUtbkStats(): Promise<UtbkStats> {
+  const { data, error } = await supabase.rpc('diagnostic_stats_utbk');
+  if (error) throw new Error(error.message);
+  return data as UtbkStats;
 }

@@ -61,45 +61,70 @@ describe('draft jawaban', () => {
 
   it('menyimpan lalu memuat draft yang sama (Review Focus 5)', async () => {
     const { saveDraft, loadDraft } = await loadModule();
-    saveDraft({ 'q-1': 2, 'q-2': 0 });
-    expect(loadDraft()).toEqual({ 'q-1': 2, 'q-2': 0 });
+    saveDraft('english', { 'q-1': 2, 'q-2': 0 });
+    expect(loadDraft('english')).toEqual({ 'q-1': 2, 'q-2': 0 });
   });
 
   it('mengembalikan objek kosong bila belum ada draft', async () => {
     const { loadDraft } = await loadModule();
-    expect(loadDraft()).toEqual({});
+    expect(loadDraft('english')).toEqual({});
   });
 
   it('mengembalikan objek kosong bila isi storage rusak', async () => {
     const storage = fakeStorage();
-    storage.setItem('sb_diag_draft', '{bukan json');
+    storage.setItem('sb_diag_draft_english', '{bukan json');
     vi.stubGlobal('sessionStorage', storage);
     const { loadDraft } = await loadModule();
-    expect(loadDraft()).toEqual({});
+    expect(loadDraft('english')).toEqual({});
   });
 
   it('mengabaikan draft yang bukan objek angka', async () => {
     const storage = fakeStorage();
-    storage.setItem('sb_diag_draft', '[1,2,3]');
+    storage.setItem('sb_diag_draft_english', '[1,2,3]');
     vi.stubGlobal('sessionStorage', storage);
     const { loadDraft } = await loadModule();
-    expect(loadDraft()).toEqual({});
+    expect(loadDraft('english')).toEqual({});
 
-    storage.setItem('sb_diag_draft', JSON.stringify({ a: 1, b: 'x', c: -1, d: 1.5 }));
-    expect(loadDraft()).toEqual({ a: 1 });
+    storage.setItem('sb_diag_draft_english', JSON.stringify({ a: 1, b: 'x', c: -1, d: 1.5 }));
+    expect(loadDraft('english')).toEqual({ a: 1 });
   });
 
   it('clearDraft mengosongkan draft', async () => {
     const { saveDraft, loadDraft, clearDraft } = await loadModule();
-    saveDraft({ a: 1 });
-    clearDraft();
-    expect(loadDraft()).toEqual({});
+    saveDraft('english', { a: 1 });
+    clearDraft('english');
+    expect(loadDraft('english')).toEqual({});
   });
 
   it('saveDraft tidak melempar bila sessionStorage diblokir', async () => {
     vi.stubGlobal('sessionStorage', fakeStorage({ throwOnSet: true, throwOnGet: true }));
     const { saveDraft, loadDraft } = await loadModule();
-    expect(() => saveDraft({ a: 1 })).not.toThrow();
-    expect(loadDraft()).toEqual({});
+    expect(() => saveDraft('english', { a: 1 })).not.toThrow();
+    expect(loadDraft('english')).toEqual({});
+  });
+});
+
+describe('draft per tes (Review Focus 5)', () => {
+  beforeEach(() => {
+    vi.stubGlobal('localStorage', fakeStorage());
+    vi.stubGlobal('sessionStorage', fakeStorage());
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('draft English tidak terbaca di UTBK, dan sebaliknya', async () => {
+    const { saveDraft, loadDraft } = await loadModule();
+    saveDraft('english', { 'q-en': 1 });
+    saveDraft('utbk', { 'q-ut': 3 });
+    expect(loadDraft('english')).toEqual({ 'q-en': 1 });
+    expect(loadDraft('utbk')).toEqual({ 'q-ut': 3 });
+  });
+
+  it('clearDraft UTBK tidak menghapus draft English', async () => {
+    const { saveDraft, loadDraft, clearDraft } = await loadModule();
+    saveDraft('english', { a: 1 });
+    saveDraft('utbk', { b: 2 });
+    clearDraft('utbk');
+    expect(loadDraft('utbk')).toEqual({});
+    expect(loadDraft('english')).toEqual({ a: 1 });
   });
 });

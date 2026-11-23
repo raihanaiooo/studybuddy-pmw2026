@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { CheckCircle2, MessageCircle } from 'lucide-react';
-import { parseOrderParams } from '../../lib/diagnostic/order';
+import { parseOrderParams, UTBK_SUBJECT } from '../../lib/diagnostic/order';
 import { buildAdminWaUrl } from '../../lib/whatsapp';
 
 export function OrderForm() {
@@ -39,7 +39,7 @@ export function OrderForm() {
 
   function handleWA() {
     if (!successData) return;
-    window.open(buildAdminWaUrl(successData, Boolean(fromTest.attemptId)), '_blank');
+    window.open(buildAdminWaUrl(successData, !fromTest.attemptId ? null : fromTest.subject === UTBK_SUBJECT ? 'utbk' : 'english'), '_blank');
   }
 
   return (
@@ -71,7 +71,7 @@ export function OrderForm() {
             </label>
             <label className="font-bold text-sm text-[var(--ink)]">Mapel
               <select name="mapel" defaultValue={fromTest.subject} className="w-full mt-2 bg-[var(--card)] border-2 border-[var(--line)] rounded-2xl px-4 py-3 font-semibold text-[var(--ink)] outline-none focus:border-[var(--blue)] transition-colors">
-                <option>Matematika</option><option>Fisika</option><option>Kimia</option><option>Biologi</option><option>Bahasa Inggris</option><option>Lainnya</option>
+                <option>Matematika</option><option>Fisika</option><option>Kimia</option><option>Biologi</option><option>Bahasa Inggris</option><option>UTBK / SNBT</option><option>Lainnya</option>
               </select>
             </label>
             <label className="font-bold text-sm text-[var(--ink)]">Jenjang

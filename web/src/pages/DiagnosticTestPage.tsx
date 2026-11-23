@@ -5,9 +5,12 @@ import { ProgressBar } from '../components/diagnostic/ProgressBar';
 import { QuestionCard } from '../components/diagnostic/QuestionCard';
 import { ResultCard } from '../components/diagnostic/ResultCard';
 import { useDiagnosticTest } from '../hooks/useDiagnosticTest';
+import { submitAttempt } from '../lib/api/diagnostic';
 import { answeredCount, isComplete } from '../lib/diagnostic/progress';
 
 const TEST_CODE = 'english';
+
+const submitEnglish = (answers: Record<string, number>) => submitAttempt(TEST_CODE, answers);
 
 const primaryButton =
   'inline-flex items-center justify-center gap-2 font-extrabold rounded-2xl py-3 px-6 bg-[var(--blue)] text-white shadow-[0_5px_0_var(--bdark)] hover:-translate-y-0.5 hover:shadow-[0_7px_0_var(--bdark)] active:translate-y-1 active:shadow-none transition-all disabled:opacity-50 disabled:pointer-events-none';
@@ -15,7 +18,7 @@ const secondaryButton =
   'inline-flex items-center justify-center gap-2 font-extrabold rounded-2xl py-3 px-6 border-2 border-[var(--line)] text-[var(--ink)] hover:border-[var(--blue)] transition-colors disabled:opacity-40 disabled:pointer-events-none';
 
 export function DiagnosticTestPage() {
-  const test = useDiagnosticTest(TEST_CODE);
+  const test = useDiagnosticTest(TEST_CODE, submitEnglish);
   const { status, questions, index, answers, error } = test;
   const current = questions[index];
   const complete = isComplete(questions, answers);

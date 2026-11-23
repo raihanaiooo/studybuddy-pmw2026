@@ -1,4 +1,4 @@
-import type { DiagnosticLevel, DiagnosticStats } from '../../types/diagnostic';
+import type { DiagnosticLevel, DiagnosticStats, UtbkBand, UtbkStats } from '../../types/diagnostic';
 
 export const LEVEL_ORDER: DiagnosticLevel[] = ['PRE_A1', 'A1', 'A2', 'B1', 'B2'];
 
@@ -19,5 +19,21 @@ export function levelShares(stats: DiagnosticStats): LevelShare[] {
   return LEVEL_ORDER.map((level) => {
     const count = stats.by_level[level] ?? 0;
     return { level, count, percent: total === 0 ? 0 : Math.round((count / total) * 100) };
+  });
+}
+
+export const BAND_ORDER: UtbkBand[] = ['UTBK_RENDAH', 'UTBK_SEDANG', 'UTBK_TINGGI'];
+
+export interface BandShare {
+  band: UtbkBand;
+  count: number;
+  percent: number;
+}
+
+export function bandShares(stats: UtbkStats): BandShare[] {
+  const total = BAND_ORDER.reduce((sum, band) => sum + (stats.by_band[band] ?? 0), 0);
+  return BAND_ORDER.map((band) => {
+    const count = stats.by_band[band] ?? 0;
+    return { band, count, percent: total === 0 ? 0 : Math.round((count / total) * 100) };
   });
 }
