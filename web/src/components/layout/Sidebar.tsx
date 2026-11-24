@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, ShoppingCart, GraduationCap, FileText, Settings, ClipboardCheck } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, UserPlus, GraduationCap, FileText, Settings, ClipboardCheck } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { NAV_SECTIONS, type NavIconKey } from '../../lib/navigation';
 
@@ -12,6 +12,7 @@ interface SidebarProps {
 const ICONS: Record<NavIconKey, ReactNode> = {
   dashboard: <LayoutDashboard size={18} />,
   orders: <ShoppingCart size={18} />,
+  leads: <UserPlus size={18} />,
   tutors: <GraduationCap size={18} />,
   content: <FileText size={18} />,
   diagnostics: <ClipboardCheck size={18} />,

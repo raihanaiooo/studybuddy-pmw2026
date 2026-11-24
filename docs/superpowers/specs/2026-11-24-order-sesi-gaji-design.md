@@ -214,8 +214,8 @@ sesudahnya data benar dulu (tahap 1-2), tampilan sesudahnya.
 
 | # | Pertanyaan | Bawaan sampai dijawab |
 |---|---|---|
-| 1 | FO022: harga Rp336.875 untuk `45x14` | Diimpor apa adanya, ditandai "perlu cek" |
-| 2 | Arti "KAS INTERNAL" (FO033) | Penerima `kas`: tidak masuk payroll tutor, tampil di rekap |
+| 1 | FO022: harga Rp336.875 untuk `45x14` | **Dijawab Rifky 2026-11-24:** bukan salah harga. Paket 16 sesi dibagi ke lebih dari satu tutor (14 sesi tutor A, 2 sesi tutor B). Biaya tiap tutor = (harga bundling / total sesi) x sesi tutor itu. Diimpor apa adanya, tanpa tanda "perlu cek" |
+| 2 | Arti "KAS INTERNAL" (FO033) | **Dijawab Rifky 2026-11-24:** sesi hangus. Tutor tidak menerima bagian (tutor_pct = 0); seluruhnya pendapatan lain-lain (nama kategorinya belum ditentukan). Migration 012; kolom `other_income_total` di `order_summary` |
 | 3 | Dampak refund ke bagian tutor | Hanya dicatat; tidak mengubah hak tutor |
 | 4 | Lokasi dan format data rekening tutor | Kolom teks bebas opsional |
 | 5 | Format slip gaji asli | Struktur SRS 3.9 (FR-PAYR-06) |
@@ -228,3 +228,12 @@ sesudahnya data benar dulu (tahap 1-2), tampilan sesudahnya.
 
 Nama kolom dan indeks persis, tampilan form dan tabel, teks bawaan template WA, strategi paginasi, format cetak slip, dan cara
 menyimpan berkas halaman mobile yang ditahan, selama mengikuti aturan bisnis bagian 6 dan keamanan bagian 5 dan 10.
+
+
+## 12. Perubahan aturan setelah jawaban Rifky (2026-11-24)
+
+- Penerima `kas` bukan lagi menerima 70% (ruling tahap 1 dibatalkan). Trigger memaksa `tutor_pct = 0` untuk baris `kas`; seluruh nilainya masuk bagian
+  perusahaan dan ditampilkan terpisah sebagai pendapatan lain-lain (`order_summary.other_income_total`). Dampak pada angka Excel: total pendapatan tetap Rp6.460.000,
+  tetapi bagian tutor menjadi Rp4.488.400 (bukan Rp4.522.000) dan bagian perusahaan Rp1.971.600 (bukan Rp1.938.000); selisih Rp33.600 = baris KAS INTERNAL FO033.
+- Berkas: `migration/012_kas_pendapatan_lain.sql`; Supabase: `kas-1-apply.sql`, `kas-2-verify.sql`, `kas-3-rollback.sql`.
+- Belum ditentukan: nama kategori pendapatan lain-lain.

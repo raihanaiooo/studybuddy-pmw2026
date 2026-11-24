@@ -172,7 +172,7 @@ def make_sql(orders, refunds, tutors, report):
                 raise SystemExit('baris %s tanpa tutor: perlu diputuskan manual' % fo)
             w("insert into public.order_sessions (id, order_id, recipient, tutor_id, sessions_count, session_date, date_note, "
               "duration_minutes, rate, tutor_pct, status) values (%s, %s, %s, %s, %d, %s, %s, %s, %s, %d, %s);" % (
-                  q(sid), q(oid), q(recipient), q(tutor_id), count, q(d), q(dnote), q(dur), q(rate), TUTOR_PCT, q(status_row)))
+                  q(sid), q(oid), q(recipient), q(tutor_id), count, q(d), q(dnote), q(dur), q(rate), 0 if recipient == 'kas' else TUTOR_PCT, q(status_row)))
             amount = round(rate * count, 2)
             report['by_month'][o['bulan']]['revenue'] += amount
             report['by_month'][o['bulan']]['excel_base'] += share

@@ -2,6 +2,8 @@
 -- Angka diambil dari spreadsheet Jul-Okt 2026 (mis. FO033: 16 sesi x Rp24.000 dibagi ke 4 penerima).
 \i order_stubs.sql
 \i ../migration/009_order_inti.sql
+\i ../migration/012_kas_pendapatan_lain.sql
+\i ../migration/012_kas_pendapatan_lain.sql
 
 do $$
 declare
@@ -10,7 +12,7 @@ declare
   t3 uuid := '00000000-0000-0000-0000-0000000000d3';
   pkg uuid := '00000000-0000-0000-0000-0000000000e1';
   o uuid; o2 uuid; s1 uuid; s2 uuid; s3 uuid;
-  r record; v text; n int;
+  r record; v text; n int; v2 numeric;
 begin
   insert into public.users (id, role, full_name) values ('00000000-0000-0000-0000-0000000000c1', 'tutor', 'T');
   insert into public.tutors (id, user_id, full_name) values
@@ -30,12 +32,19 @@ begin
     values ('00000000-0000-0000-0000-000000000033', 'FO033', 'Anak', 'Bulanan', 16, 24000) returning id into o;
   insert into public.order_sessions (order_id, tutor_id, sessions_count, status) values (o, t1, 4, 'selesai'), (o, t2, 4, 'selesai'), (o, t3, 4, 'selesai');
   insert into public.order_sessions (order_id, recipient, sessions_count, status) values (o, 'kas', 4, 'selesai');
-  select count(*) into n from public.order_sessions where order_id = o and amount = 96000 and rate = 24000 and tutor_pct = 70;
+  select count(*) into n from public.order_sessions where order_id = o and amount = 96000 and rate = 24000 and tutor_pct = case recipient when 'kas' then 0 else 70 end;
   if n <> 4 then raise exception 'GAGAL [fo033 amount per baris]: %', n; end if;
   select * into r from public.order_summary where order_id = o;
-  if r.revenue_total <> 384000 or r.recipient_share_total <> 268800 or r.company_share_total <> 115200 then
-    raise exception 'GAGAL [fo033 ringkasan]: % % %', r.revenue_total, r.recipient_share_total, r.company_share_total;
+  -- sesi hangus (kas) tidak dibayar ke tutor: seluruhnya pendapatan lain-lain (tim inti)
+  if r.revenue_total <> 384000 or r.recipient_share_total <> 201600 or r.company_share_total <> 182400 or r.other_income_total <> 96000 then
+    raise exception 'GAGAL [fo033 ringkasan]: % % % %', r.revenue_total, r.recipient_share_total, r.company_share_total, r.other_income_total;
   end if;
+  -- [kas selalu 0%] walau diisi 70 oleh pemanggil, dan diperbaiki bila diubah
+  insert into public.order_sessions (order_id, recipient, sessions_count, tutor_pct, status) values (o, 'kas', 1, 70, 'terjadwal') returning tutor_pct into v2;
+  if v2 <> 0 then raise exception 'GAGAL [kas tutor_pct dipaksa 0]: %', v2; end if;
+  update public.order_sessions set tutor_pct = 50 where order_id = o and recipient = 'kas';
+  if exists (select 1 from public.order_sessions where order_id = o and recipient = 'kas' and tutor_pct <> 0) then raise exception 'GAGAL [kas tutor_pct diubah]'; end if;
+  delete from public.order_sessions where order_id = o and status = 'terjadwal';
   if r.sessions_done <> 16 or r.sessions_left <> 0 then raise exception 'GAGAL [fo033 sisa sesi]: % %', r.sessions_done, r.sessions_left; end if;
 
   -- [pembulatan]
