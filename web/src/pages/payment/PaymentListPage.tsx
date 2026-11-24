@@ -128,7 +128,7 @@ export function PaymentListPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Cari mapel atau nama Buddy..."
-              className="inp pl-10"
+              className="inp !pl-10"
             />
           </div>
 

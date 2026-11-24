@@ -98,7 +98,7 @@ export function ContentManagementPage() {
         KARENA KITA PAKAI FLOATING PREVIEW, FORM BISA FULL WIDTH
         Tapi kita batasi lebarnya biar enak dibaca.
       */}
-      <div className="max-w-5xl">
+      <div className="max-w-5xl mx-auto">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
           <div className="inline-flex flex-wrap p-1 rounded-xl border border-[var(--line)] bg-[var(--soft)]">
             {[
@@ -125,6 +125,7 @@ export function ContentManagementPage() {
           )}
         </div>
 
+        <div key={activeTab} className="page-enter">
         {activeTab === 'hero' && heroData && (
           <HeroForm initialData={heroData} onSave={fetchData} />
         )}
@@ -177,6 +178,7 @@ export function ContentManagementPage() {
             )}
           </div>
         )}
+        </div>
       </div>
 
       {/* FLOATING TOMBOL PREVIEW */}

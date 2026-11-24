@@ -121,7 +121,7 @@ export function OrderListPage() {
             <input
               type="text"
               placeholder="Cari nama atau mapel..."
-              className="inp pl-10"
+              className="inp !pl-10"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />

@@ -102,3 +102,13 @@ export async function updateApplication(
     .eq('id', id);
   if (error) throw new Error(error.message);
 }
+
+/** Jumlah pelamar berstatus baru (untuk angka di tab). Melempar galat bila gagal dimuat. */
+export async function countNewApplications(): Promise<number> {
+  const { count, error } = await supabase
+    .from('tutor_applications')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'baru');
+  if (error) throw new Error(error.message);
+  return count ?? 0;
+}

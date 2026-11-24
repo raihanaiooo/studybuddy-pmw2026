@@ -97,7 +97,7 @@ export function AddTutorModal({ isOpen, onClose, onSuccess, initial, verificatio
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
       <div className="card shadow-2xl max-w-xl w-full p-6 my-4">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-[var(--ink)]">Tambah Tutor Manual</h3>
+          <h3 className="text-lg font-bold text-[var(--ink)]">{applicationId ? 'Verifikasi Pelamar' : 'Tambah Tutor Manual'}</h3>
           <button onClick={onClose} className="p-1.5 rounded-lg text-[var(--mute)] hover:bg-[var(--hov)]">
             <X size={18} />
           </button>
@@ -168,7 +168,7 @@ export function AddTutorModal({ isOpen, onClose, onSuccess, initial, verificatio
             <button type="button" onClick={onClose} className="btn">Batal</button>
             <button type="submit" disabled={saving} className="btn btn-p">
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-              Simpan Tutor
+              {applicationId ? 'Verifikasi Tutor' : 'Simpan Tutor'}
             </button>
           </div>
         </form>

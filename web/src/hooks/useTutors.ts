@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Tutor, VerificationStatus } from '../types/tutor';
 import { fetchTutors } from '../lib/api/tutor';
+import { createLatestGuard } from '../lib/latestGuard';
 
 type FilterStatus = VerificationStatus | 'all';
 
@@ -11,16 +12,19 @@ export function useTutors(initialFilter: FilterStatus = 'pending') {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const guard = useRef(createLatestGuard());
+
   const loadTutors = useCallback(async () => {
+    const ticket = guard.current.next();
     setLoading(true);
     setError(null);
     try {
       const data = await fetchTutors(filter);
-      setTutors(data);
+      if (guard.current.isCurrent(ticket)) setTutors(data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Gagal memuat data');
+      if (guard.current.isCurrent(ticket)) setError(e instanceof Error ? e.message : 'Gagal memuat data');
     } finally {
-      setLoading(false);
+      if (guard.current.isCurrent(ticket)) setLoading(false);
     }
   }, [filter]);
 

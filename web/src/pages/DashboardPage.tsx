@@ -1,6 +1,6 @@
 import { PageHeader } from '../components/ui/PageHeader';
 import { StatCard } from '../components/ui/StatCard';
-import { GraduationCap, Users, Wallet, Receipt, ArrowRight } from 'lucide-react';
+import { GraduationCap, Users, Wallet, Receipt } from 'lucide-react';
 import { useDashboard } from '../hooks/useDashboard';
 import type { RecentPayment } from '../hooks/useDashboard';
 
@@ -119,12 +119,6 @@ export function DashboardPage() {
           {/* Transaksi Terbaru */}
           <div className="flex justify-between items-end mb-3">
             <h2 className="text-lg font-bold text-[var(--ink)]">Transaksi Terbaru</h2>
-            <a
-              href="/payments"
-              className="text-sm font-bold text-[var(--blue)] hover:underline inline-flex items-center gap-1"
-            >
-              Lihat Semua <ArrowRight size={16} />
-            </a>
           </div>
 
           {recentPayments.length === 0 ? (

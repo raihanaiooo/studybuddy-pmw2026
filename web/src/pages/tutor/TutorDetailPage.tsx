@@ -41,7 +41,7 @@ export function TutorDetailPage() {
         <p className="text-[#991B1B] mb-4">
           {error ?? 'Tutor tidak ditemukan'}
         </p>
-        <Link to="/tutors" className="btn btn-p inline-flex">
+        <Link to="/tutors?tab=pending" className="btn btn-p inline-flex">
           <ArrowLeft size={16} />
           Kembali
         </Link>
@@ -54,7 +54,7 @@ export function TutorDetailPage() {
       {/* Header */}
       <div>
         <Link
-          to="/tutors"
+          to="/tutors?tab=pending"
           className="text-sm text-[var(--blue)] hover:underline font-semibold inline-flex items-center gap-1 mb-3"
         >
           <ArrowLeft size={16} />

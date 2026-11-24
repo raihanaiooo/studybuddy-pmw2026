@@ -133,7 +133,7 @@ export function PayrollListPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Cari nama Tutor..."
-              className="inp pl-10"
+              className="inp !pl-10"
             />
           </div>
 
