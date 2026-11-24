@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { Portal } from '../ui/Portal';
 
 interface Props {
   isOpen: boolean;
-  mode: 'approve' | 'reject';
+  mode: 'approve' | 'reject' | 'revoke';
   tutorName: string;
   onClose: () => void;
   onConfirm: (note: string) => Promise<void>;
@@ -21,13 +22,14 @@ export function VerificationModal({
   if (!isOpen) return null;
 
   const isApprove = mode === 'approve';
-  const title = isApprove ? 'Setujui Tutor' : 'Tolak Verifikasi';
-  const buttonText = isApprove ? 'Ya, Setujui' : 'Ya, Tolak';
-  const buttonColor = isApprove ? 'bg-[#00C853] hover:bg-[#00A84A]' : 'bg-[#E53935] hover:bg-[#C62828]';
+  const isRevoke = mode === 'revoke';
+  const title = isApprove ? 'Setujui Tutor' : isRevoke ? 'Cabut Verifikasi' : 'Tolak Verifikasi';
+  const buttonText = isApprove ? 'Ya, Setujui' : isRevoke ? 'Ya, Cabut' : 'Ya, Tolak';
+  const buttonColor = isApprove ? 'bg-[#00C853] hover:bg-[#00A84A]' : isRevoke ? 'bg-[#D97706] hover:bg-[#B45309]' : 'bg-[#E53935] hover:bg-[#C62828]';
 
   async function handleConfirm() {
     if (!isApprove && !note.trim()) {
-      await (window.alert as any)('Catatan alasan wajib diisi saat menolak');
+      await (window.alert as any)(isRevoke ? 'Alasan mencabut verifikasi wajib diisi' : 'Catatan alasan wajib diisi saat menolak');
       return;
     }
     setLoading(true);
@@ -43,13 +45,15 @@ export function VerificationModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+    <Portal><div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
         <h3 className="text-lg font-bold text-[#1A1F3C] mb-2">{title}</h3>
         <p className="text-sm text-[#6B7280] mb-4">
           {isApprove
             ? `Setujui verifikasi ${tutorName}? Tutor akan bisa menerima booking.`
-            : `Tolak verifikasi ${tutorName}? Tutor akan diminta upload ulang.`}
+            : isRevoke
+              ? `Cabut verifikasi ${tutorName}? Statusnya kembali ke Menunggu dan bisa disetujui lagi nanti. Order dan gaji yang sudah ada tidak berubah.`
+              : `Tolak verifikasi ${tutorName}? Tutor akan diminta upload ulang.`}
         </p>
 
         <div className="mb-4">
@@ -62,7 +66,9 @@ export function VerificationModal({
             placeholder={
               isApprove
                 ? 'Catatan tambahan (opsional)...'
-                : 'Jelaskan alasan penolakan...'
+                : isRevoke
+                  ? 'Jelaskan alasan mencabut verifikasi...'
+                  : 'Jelaskan alasan penolakan...'
             }
             rows={3}
             className="w-full px-4 py-3 rounded-xl border border-[#E5E7EB] bg-[#F5F6FA] text-sm focus:outline-none focus:border-[#1A5EAA] focus:ring-2 focus:ring-[#1A5EAA]/20 resize-none"
@@ -95,6 +101,6 @@ export function VerificationModal({
           </button>
         </div>
       </div>
-    </div>
+    </div></Portal>
   );
 }

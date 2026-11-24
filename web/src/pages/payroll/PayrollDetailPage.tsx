@@ -11,6 +11,7 @@ import {
 import { usePayrollDetail } from '../../hooks/usePayrollDetail';
 import { PayrollStatusBadge } from '../../components/payroll/PayrollStatusBadge';
 import { formatPeriod } from '../../types/payroll';
+import { Portal } from '../../components/ui/Portal';
 
 function formatRupiah(n: number) {
   return `Rp${n.toLocaleString('id-ID')}`;
@@ -258,7 +259,7 @@ export function PayrollDetailPage() {
 
       {/* Modal Confirm Paid */}
       {showConfirm && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <Portal><div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="card shadow-2xl max-w-md w-full p-6">
             <h3 className="text-lg font-bold text-[var(--ink)] mb-2">
               Tandai Sudah Dibayar?
@@ -312,7 +313,7 @@ export function PayrollDetailPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div></Portal>
       )}
     </div>
   );

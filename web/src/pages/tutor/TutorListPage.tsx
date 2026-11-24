@@ -20,6 +20,8 @@ import type { VerificationStatus } from '../../types/tutor';
 import { AddTutorModal } from '../../components/tutor/AddTutorModal';
 import { ApplicantsPanel } from '../../components/tutor/ApplicantsPanel';
 import { countNewApplications } from '../../lib/api/tutorApplications';
+import { SortControl } from '../../components/ui/SortControl';
+import { sortItems, type SortDir } from '../../lib/sortList';
 import { TUTOR_TABS, parseTutorTab, tabToVerificationFilter, type TutorTab } from '../../lib/tutorTabs';
 
 type ViewMode = 'grid' | 'table';
@@ -55,6 +57,9 @@ export function TutorListPage() {
     error,
     reload // <--- Ambil reload dari hook
   } = useTutors(tabToVerificationFilter(tab) ?? 'pending');
+
+  const [sort, setSort] = useState<{ key: string; dir: SortDir }>({ key: 'created_at', dir: 'asc' });
+  const sortedTutors = sortItems(tutors, (t: any) => t[sort.key], sort.dir);
 
   const [newApplicants, setNewApplicants] = useState<number | null>(null);
 
@@ -226,7 +231,14 @@ export function TutorListPage() {
             />
           </div>
 
-          <div className="flex items-center gap-1 p-1 bg-[var(--soft)] rounded-xl self-start sm:self-auto">
+          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          <SortControl
+            options={[{ key: 'created_at', label: 'Tanggal daftar' }, { key: 'full_name', label: 'Nama' }, { key: 'university', label: 'Kampus' }]}
+            sortKey={sort.key}
+            dir={sort.dir}
+            onChange={(key, dir) => setSort({ key, dir })}
+          />
+          <div className="flex items-center gap-1 p-1 bg-[var(--soft)] rounded-xl">
             <button
               type="button"
               onClick={() => setViewMode('table')}
@@ -245,6 +257,7 @@ export function TutorListPage() {
               <LayoutGrid size={16} />
               Grid
             </button>
+          </div>
           </div>
         </div>
 
@@ -266,7 +279,7 @@ export function TutorListPage() {
       )}
 
       {/* Empty */}
-      {!loading && !error && tutors.length === 0 && (
+      {!loading && !error && sortedTutors.length === 0 && (
         <div className="card p-12 text-center">
           <Users size={48} className="mx-auto text-[var(--mute)] mb-3" />
           <p className="font-bold text-[var(--ink)]">Tidak ada Tutor</p>
@@ -281,10 +294,10 @@ export function TutorListPage() {
       {/* Grid view */}
       {!loading &&
         !error &&
-        tutors.length > 0 &&
+        sortedTutors.length > 0 &&
         viewMode === 'grid' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {tutors.map((tutor) => (
+            {sortedTutors.map((tutor) => (
               <TutorCard key={tutor.id} tutor={tutor} />
             ))}
           </div>
@@ -293,7 +306,7 @@ export function TutorListPage() {
       {/* Table view */}
       {!loading &&
         !error &&
-        tutors.length > 0 &&
+        sortedTutors.length > 0 &&
         viewMode === 'table' && (
           <div className="card overflow-hidden">
             <div className="overflow-x-auto">
@@ -307,7 +320,7 @@ export function TutorListPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {tutors.map((t: any) => (
+                  {sortedTutors.map((t: any) => (
                     <tr key={t.id}>
                       <td>
                         <div className="flex items-center gap-3">
@@ -347,7 +360,7 @@ export function TutorListPage() {
 
                           <button
                             type="button"
-                            onClick={() => navigate(`/tutors/${t.id}`)}
+                            onClick={() => navigate(`/tutors/${t.id}`, { state: { fromTab: tab } })}
                             className="btn !py-1.5 !px-2.5 text-[var(--blue)] border-transparent hover:bg-[var(--hov)]"
                             title="Lihat Dokumen"
                           >

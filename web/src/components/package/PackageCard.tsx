@@ -1,4 +1,5 @@
-import { Pencil, Power } from 'lucide-react';
+import { Pencil } from 'lucide-react';
+import { VisibilitySwitch } from '../content/ContentItemCards';
 import type { Package } from '../../types/package';
 
 interface Props {
@@ -13,7 +14,7 @@ function formatRupiah(n: number) {
 
 export function PackageCard({ package: pkg, onEdit, onToggleActive }: Props) {
   return (
-    <div className="card p-5 hover:shadow-md transition-shadow">
+    <div className={`card p-5 hover:shadow-md transition-shadow ${pkg.is_active ? '' : 'opacity-60'}`}>
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
         <div className="min-w-0 flex-1">
@@ -24,12 +25,6 @@ export function PackageCard({ package: pkg, onEdit, onToggleActive }: Props) {
             {pkg.description ?? '-'}
           </p>
         </div>
-        <span
-          className={`badge shrink-0 ${pkg.is_active ? 'b-done' : 'b-no'}`}
-        >
-          <i />
-          {pkg.is_active ? 'Aktif' : 'Nonaktif'}
-        </span>
       </div>
 
       {/* Info grid */}
@@ -72,18 +67,12 @@ export function PackageCard({ package: pkg, onEdit, onToggleActive }: Props) {
           )}
         </div>
         <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={onToggleActive}
-            className={`btn text-xs ${
-              pkg.is_active
-                ? 'text-[#991B1B] border-[#FCA5A5] hover:bg-[#FEE2E2]'
-                : 'text-[#166534] border-[#86EFAC] hover:bg-[#DCFCE7]'
-            }`}
-          >
-            <Power size={14} />
-            {pkg.is_active ? 'Nonaktifkan' : 'Aktifkan'}
-          </button>
+          <span className="flex items-center gap-2 mr-1">
+            <VisibilitySwitch on={pkg.is_active} label={`Paket ${pkg.package_name} aktif`} onChange={onToggleActive} />
+            <span className={`text-xs font-semibold ${pkg.is_active ? 'text-[#166534]' : 'text-[var(--mute)]'}`}>
+              {pkg.is_active ? 'Aktif' : 'Nonaktif'}
+            </span>
+          </span>
           <button
             type="button"
             onClick={onEdit}

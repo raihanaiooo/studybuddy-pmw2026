@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase } from '../../lib/supabase';
 
 interface Props {
@@ -14,8 +15,8 @@ export function ContentFormModal({ isOpen, type, editData, onClose, onSuccess }:
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (isOpen) setForm(editData || {});
-  }, [isOpen, editData]);
+    if (isOpen) setForm(editData || (type === 'testimonials' ? { is_published: true } : type === 'universities' ? { is_active: true } : {}));
+  }, [isOpen, editData, type]);
 
   if (!isOpen) return null;
 
@@ -44,9 +45,10 @@ export function ContentFormModal({ isOpen, type, editData, onClose, onSuccess }:
     }
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-      <form onSubmit={handleSubmit} className="card w-full max-w-md p-6">
+  // Dipasang di body supaya menutupi seluruh layar, tidak terjebak di kontainer halaman.
+  return createPortal(
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <form onSubmit={handleSubmit} className="card w-full max-w-md p-6 my-auto">
         <h2 className="text-xl font-bold mb-4 text-[var(--ink)]">
           {editData ? 'Edit Data' : 'Tambah Data'}
         </h2>
@@ -75,11 +77,12 @@ export function ContentFormModal({ isOpen, type, editData, onClose, onSuccess }:
         </div>
         <div className="flex justify-end gap-2 mt-6">
           <button type="button" onClick={onClose} className="px-4 py-2 font-bold text-[var(--mute)]">Batal</button>
-          <button type="submit" disabled={saving} className="bg-[var(--blue)] text-white font-bold py-2 px-4 rounded-lg">
+          <button type="submit" disabled={saving} className="btn btn-p">
             {saving ? 'Menyimpan...' : 'Simpan'}
           </button>
         </div>
       </form>
-    </div>
+    </div>,
+    document.body
   );
 }

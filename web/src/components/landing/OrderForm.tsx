@@ -93,7 +93,7 @@ export function OrderForm() {
             </label>
             <label className="font-bold text-sm text-[var(--ink)]">Jenjang
               <select name="jenjang" className="w-full mt-2 bg-[var(--card)] border-2 border-[var(--line)] rounded-2xl px-4 py-3 font-semibold text-[var(--ink)] outline-none focus:border-[var(--blue)] transition-colors">
-                <option>SD</option><option>SMP</option><option>SMA</option><option>Kuliah</option>
+                <option>SMP</option><option>SMA</option><option>Kuliah</option>
               </select>
             </label>
 

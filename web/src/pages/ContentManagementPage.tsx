@@ -1,13 +1,19 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase } from '../lib/supabase';
+import { SortControl } from '../components/ui/SortControl';
+import { sortItems, type SortDir } from '../lib/sortList';
+
 import { ContentFormModal } from '../components/content/ContentFormModal';
 import { HeroForm } from '../components/content/HeroForm';
 import { OprecForm } from '../components/content/OprecForm';
-import { Pencil, Trash2, Plus, Eye, X } from 'lucide-react';
+import { TestimonialCard, UniversityCard } from '../components/content/ContentItemCards';
+import { Plus, Eye, X } from 'lucide-react';
 
 export function ContentManagementPage() {
   const [activeTab, setActiveTab] = useState('hero');
   const [data, setData] = useState<any[]>([]);
+  const [sort, setSort] = useState<{ key: string; dir: SortDir }>({ key: 'created_at', dir: 'desc' });
   const [heroData, setHeroData] = useState<any>(null);
   const [oprecData, setOprecData] = useState<any>(null);
 
@@ -71,6 +77,18 @@ export function ContentManagementPage() {
     }
   };
 
+  // Tayang/sembunyi: tersimpan langsung; tampilan diubah dulu, dikembalikan bila gagal.
+  const visibleField = activeTab === 'testimonials' ? 'is_published' : 'is_active';
+  const handleToggle = async (id: string, next: boolean) => {
+    const previous = data;
+    setData((rows) => rows.map((r) => (r.id === id ? { ...r, [visibleField]: next } : r)));
+    const { error } = await supabase.from(activeTab).update({ [visibleField]: next }).eq('id', id);
+    if (error) {
+      setData(previous);
+      await (window.alert as any)('Gagal mengubah tampilan: ' + error.message);
+    }
+  };
+
   const handleEdit = (item: any) => {
     setEditData(item);
     setIsModalOpen(true);
@@ -79,11 +97,6 @@ export function ContentManagementPage() {
   const handleAdd = () => {
     setEditData(null);
     setIsModalOpen(true);
-  };
-
-  const getInitials = (name: string) => {
-    if (!name) return '?';
-    return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
   };
 
   const getAddLabel = () => {
@@ -135,53 +148,47 @@ export function ContentManagementPage() {
         )}
 
         {(activeTab === 'testimonials' || activeTab === 'universities') && (
-          <div className="grid md:grid-cols-2 gap-4">
-            {data.length === 0 ? (
-              <div className="col-span-full p-10 text-center text-[var(--mute)]">
-                Belum ada data untuk kategori ini.
+          data.length === 0 ? (
+            <div className="card p-10 text-center text-[var(--mute)]">
+              Belum ada data. Klik “Tambah {getAddLabel()}” untuk mulai.
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                <p className="text-sm text-[var(--mute)]">
+                  {data.filter((d) => d[visibleField]).length} dari {data.length} tampil di landing page. Geser sakelar untuk menampilkan atau menyembunyikan; pensil untuk mengubah isi.
+                </p>
+                <SortControl
+                  options={[{ key: 'created_at', label: 'Tanggal dibuat' }, { key: 'name', label: 'Nama' }]}
+                  sortKey={sort.key}
+                  dir={sort.dir}
+                  onChange={(key, dir) => setSort({ key, dir })}
+                />
               </div>
-            ) : (
-              data.map((item) => (
-                <article key={item.id} className="card p-4 hover:border-[var(--blue)] transition-colors flex flex-col">
-                  <div className="flex items-start gap-3">
-                    {activeTab === 'universities' && item.logo_url ? (
-                      <img src={item.logo_url} alt={item.name} className="w-8 h-8 rounded object-contain shrink-0" />
-                    ) : (
-                      <span className="w-8 h-8 rounded-full bg-[var(--blue)] text-white grid place-items-center font-bold text-xs shrink-0">
-                        {getInitials(item.name)}
-                      </span>
-                    )}
-                    <div className="min-w-0">
-                      <h3 className="font-bold text-[var(--ink)] truncate">{item.name}</h3>
-                      {activeTab === 'testimonials' && (
-                        <p className="text-[var(--mute)] text-[13px] truncate">{item.role}</p>
-                      )}
-                    </div>
-
-                    <span className={`badge ml-auto shrink-0 ${item.is_published || item.is_active ? 'b-done' : 'b-no'}`}>
-                      <i></i>{item.is_published || item.is_active ? 'Tayang' : 'Draf'}
-                    </span>
-                  </div>
-                  {item.content && (
-                    <p className="mt-3 text-[var(--mute)] text-sm leading-relaxed line-clamp-3">“{item.content}”</p>
-                  )}
-                  <div className="mt-auto pt-4 border-t border-[var(--line)] flex gap-2">
-                    <button onClick={() => handleEdit(item)} className="btn !py-1.5 text-[var(--blue)] border-none bg-blue-50 hover:bg-blue-100">
-                      <Pencil size={14} /> Edit
-                    </button>
-                    <button onClick={() => handleDelete(item.id)} className="btn !py-1.5 text-red-600 border-none bg-red-50 hover:bg-red-100">
-                      <Trash2 size={14} /> Hapus
-                    </button>
-                  </div>
-                </article>
-              ))
-            )}
-          </div>
+              <div className={activeTab === 'testimonials' ? 'grid md:grid-cols-2 gap-4' : 'grid sm:grid-cols-2 lg:grid-cols-3 gap-3'}>
+                {sortItems(data, (d: any) => d[sort.key], sort.dir).map((item) => {
+                  const Card = activeTab === 'testimonials' ? TestimonialCard : UniversityCard;
+                  return (
+                    <Card
+                      key={item.id}
+                      item={item}
+                      visible={!!item[visibleField]}
+                      onToggle={(next) => handleToggle(item.id, next)}
+                      onEdit={() => handleEdit(item)}
+                      onDelete={() => handleDelete(item.id)}
+                    />
+                  );
+                })}
+              </div>
+            </>
+          )
         )}
         </div>
       </div>
 
-      {/* FLOATING TOMBOL PREVIEW */}
+      {/* Tombol dan layar preview dipasang di body supaya tetap menempel di layar, bukan ikut kontainer halaman */}
+      {createPortal(
+        <>
       <button
         onClick={() => setIsPreviewOpen(true)}
         className="fixed bottom-6 right-6 z-40 btn btn-p shadow-xl rounded-full !px-6 !py-3"
@@ -211,6 +218,9 @@ export function ContentManagementPage() {
             />
           </div>
         </div>
+      )}
+        </>,
+        document.body
       )}
 
       <ContentFormModal

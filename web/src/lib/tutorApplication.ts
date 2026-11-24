@@ -9,7 +9,6 @@ export const SUBJECT_OPTIONS = [
 ] as const;
 
 export const JENJANG_OPTIONS = [
-  { value: 'sd', label: 'SD' },
   { value: 'smp', label: 'SMP' },
   { value: 'sma', label: 'SMA' },
   { value: 'kuliah', label: 'Kuliah' },
@@ -40,7 +39,7 @@ export function normalizeWhatsapp(raw: string): string {
   return wa;
 }
 
-const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+export const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 export function validateApplication(form: ApplicationForm): ApplicationErrors {
   const errors: ApplicationErrors = {};

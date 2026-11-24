@@ -2,7 +2,7 @@ export type VerificationStatus = 'pending' | 'verified' | 'rejected';
 
 export interface Tutor {
   id: string;
-  user_id: string;
+  user_id: string | null;
   full_name: string;
   avatar_url: string | null;
   bio: string | null;
@@ -13,7 +13,15 @@ export interface Tutor {
   verification_status: VerificationStatus;
   verification_note: string | null;
   is_online: boolean;
+  is_outsourced?: boolean;
   created_at: string;
+}
+
+/** Data pribadi tutor (hanya admin yang boleh membaca; tabel tutor_private). */
+export interface TutorPrivate {
+  whatsapp: string | null;
+  email: string | null;
+  payout_account: string | null;
 }
 
 export type DocumentType =

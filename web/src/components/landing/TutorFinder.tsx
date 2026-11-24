@@ -123,7 +123,7 @@ export function TutorFinder() {
             <div>
               <p className="font-extrabold mb-2 text-sm text-[var(--ink)]">Jenjang</p>
               <div className="flex flex-wrap gap-2">
-                {['sd', 'smp', 'sma'].map(j => (
+                {['smp', 'sma'].map(j => (
                   <button
                     key={j}
                     onClick={() => setFilter({...filter, jenjang: j})}

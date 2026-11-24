@@ -2,6 +2,7 @@ import { supabase } from '../supabase';
 import type {
   Tutor,
   TutorDocument,
+  TutorPrivate,
   VerificationStatus,
 } from '../../types/tutor';
 
@@ -93,4 +94,34 @@ export async function getSignedUrl(
 
   if (error) throw error;
   return data.signedUrl;
+}
+
+export async function fetchTutorPrivate(tutorId: string): Promise<TutorPrivate> {
+  const { data, error } = await supabase
+    .from('tutor_private')
+    .select('whatsapp, email, payout_account')
+    .eq('tutor_id', tutorId)
+    .maybeSingle();
+  if (error) throw error;
+  return { whatsapp: data?.whatsapp ?? null, email: data?.email ?? null, payout_account: data?.payout_account ?? null };
+}
+
+export interface TutorProfileInput {
+  full_name: string;
+  university: string | null;
+  gpa: number | null;
+  bio: string | null;
+  subjects: string[];
+  jenjang_diajar: string[];
+  is_outsourced: boolean;
+}
+
+/** Simpan profil tutor dan data pribadinya (dua tabel). Tutor dulu; bila data pribadi gagal, pesan galat dilempar. */
+export async function saveTutorProfile(tutorId: string, profile: TutorProfileInput, priv: TutorPrivate): Promise<void> {
+  const { error } = await supabase.from('tutors').update(profile).eq('id', tutorId);
+  if (error) throw error;
+  const { error: pErr } = await supabase
+    .from('tutor_private')
+    .upsert({ tutor_id: tutorId, ...priv, updated_at: new Date().toISOString() }, { onConflict: 'tutor_id' });
+  if (pErr) throw pErr;
 }

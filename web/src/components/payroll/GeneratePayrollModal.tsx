@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { MONTH_NAMES } from '../../types/payroll';
+import { Portal } from '../ui/Portal';
 
 interface Props {
   isOpen: boolean;
@@ -34,7 +35,7 @@ export function GeneratePayrollModal({ isOpen, onClose, onConfirm }: Props) {
   const years = Array.from({ length: 5 }, (_, i) => now.getFullYear() - i);
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+    <Portal><div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
         <h3 className="text-lg font-bold text-[#1A1F3C] mb-2">
           Generate Payroll
@@ -105,6 +106,6 @@ export function GeneratePayrollModal({ isOpen, onClose, onConfirm }: Props) {
           </button>
         </div>
       </div>
-    </div>
+    </div></Portal>
   );
 }

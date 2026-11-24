@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { X, Save, Loader2 } from 'lucide-react';
 import type { Package, PackageFormData } from '../../types/package';
+import { Portal } from '../ui/Portal';
 
 interface Props {
   isOpen: boolean;
@@ -78,7 +79,7 @@ export function PackageFormModal({ isOpen, editing, onClose, onSubmit }: Props) 
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <Portal><div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
       <div className="card shadow-2xl max-w-lg w-full p-6 my-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-[var(--ink)]">
@@ -257,6 +258,6 @@ export function PackageFormModal({ isOpen, editing, onClose, onSubmit }: Props) 
           </div>
         </form>
       </div>
-    </div>
+    </div></Portal>
   );
 }

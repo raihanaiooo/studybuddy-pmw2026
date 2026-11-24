@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { SortControl } from '../ui/SortControl';
+import { sortItems, type SortDir } from '../../lib/sortList';
 import {
   Package as PackageIcon,
   CheckCircle,
@@ -28,6 +30,7 @@ export function ServicesPanel() {
   } = usePackages();
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [sort, setSort] = useState<{ key: 'package_name' | 'price'; dir: SortDir }>({ key: 'package_name', dir: 'asc' });
   const [editing, setEditing] = useState<Package | null>(null);
 
   function handleOpenCreate() {
@@ -49,8 +52,6 @@ export function ServicesPanel() {
   }
 
   async function handleToggleActive(pkg: Package) {
-    if (!(await (window.confirm as any)(`Yakin ${pkg.is_active ? 'nonaktifkan' : 'aktifkan'} "${pkg.package_name}"?`))) return;
-
     try {
       await toggleActive(pkg.id, !pkg.is_active);
     } catch (err: any) {
@@ -58,6 +59,7 @@ export function ServicesPanel() {
     }
   }
 
+  const sortedPackages = sortItems(packages, (p) => p[sort.key], sort.dir);
   const activeCount = packages.filter((p) => p.is_active).length;
 
   return (
@@ -109,6 +111,13 @@ export function ServicesPanel() {
             className="inp !pl-10"
           />
         </div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+        <SortControl
+          options={[{ key: 'package_name', label: 'Nama' }, { key: 'price', label: 'Harga' }]}
+          sortKey={sort.key}
+          dir={sort.dir}
+          onChange={(key, dir) => setSort({ key: key as 'package_name' | 'price', dir })}
+        />
         <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-[var(--mute)] select-none">
           <input
             type="checkbox"
@@ -118,6 +127,7 @@ export function ServicesPanel() {
           />
           Tampilkan paket nonaktif
         </label>
+        </div>
       </div>
 
       {/* Loading */}
@@ -149,7 +159,7 @@ export function ServicesPanel() {
       {/* Grid */}
       {!loading && !error && packages.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {packages.map((pkg) => (
+          {sortedPackages.map((pkg) => (
             <PackageCard
               key={pkg.id}
               package={pkg}

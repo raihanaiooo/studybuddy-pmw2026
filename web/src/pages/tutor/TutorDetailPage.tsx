@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -8,21 +8,28 @@ import {
   BookOpen,
   GraduationCap,
   User as UserIcon,
+  Pencil,
+  Phone,
 } from 'lucide-react';
 import { useTutorDetail } from '../../hooks/useTutorDetail';
 import { VerificationBadge } from '../../components/tutor/VerificationBadge';
 import { DocumentPreview } from '../../components/tutor/DocumentPreview';
 import { VerificationModal } from '../../components/tutor/VerificationModal';
+import { TutorEditModal } from '../../components/tutor/TutorEditModal';
+import { backTabFor } from '../../lib/tutorTabs';
 
 export function TutorDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { tutor, documents, loading, error, updating, verify } =
+  const { tutor, documents, priv, loading, error, updating, verify, reload } =
     useTutorDetail(id);
-  const [modal, setModal] = useState<'approve' | 'reject' | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [modal, setModal] = useState<'approve' | 'reject' | 'revoke' | null>(null);
+  const location = useLocation();
+  const backTo = `/tutors?tab=${backTabFor(location.state, tutor?.verification_status)}`;
 
   async function handleVerify(note: string) {
     if (!modal) return;
-    const newStatus = modal === 'approve' ? 'verified' : 'rejected';
+    const newStatus = modal === 'approve' ? 'verified' : modal === 'revoke' ? 'pending' : 'rejected';
     await verify(newStatus, note);
   }
 
@@ -41,7 +48,7 @@ export function TutorDetailPage() {
         <p className="text-[#991B1B] mb-4">
           {error ?? 'Tutor tidak ditemukan'}
         </p>
-        <Link to="/tutors?tab=pending" className="btn btn-p inline-flex">
+        <Link to={backTo} className="btn btn-p inline-flex">
           <ArrowLeft size={16} />
           Kembali
         </Link>
@@ -54,7 +61,7 @@ export function TutorDetailPage() {
       {/* Header */}
       <div>
         <Link
-          to="/tutors?tab=pending"
+          to={backTo}
           className="text-sm text-[var(--blue)] hover:underline font-semibold inline-flex items-center gap-1 mb-3"
         >
           <ArrowLeft size={16} />
@@ -74,8 +81,13 @@ export function TutorDetailPage() {
             <p className="text-sm text-[var(--mute)]">
               {tutor.university ?? 'Belum ada institusi'}
               {tutor.gpa ? ` · IPK ${tutor.gpa}` : ''}
+              {tutor.is_outsourced ? ' · Outsourcing' : ''}
             </p>
           </div>
+          <button type="button" onClick={() => setEditing(true)} className="btn shrink-0">
+            <Pencil size={16} />
+            Edit
+          </button>
         </div>
       </div>
 
@@ -102,6 +114,27 @@ export function TutorDetailPage() {
             <XCircle size={18} />
             Tolak
           </button>
+        </div>
+      )}
+
+      {/* Action: sudah diputuskan (bisa dibatalkan) */}
+      {tutor.verification_status !== 'pending' && (
+        <div className="card p-4 flex flex-wrap items-center gap-3">
+          <p className="text-sm text-[var(--mute)] flex-1 min-w-[200px]">
+            {tutor.verification_status === 'verified'
+              ? 'Tutor ini terverifikasi. Keputusan bisa dibatalkan bila ada kesalahan.'
+              : 'Tutor ini ditolak. Bisa disetujui ulang bila ternyata dokumennya sudah benar.'}
+          </p>
+          {tutor.verification_status === 'verified' ? (
+            <button type="button" onClick={() => setModal('revoke')} disabled={updating} className="btn text-[#B45309] border-[#FCD34D] hover:bg-[#FEF3C7] disabled:opacity-50">
+              Cabut verifikasi
+            </button>
+          ) : (
+            <button type="button" onClick={() => setModal('approve')} disabled={updating} className="btn text-[#166534] border-[#86EFAC] hover:bg-[#DCFCE7] disabled:opacity-50">
+              <CheckCircle2 size={16} />
+              Setujui
+            </button>
+          )}
         </div>
       )}
 
@@ -164,6 +197,19 @@ export function TutorDetailPage() {
         </div>
       </div>
 
+      {/* Kontak dan rekening (hanya admin) */}
+      <div className="card p-5 space-y-3">
+        <h2 className="font-bold text-[var(--ink)] flex items-center gap-2">
+          <Phone size={18} className="text-[var(--blue)]" />
+          Kontak &amp; Rekening
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+          <div><p className="text-xs text-[var(--mute)] mb-1">WhatsApp</p><p className="text-[var(--ink)]">{priv.whatsapp || '-'}</p></div>
+          <div><p className="text-xs text-[var(--mute)] mb-1">Email</p><p className="text-[var(--ink)] break-all">{priv.email || '-'}</p></div>
+          <div><p className="text-xs text-[var(--mute)] mb-1">Rekening / e-wallet</p><p className="text-[var(--ink)]">{priv.payout_account || '-'}</p></div>
+        </div>
+      </div>
+
       {/* Dokumen */}
       <div className="space-y-3">
         <h2 className="font-bold text-[var(--ink)]">Dokumen Verifikasi</h2>
@@ -179,6 +225,8 @@ export function TutorDetailPage() {
           </div>
         )}
       </div>
+
+      {editing && <TutorEditModal tutor={tutor} priv={priv} onClose={() => setEditing(false)} onSaved={reload} />}
 
       {/* Modal */}
       {modal && (

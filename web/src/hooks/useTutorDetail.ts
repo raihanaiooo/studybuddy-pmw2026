@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { Tutor, TutorDocument, VerificationStatus } from '../types/tutor';
+import type { Tutor, TutorDocument, TutorPrivate, VerificationStatus } from '../types/tutor';
 import {
   fetchTutorById,
   fetchTutorDocuments,
+  fetchTutorPrivate,
   updateVerificationStatus,
 } from '../lib/api/tutor';
 
 export function useTutorDetail(tutorId: string | undefined) {
   const [tutor, setTutor] = useState<Tutor | null>(null);
   const [documents, setDocuments] = useState<TutorDocument[]>([]);
+  const [priv, setPriv] = useState<TutorPrivate>({ whatsapp: null, email: null, payout_account: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
@@ -18,9 +20,10 @@ export function useTutorDetail(tutorId: string | undefined) {
     setLoading(true);
     setError(null);
     try {
-      const [t, docs] = await Promise.all([
+      const [t, docs, p] = await Promise.all([
         fetchTutorById(tutorId),
         fetchTutorDocuments(tutorId),
+        fetchTutorPrivate(tutorId),
       ]);
       if (!t) {
         setError('Tutor tidak ditemukan');
@@ -28,6 +31,7 @@ export function useTutorDetail(tutorId: string | undefined) {
       }
       setTutor(t);
       setDocuments(docs);
+      setPriv(p);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Gagal memuat data');
     } finally {
@@ -60,6 +64,7 @@ export function useTutorDetail(tutorId: string | undefined) {
   return {
     tutor,
     documents,
+    priv,
     loading,
     error,
     updating,
