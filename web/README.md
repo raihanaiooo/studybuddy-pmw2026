@@ -73,3 +73,22 @@ export default defineConfig([
 ])
 
 ```
+
+## Fitur mobile ditahan
+
+Menu dan rute berikut dilepas dari web admin (2026-11-24) karena datanya berasal dari aplikasi mobile yang belum dipakai.
+Berkas halamannya masih ada; data di database tidak diubah.
+
+| Menu lama | Berkas |
+|---|---|
+| Bookings | `src/pages/booking/` |
+| Transaksi | `src/pages/payment/` |
+| Reschedule | `src/pages/reschedule/` |
+| Komplain | `src/pages/complaint/` |
+| Payroll (versi lama) | `src/pages/payroll/` |
+| Token Buddy | `src/pages/TokenListPage.tsx` |
+| Performa tutor | `src/pages/PerformancePage.tsx` |
+
+Menghidupkan lagi: impor halaman dan tambahkan `<Route>` di `src/App.tsx`, lalu tambahkan item di `NAV_SECTIONS`
+(`src/lib/navigation.ts`) dan keluarkan awalannya dari `HELD_MOBILE_PREFIXES`.
+Alamat lama yang digabung (`/tutor-applications`, `/packages`, `/settings`) dialihkan lewat `LEGACY_REDIRECTS`.

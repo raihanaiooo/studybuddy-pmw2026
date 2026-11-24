@@ -1,21 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Package as PackageIcon,
   CheckCircle,
-  Ticket,
-  Wallet,
   Plus,
   AlertCircle,
   Search,
 } from 'lucide-react';
-import { usePackages } from '../hooks/usePackages';
-import { PackageCard } from '../components/package/PackageCard';
-import { PackageFormModal } from '../components/package/PackageFormModal';
-import { StatCard } from '../components/ui/StatCard';
-import { fetchPackageStats } from '../lib/api/packages';
-import type { Package, PackageStats } from '../types/package';
+import { usePackages } from '../../hooks/usePackages';
+import { PackageCard } from '../package/PackageCard';
+import { PackageFormModal } from '../package/PackageFormModal';
+import { StatCard } from '../ui/StatCard';
+import type { Package } from '../../types/package';
 
-export function PackageListPage() {
+/** Katalog layanan dan harga (tabel packages) di halaman Pengaturan. */
+export function ServicesPanel() {
   const {
     packages,
     includeInactive,
@@ -29,21 +27,8 @@ export function PackageListPage() {
     toggleActive,
   } = usePackages();
 
-  const [stats, setStats] = useState<PackageStats>({
-    totalPackages: 0,
-    activePackages: 0,
-    totalTokens: 0,
-    activeTokens: 0,
-    totalRevenue: 0,
-  });
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Package | null>(null);
-
-  useEffect(() => {
-    fetchPackageStats()
-      .then(setStats)
-      .catch((e) => console.error('Stats error', e));
-  }, [packages.length]);
 
   function handleOpenCreate() {
     setEditing(null);
@@ -73,51 +58,39 @@ export function PackageListPage() {
     }
   }
 
-  const formatRupiah = (n: number) => `Rp${n.toLocaleString('id-ID')}`;
+  const activeCount = packages.filter((p) => p.is_active).length;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-[var(--ink)]">
-            Paket Belajar
-          </h1>
+          <h2 className="text-xl font-extrabold text-[var(--ink)]">
+            Layanan & Harga
+          </h2>
           <p className="text-sm text-[var(--mute)] mt-1">
-            Kelola katalog paket & bundling.
+            Katalog paket dan bundling: harga, jumlah sesi, dan masa berlaku.
           </p>
         </div>
         <button onClick={handleOpenCreate} className="btn btn-p">
           <Plus size={18} />
-          Tambah Paket
+          Tambah Layanan
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      {/* Ringkasan */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <StatCard
-          label="Total Paket"
-          value={stats.totalPackages}
+          label="Layanan Ditampilkan"
+          value={packages.length}
           icon={<PackageIcon size={20} strokeWidth={2.5} />}
           color="blue"
         />
         <StatCard
-          label="Paket Aktif"
-          value={stats.activePackages}
+          label="Layanan Aktif"
+          value={activeCount}
           icon={<CheckCircle size={20} strokeWidth={2.5} />}
           color="green"
-        />
-        <StatCard
-          label="Token Terjual"
-          value={stats.totalTokens}
-          icon={<Ticket size={20} strokeWidth={2.5} />}
-          color="teal"
-        />
-        <StatCard
-          label="Total Revenue"
-          value={formatRupiah(stats.totalRevenue)}
-          icon={<Wallet size={20} strokeWidth={2.5} />}
-          color="yellow"
         />
       </div>
 
@@ -133,7 +106,7 @@ export function PackageListPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Cari nama paket..."
-            className="inp pl-10"
+            className="inp !pl-10"
           />
         </div>
         <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-[var(--mute)] select-none">
@@ -168,7 +141,7 @@ export function PackageListPage() {
           <PackageIcon size={48} className="mx-auto text-[var(--mute)] mb-3" />
           <p className="font-bold text-[var(--ink)]">Belum ada paket</p>
           <p className="text-sm text-[var(--mute)] mt-1">
-            Klik "Tambah Paket" untuk mulai.
+            Klik "Tambah Layanan" untuk mulai.
           </p>
         </div>
       )}

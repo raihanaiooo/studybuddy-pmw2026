@@ -1,4 +1,6 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { LEGACY_REDIRECTS } from './lib/navigation';
+import { SettingsPage } from './pages/SettingsPage';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -6,19 +8,6 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminLayout } from './components/layout/AdminLayout';
 import { TutorListPage } from './pages/tutor/TutorListPage';
 import { TutorDetailPage } from './pages/tutor/TutorDetailPage';
-import { BookingListPage } from './pages/booking/BookingListPage';
-import { BookingDetailPage } from './pages/booking/BookingDetailPage';
-import { PaymentListPage } from './pages/payment/PaymentListPage';
-import { PaymentDetailPage } from './pages/payment/PaymentDetailPage';
-import { ComplaintListPage } from './pages/complaint/ComplaintListPage';
-import { ComplaintDetailPage } from './pages/complaint/ComplaintDetailPage';
-import { RescheduleListPage } from './pages/reschedule/RescheduleListPage';
-import { RescheduleDetailPage } from './pages/reschedule/RescheduleDetailPage';
-import { PayrollListPage } from './pages/payroll/PayrollListPage';
-import { PayrollDetailPage } from './pages/payroll/PayrollDetailPage';
-import { PackageListPage } from './pages/PackageListPage';
-import { TokenListPage } from './pages/TokenListPage';
-import { PerformancePage } from './pages/PerformancePage';
 import { OrderListPage } from './pages/OrderListPage';
 import { ContentManagementPage } from './pages/ContentManagementPage';
 import { LandingPage } from './pages/LandingPage';
@@ -27,7 +16,6 @@ import { DiagnosticTestPage } from './pages/DiagnosticTestPage';
 import { DiagnosticAdminPage } from './pages/DiagnosticAdminPage';
 import { UtbkTestPage } from './pages/UtbkTestPage';
 import { TutorApplyPage } from './pages/TutorApplyPage';
-import { TutorApplicationsPage } from './pages/tutor/TutorApplicationsPage';
 import { GlobalUIManager } from './components/ui/GlobalUiManager';
 
 function App() {
@@ -55,21 +43,11 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/tutors" element={<TutorListPage />} />
           <Route path="/tutors/:id" element={<TutorDetailPage />} />
-          <Route path="/tutor-applications" element={<TutorApplicationsPage />} />
-          <Route path="/performance" element={<PerformancePage />} />
-          <Route path="/bookings" element={<BookingListPage />} />
-          <Route path="/bookings/:id" element={<BookingDetailPage />} />
-          <Route path="/payments" element={<PaymentListPage />} />
-          <Route path="/payments/:id" element={<PaymentDetailPage />} />
-          <Route path="/reschedules" element={<RescheduleListPage />} />
-          <Route path="/reschedules/:id" element={<RescheduleDetailPage />} />
-          <Route path="/complaints" element={<ComplaintListPage />} />
-          <Route path="/complaints/:id" element={<ComplaintDetailPage />} />
-          <Route path="/payroll" element={<PayrollListPage />} />
-          <Route path="/payroll/:id" element={<PayrollDetailPage />} />
-          <Route path="/packages" element={<PackageListPage />} />
-          <Route path="/tokens" element={<TokenListPage />} />
           <Route path="/orders" element={<OrderListPage />} />
+          <Route path="/pengaturan" element={<SettingsPage />} />
+          {Object.entries(LEGACY_REDIRECTS).map(([from, to]) => (
+            <Route key={from} path={from} element={<Navigate to={to} replace />} />
+          ))}
           <Route path="/content" element={<ContentManagementPage />} />
           <Route path="/diagnostics" element={<DiagnosticAdminPage />} />
         </Route>

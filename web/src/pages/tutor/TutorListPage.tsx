@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Search,
   Eye,
@@ -18,16 +18,11 @@ import { useTutors } from '../../hooks/useTutors';
 import { TutorCard } from '../../components/tutor/TutorCard';
 import type { VerificationStatus } from '../../types/tutor';
 import { AddTutorModal } from '../../components/tutor/AddTutorModal';
+import { ApplicantsPanel } from '../../components/tutor/ApplicantsPanel';
+import { countNewApplications } from '../../lib/api/tutorApplications';
+import { TUTOR_TABS, parseTutorTab, tabToVerificationFilter, type TutorTab } from '../../lib/tutorTabs';
 
-type FilterStatus = VerificationStatus | 'all';
 type ViewMode = 'grid' | 'table';
-
-const filters: { key: FilterStatus; label: string }[] = [
-  { key: 'pending', label: 'Menunggu' },
-  { key: 'verified', label: 'Terverifikasi' },
-  { key: 'rejected', label: 'Ditolak' },
-  { key: 'all', label: 'Semua' },
-];
 
 const getInitials = (name?: string) => {
   if (!name) return '?';
@@ -49,16 +44,38 @@ const renderBadge = (status: VerificationStatus) => {
 
 export function TutorListPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = parseTutorTab(searchParams.get('tab'));
   const {
     tutors,
-    filter,
     setFilter,
     search,
     setSearch,
     loading,
     error,
     reload // <--- Ambil reload dari hook
-  } = useTutors();
+  } = useTutors(tabToVerificationFilter(tab) ?? 'pending');
+
+  const [newApplicants, setNewApplicants] = useState<number | null>(null);
+
+  const refreshNewApplicants = useCallback(() => {
+    countNewApplications()
+      .then(setNewApplicants)
+      .catch(() => setNewApplicants(null));
+  }, []);
+
+  useEffect(() => {
+    refreshNewApplicants();
+  }, [refreshNewApplicants]);
+
+  useEffect(() => {
+    const next = tabToVerificationFilter(tab);
+    if (next !== null) setFilter(next);
+  }, [tab, setFilter]);
+
+  function changeTab(next: TutorTab) {
+    setSearchParams({ tab: next }, { replace: true });
+  }
 
   const [viewMode, setViewMode] = useState<ViewMode>('table');
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -115,16 +132,16 @@ export function TutorListPage() {
   // kita nggak perlu filter manual lagi di sini.
   // Langsung pakai `tutors` aja.
 
-  return (
-    <div className="space-y-6">
+  const header = (
+    <>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-extrabold text-[var(--ink)]">
-            Verifikasi Tutor
+            Tutor
           </h1>
           <p className="text-sm text-[var(--mute)] mt-1">
-            Tinjau dokumen, verifikasi, & pilih tutor untuk tampil di Landing Page
+            Dari pelamar sampai tutor aktif: periksa dokumen, verifikasi, dan pilih tutor untuk tampil di Landing Page
           </p>
         </div>
         <button
@@ -134,7 +151,64 @@ export function TutorListPage() {
           <Plus size={18} /> Tambah Tutor Manual
         </button>
       </div>
+    </>
+  );
 
+  const tabBar = (
+    <>
+      {/* Tab */}
+      <div className="flex flex-wrap gap-2" role="tablist" aria-label="Status tutor">
+        {TUTOR_TABS.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            role="tab"
+            aria-selected={tab === t.key}
+            onClick={() => changeTab(t.key)}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${
+              tab === t.key
+                ? 'bg-[var(--blue)] text-white'
+                : 'bg-[var(--soft)] text-[var(--mute)] hover:bg-[var(--hov)]'
+            }`}
+          >
+            {t.label}
+            {t.key === 'pelamar' && newApplicants ? ` (${newApplicants})` : ''}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+
+  if (tab === 'pelamar') {
+    return (
+      <div className="space-y-6">
+        {header}
+        {tabBar}
+        <div key={tab} className="page-enter">
+          <ApplicantsPanel
+            onChanged={() => {
+              refreshNewApplicants();
+              reload();
+            }}
+          />
+        </div>
+      <AddTutorModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={() => {
+          reload();
+        }}
+      />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {header}
+      {tabBar}
+
+      <div key={tab} className="page-enter space-y-6">
       {/* Filters + view toggle */}
       <div className="card p-4 space-y-3">
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
@@ -148,7 +222,7 @@ export function TutorListPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Cari nama atau kampus..."
-              className="inp pl-10"
+              className="inp !pl-10"
             />
           </div>
 
@@ -174,22 +248,6 @@ export function TutorListPage() {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {filters.map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              onClick={() => setFilter(f.key)}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${
-                filter === f.key
-                  ? 'bg-[var(--blue)] text-white'
-                  : 'bg-[var(--soft)] text-[var(--mute)] hover:bg-[var(--hov)]'
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Loading */}
@@ -339,6 +397,8 @@ export function TutorListPage() {
             </div>
           </div>
         )}
+
+      </div>
 
         <AddTutorModal
           isOpen={isAddModalOpen}

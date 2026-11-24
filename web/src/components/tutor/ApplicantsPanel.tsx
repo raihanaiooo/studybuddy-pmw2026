@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { FileText, Loader2, MessageCircle } from 'lucide-react';
-import { PageHeader } from '../../components/ui/PageHeader';
-import { AddTutorModal } from '../../components/tutor/AddTutorModal';
+import { AddTutorModal } from './AddTutorModal';
 import { useAuth } from '../../hooks/useAuth';
 import { showAlert, showPrompt } from '../../lib/dialogs';
 import {
@@ -37,7 +36,7 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
 }
 
-export function TutorApplicationsPage() {
+export function ApplicantsPanel({ onChanged }: { onChanged?: () => void }) {
   const { user } = useAuth();
   const [filter, setFilter] = useState<Filter>('baru');
   const [items, setItems] = useState<TutorApplication[]>([]);
@@ -50,7 +49,8 @@ export function TutorApplicationsPage() {
   const reload = useCallback(() => {
     setLoading(true);
     setReloadKey((k) => k + 1);
-  }, []);
+    onChanged?.();
+  }, [onChanged]);
 
   useEffect(() => {
     let active = true;
@@ -125,7 +125,9 @@ export function TutorApplicationsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Pelamar Tutor" subtitle="Pendaftaran dari landing page. Periksa data dan dokumen dulu; akun tutor dibuat setelah pelamar lolos." />
+      <p className="text-sm text-[var(--mute)]">
+        Pendaftaran dari landing page. Periksa data dan dokumen dulu sebelum memverifikasi.
+      </p>
 
       <div className="flex flex-wrap gap-2">
         {TABS.map((t) => (
@@ -213,7 +215,7 @@ export function TutorApplicationsPage() {
                       Tolak
                     </button>
                     <button type="button" className="btn btn-p" disabled={busyId === app.id} onClick={() => setAccepting(app)}>
-                      Verifikasi dan buat akun
+                      Verifikasi
                     </button>
                   </>
                 )}

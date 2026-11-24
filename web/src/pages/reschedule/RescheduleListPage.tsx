@@ -161,7 +161,7 @@ export function RescheduleListPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Cari alasan, pengaju, atau mapel..."
-              className="inp pl-10"
+              className="inp !pl-10"
             />
           </div>
 
