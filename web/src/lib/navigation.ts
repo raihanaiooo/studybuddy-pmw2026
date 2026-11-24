@@ -1,6 +1,6 @@
 /** Daftar menu sidebar admin dan alamat-alamat yang berhubungan, tanpa React agar bisa diuji. */
 
-export type NavIconKey = 'dashboard' | 'orders' | 'tutors' | 'content' | 'diagnostics' | 'settings';
+export type NavIconKey = 'dashboard' | 'orders' | 'leads' | 'tutors' | 'content' | 'diagnostics' | 'settings';
 
 export interface NavItem {
   path: string;
@@ -15,7 +15,11 @@ export interface NavSection {
 
 export const NAV_SECTIONS: NavSection[] = [
   { heading: null, items: [{ path: '/dashboard', label: 'Dashboard', icon: 'dashboard' }] },
-  { heading: 'Operasional', items: [{ path: '/orders', label: 'Orderan Masuk', icon: 'orders' }] },
+  { heading: 'Operasional', items: [
+      { path: '/order', label: 'Order', icon: 'orders' },
+      { path: '/orders', label: 'Calon Pelanggan', icon: 'leads' },
+    ],
+  },
   { heading: 'Tutor', items: [{ path: '/tutors', label: 'Tutor', icon: 'tutors' }] },
   {
     heading: 'Landing Page',

@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { HELD_MOBILE_PREFIXES, LEGACY_REDIRECTS, NAV_SECTIONS, isHeldPath } from './navigation';
 
 describe('navigation', () => {
-  it('menu memuat 6 item dengan jalur unik', () => {
+  it('menu memuat 7 item dengan jalur unik', () => {
     const paths = NAV_SECTIONS.flatMap((s) => s.items.map((i) => i.path));
-    expect(paths).toEqual(['/dashboard', '/orders', '/tutors', '/content', '/diagnostics', '/pengaturan']);
+    expect(paths).toEqual(['/dashboard', '/order', '/orders', '/tutors', '/content', '/diagnostics', '/pengaturan']);
     expect(new Set(paths).size).toBe(paths.length);
   });
 

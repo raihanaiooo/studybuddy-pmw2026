@@ -9,6 +9,8 @@ import { AdminLayout } from './components/layout/AdminLayout';
 import { TutorListPage } from './pages/tutor/TutorListPage';
 import { TutorDetailPage } from './pages/tutor/TutorDetailPage';
 import { OrderListPage } from './pages/OrderListPage';
+import { OrderPage } from './pages/order/OrderPage';
+import { OrderDetailPage } from './pages/order/OrderDetailPage';
 import { ContentManagementPage } from './pages/ContentManagementPage';
 import { LandingPage } from './pages/LandingPage';
 import { LandingPreviewPage } from './pages/LandingPagePreview';
@@ -43,6 +45,8 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/tutors" element={<TutorListPage />} />
           <Route path="/tutors/:id" element={<TutorDetailPage />} />
+          <Route path="/order" element={<OrderPage />} />
+          <Route path="/order/:id" element={<OrderDetailPage />} />
           <Route path="/orders" element={<OrderListPage />} />
           <Route path="/pengaturan" element={<SettingsPage />} />
           {Object.entries(LEGACY_REDIRECTS).map(([from, to]) => (
