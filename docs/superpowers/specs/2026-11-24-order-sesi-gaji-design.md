@@ -113,7 +113,7 @@ Harga per sesi = `price` / `session_count`. Baris lama dari uji mobile dibiarkan
 
 **`tutors`** (tabel yang ada, diubah)
 - `user_id` boleh kosong. Tutor dibuat langsung oleh admin tanpa Auth dan tanpa email.
-- Kolom baru: `whatsapp`, `email` (opsional), `is_outsourced`, `payout_account` (teks bebas: bank atau e-wallet, nomor, atas nama).
+- Kolom baru: `is_outsourced`. WhatsApp, email, dan `payout_account` (teks bebas: bank atau e-wallet, nomor, atas nama) disimpan di tabel `tutor_private` yang hanya bisa dibaca admin.
 - Baris tutor dari pelamar menyimpan `application_id` asal.
 
 **`tutor_documents`** (tabel yang ada): tambah `storage_bucket` (bawaan `documents`). Dokumen pelamar yang diterima **tidak disalin**; barisnya menunjuk ke
@@ -180,7 +180,19 @@ Satu kali jalan: skrip membaca sheet "Database Transaksi" dan menghasilkan berka
    Penyesuaian saat dikerjakan: menu Tutor memakai lima tab (ditambah "Menunggu" untuk tutor yang sudah dibuat tapi belum diverifikasi),
    dan tab Info Bisnis dipindah ke tahap 3 karena belum ada tempat penyimpanan tanpa database.
    Tanpa perubahan database dan tanpa SQL untuk Rifky; tidak ada fitur yang hilang selain menu mobile yang ditahan.
-1. **Database:** tabel baru, perubahan tabel lama, RLS, audit, fungsi payroll dan terima pelamar, uji SQL, berkas apply/verify/rollback.
+1. **Database:** tabel baru, perubahan tabel lama, RLS, audit, fungsi payroll dan terima pelamar, uji SQL, berkas apply/verify/rollback. **Ditulis dan lulus uji lokal 2026-11-24** (migration 009-011; berkas apply/verify/rollback `operasional-*` di `supabase-apply`; menunggu Rifky menjalankannya).
+   Penyesuaian saat dikerjakan: (a) `order_adjustments.payroll_id` ditambah agar tidak terhitung dua kali; (b) jatuh tempo sesi payroll memakai
+   `coalesce(session_date, tanggal order)` karena tanggal teks bebas dari impor; (c) penerima `kas` menerima bagian 70% seperti tutor (FO033: 2 sesi = Rp33.600), bukan 0,
+   dan ringkasan order memakai `recipient_share_total` dan `company_share_total`; (d) sesi dan penyesuaian di payroll yang sudah ada transfernya terkunci (`payroll_terkunci`);
+   (e) rollback menolak berjalan bila sudah ada data order, payroll hasil generate, atau tutor tanpa akun.
+   Perbaikan dari tinjauan independen: (f) WhatsApp, email, dan rekening tutor ada di tabel terpisah `tutor_private` (admin saja), bukan di `tutors`,
+   karena `tutors` bisa dibaca semua pengguna yang login; (g) `generate_payroll` menghitung ulang payroll bulan itu yang belum terkunci
+   (sesi dihapus, dibatalkan, ganti tutor, atau order dihapus ikut menurunkan hak); payroll lama dari alur mobile (`source = 'legacy'`) atau yang sudah `paid` tidak pernah ditimpa;
+   (h) arti `payroll_records.total_commission` tetap bagian tutor (70%) seperti halaman payroll lama, `total_due` = bagian tutor + bonus - potongan;
+   (i) `order_adjustments.tutor_pct` disalin saat dibuat agar angka lama tidak berubah bila persen di Pengaturan diubah; sesi `batal` tidak dihitung pendapatan order;
+   (j) `payroll_records` yang terkunci tidak bisa diubah langsung (hanya lewat transfer); (k) perubahan `is_online`/`last_seen` tutor tidak dicatat di log.
+   Belum diputuskan (dibawa ke tahap 5): penyesuaian (bonus, potongan, extend) dibayar berdasarkan tanggal dibuat, tidak menunggu order paket selesai;
+   `total_due` bisa negatif bila potongan lebih besar dari hak.
 2. **Impor Excel** dan pencocokan angka.
 3. **Pengaturan lanjutan:** Info Bisnis, Aturan, Template WA; tab Tutor memakai fungsi terima pelamar tanpa akun.
 4. **Operasional:** Calon Pelanggan, Order, Jadwal, Pembayaran, Komplain.
