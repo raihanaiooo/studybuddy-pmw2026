@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { SortControl } from '../components/ui/SortControl';
+import { sortItems, type SortDir } from '../lib/sortList';
+
 import { OrderFormModal } from '../components/order/OrderFormModal';
 import { describeOrderOrigin } from '../lib/orderOrigin';
 import {
@@ -28,6 +31,7 @@ export function OrderListPage() {
 
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [search, setSearch] = useState('');
+  const [sort, setSort] = useState<{ key: string; dir: SortDir }>({ key: 'created_at', dir: 'desc' });
 
   const fetchOrders = async () => {
     // Sertakan hasil tes dan paket yang disarankan; bila relasi tidak terbaca, jatuh ke daftar polos.
@@ -66,13 +70,13 @@ export function OrderListPage() {
     done: orders.filter((o) => o.status === 'done').length,
   };
 
-  const filteredOrders = orders.filter((o) => {
+  const filteredOrders = sortItems(orders.filter((o) => {
     const matchStatus = filter === 'all' || o.status === filter;
     const matchSearch = (o.name + o.subject)
       .toLowerCase()
       .includes(search.toLowerCase());
     return matchStatus && matchSearch;
-  });
+  }), (o: any) => o[sort.key], sort.dir);
 
   const getInitials = (name: string) => {
     if (!name) return '?';
@@ -127,10 +131,18 @@ export function OrderListPage() {
             />
           </div>
 
-          <button type="button" className="btn self-start sm:self-auto">
-            <Download size={16} />
-            Export
-          </button>
+          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+            <SortControl
+              options={[{ key: 'created_at', label: 'Tanggal masuk' }, { key: 'name', label: 'Nama' }, { key: 'subject', label: 'Mapel' }]}
+              sortKey={sort.key}
+              dir={sort.dir}
+              onChange={(key, dir) => setSort({ key, dir })}
+            />
+            <button type="button" className="btn">
+              <Download size={16} />
+              Export
+            </button>
+          </div>
         </div>
 
         {/* Pill filter */}

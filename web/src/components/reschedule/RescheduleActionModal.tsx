@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Portal } from '../ui/Portal';
 
 type ActionType = 'approve' | 'reject';
 
@@ -53,7 +54,7 @@ export function RescheduleActionModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+    <Portal><div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
         <h3 className="text-lg font-bold text-[#1A1F3C] mb-2">{c.title}</h3>
         <p className="text-sm text-[#6B7280] mb-4">
@@ -105,6 +106,6 @@ export function RescheduleActionModal({
           </button>
         </div>
       </div>
-    </div>
+    </div></Portal>
   );
 }

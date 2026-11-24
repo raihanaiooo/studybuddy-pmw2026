@@ -19,6 +19,7 @@ import { RescheduleCard } from '../../components/reschedule/RescheduleCard';
 import { StatCard } from '../../components/ui/StatCard';
 import { fetchRescheduleStats } from '../../lib/api/reschedules';
 import type { RescheduleStatus, RescheduleStats } from '../../types/reschedule';
+import { Portal } from '../../components/ui/Portal';
 
 type FilterStatus = RescheduleStatus | 'all';
 type ViewMode = 'grid' | 'table';
@@ -327,7 +328,7 @@ export function RescheduleListPage() {
 
       {/* Modal Detail */}
       {selectedData && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <Portal><div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="card w-full max-w-lg p-6 relative">
             <button
               type="button"
@@ -391,7 +392,7 @@ export function RescheduleListPage() {
               </div>
             )}
           </div>
-        </div>
+        </div></Portal>
       )}
     </div>
   );

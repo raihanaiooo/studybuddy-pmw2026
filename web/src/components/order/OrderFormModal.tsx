@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import { Portal } from '../ui/Portal';
 
 interface Props {
   isOpen: boolean;
@@ -60,7 +61,7 @@ export function OrderFormModal({ isOpen, editData, onClose, onSuccess }: Props) 
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+    <Portal><div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
       <form onSubmit={handleSubmit} className="card w-full max-w-md p-6">
         <h2 className="text-xl font-bold mb-4 text-[var(--ink)]">
           {editData ? 'Edit Orderan' : 'Tambah Orderan'}
@@ -105,6 +106,6 @@ export function OrderFormModal({ isOpen, editData, onClose, onSuccess }: Props) 
           </button>
         </div>
       </form>
-    </div>
+    </div></Portal>
   );
 }

@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
+import { SortControl } from '../ui/SortControl';
+import { sortItems, type SortDir } from '../../lib/sortList';
 import { FileText, Loader2, MessageCircle } from 'lucide-react';
 import { AddTutorModal } from './AddTutorModal';
 import { useAuth } from '../../hooks/useAuth';
@@ -40,6 +42,8 @@ export function ApplicantsPanel({ onChanged }: { onChanged?: () => void }) {
   const { user } = useAuth();
   const [filter, setFilter] = useState<Filter>('baru');
   const [items, setItems] = useState<TutorApplication[]>([]);
+  const [sort, setSort] = useState<{ key: 'created_at' | 'full_name'; dir: SortDir }>({ key: 'created_at', dir: 'desc' });
+  const sortedItems = sortItems(items, (a) => a[sort.key], sort.dir);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -129,6 +133,7 @@ export function ApplicantsPanel({ onChanged }: { onChanged?: () => void }) {
         Pendaftaran dari landing page. Periksa data dan dokumen dulu sebelum memverifikasi.
       </p>
 
+      <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="flex flex-wrap gap-2">
         {TABS.map((t) => (
           <button
@@ -141,6 +146,13 @@ export function ApplicantsPanel({ onChanged }: { onChanged?: () => void }) {
             {t.label}
           </button>
         ))}
+      </div>
+      <SortControl
+        options={[{ key: 'created_at', label: 'Tanggal daftar' }, { key: 'full_name', label: 'Nama' }]}
+        sortKey={sort.key}
+        dir={sort.dir}
+        onChange={(key, dir) => setSort({ key: key as 'created_at' | 'full_name', dir })}
+      />
       </div>
 
       {loading && (
@@ -159,7 +171,7 @@ export function ApplicantsPanel({ onChanged }: { onChanged?: () => void }) {
 
       {!loading && !error && (
         <ul className="grid gap-4">
-          {items.map((app) => (
+          {sortedItems.map((app) => (
             <li key={app.id} className="card p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>

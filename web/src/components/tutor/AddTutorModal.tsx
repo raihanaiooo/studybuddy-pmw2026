@@ -2,6 +2,7 @@ import { functionErrorMessage } from '../../lib/functionError';
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { X, Save, Loader2 } from 'lucide-react';
+import { Portal } from '../ui/Portal';
 
 interface Props {
   isOpen: boolean;
@@ -16,7 +17,7 @@ interface Props {
 }
 
 const SUBJECTS = ['mtk', 'fis', 'kim', 'bio', 'ing'];
-const JENJANG = ['sd', 'smp', 'sma', 'kuliah'];
+const JENJANG = ['smp', 'sma', 'kuliah'];
 
 export function AddTutorModal({ isOpen, onClose, onSuccess, initial, verificationStatus, applicationId }: Props) {
   const [form, setForm] = useState({
@@ -94,7 +95,7 @@ export function AddTutorModal({ isOpen, onClose, onSuccess, initial, verificatio
 };
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <Portal><div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
       <div className="card shadow-2xl max-w-xl w-full p-6 my-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-[var(--ink)]">{applicationId ? 'Verifikasi Pelamar' : 'Tambah Tutor Manual'}</h3>
@@ -173,6 +174,6 @@ export function AddTutorModal({ isOpen, onClose, onSuccess, initial, verificatio
           </div>
         </form>
       </div>
-    </div>
+    </div></Portal>
   );
 }

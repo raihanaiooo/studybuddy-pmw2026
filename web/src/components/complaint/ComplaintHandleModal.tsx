@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Portal } from '../ui/Portal';
 
 type ActionType = 'in_review' | 'resolved' | 'rejected';
 
@@ -58,7 +59,7 @@ export function ComplaintHandleModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+    <Portal><div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
         <h3 className="text-lg font-bold text-[#1A1F3C] mb-4">{c.title}</h3>
 
@@ -107,6 +108,6 @@ export function ComplaintHandleModal({
           </button>
         </div>
       </div>
-    </div>
+    </div></Portal>
   );
 }
